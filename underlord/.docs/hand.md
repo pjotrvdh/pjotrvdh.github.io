@@ -40,7 +40,7 @@ Left-click with something in hand (checked in this order in `pointerdown`):
 | Dropped on | Job | Condition |
 |---|---|---|
 | Training Room | `train` 8 s | gold > 0 |
-| Library | `study` 8 s | |
+| Library | `study` 8 s | kind has `study` > 0 (not Orc or Troll) |
 | Lair tile not owned by another unit | bed moves there, `sleep` | |
 | Hatchery | `eat` 2.5 s | |
 

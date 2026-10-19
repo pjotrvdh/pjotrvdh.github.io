@@ -65,6 +65,7 @@ Section markers inside `underlord.js` (search for `/* ---------- name ----------
 | [spells](spells.md) | You touch `cast()`, `spellCost()`, research thresholds or a spell's effect |
 | [computer-assistant](computer-assistant.md) | You touch `cpuTick()` / `cpuBuild()` / `cpuMove()` / `cpuSpells()` or the C button |
 | [saving](saving.md) | You touch `serialize()` / `deserialize()`, localStorage, autosave or add entity/state fields |
+| [dungeon-keeper](dungeon-keeper.md) | You balance a creature, hero, room or spell and need the original Dungeon Keeper values or Underlord's deviations |
 | [rendering-and-ui](rendering-and-ui.md) | You touch `draw()`, caches, fog drawing, the minimap, sprites, panel tabs, HUD, input, cheats |
 
 ## Conventions for changes

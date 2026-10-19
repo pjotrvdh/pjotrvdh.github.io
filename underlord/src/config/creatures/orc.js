@@ -12,6 +12,10 @@ export default {
     rate: 0.9,
     /** Gold per payday. */
     wage: 55,
+    /** XP per second in the Training Room. */
+    train: 9,
+    /** Research points per second in the Library; 0 = it never studies. */
+    study: 0,
     /** How far it can see, in tiles. */
     vision: 5,
     /** How many the portals hold on one map. Arrivals take one; one that leaves or is dismissed goes back, a slain one is gone. */

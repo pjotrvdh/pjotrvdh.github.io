@@ -73,3 +73,4 @@ description: Underlord hero waves, marching/tunnelling, the Heart zap, the hero 
 - [combat](combat.md) — how heroes pick and fight targets
 - [map](map.md) — gate placement, caverns, fog
 - [spells](spells.md) — Lightning against heroes
+- [dungeon-keeper](dungeon-keeper.md) — original hero stats; the Lord of the Land is a Knight in DK

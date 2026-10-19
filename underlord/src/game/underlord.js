@@ -12,7 +12,7 @@ let CFG,ECON,KINDS,ROOMS,SPELLS,WAVES,ATTRACT,PORTAL_LIMIT,HEART_CAP,TREAS_CAP,W
 function applyConfig(c){
   CFG=c.settings;ECON=CFG.economy;HEART_CAP=ECON.heartCap;TREAS_CAP=ECON.treasCap;WALL_HP=CFG.walls.hp;PORTAL_LIMIT=CFG.portal.creatureLimit;
   const mk=(v,side,k)=>({n:v.name,g:k==='imp'?'':v.name[0],hp:v.hp,atk:v.attack,spd:v.speed,range:v.range,rate:v.rate,wage:v.wage||0,col:v.color,
-    side:side||undefined,bounty:v.bounty||0,dig:v.dig,big:v.big?1:0,vision:v.vision||5,pool:v.pool||0,attract:v.attract||{}});
+    side:side||undefined,bounty:v.bounty||0,dig:v.dig,big:v.big?1:0,vision:v.vision||5,pool:v.pool||0,attract:v.attract||{},train:v.train||0,study:v.study||0});
   KINDS={};
   for(const[k,v]of Object.entries(c.creatures))KINDS[k]=mk(v,0,k);
   for(const[k,v]of Object.entries(c.heroes))KINDS[k]=mk(v,1,k);
@@ -298,7 +298,7 @@ function creatureThink(e){
   if(e.kind==='warlock'&&G.rc[LIB]&&Math.random()<.8){const p=bfs(here,i=>G.room[i]===LIB,6);if(p){go(e,p,'study',8);return;}}
   if(G.rc[TRAIN]&&G.money>20&&e.lvl<10&&Math.random()<.6){const p=bfs(here,i=>G.room[i]===TRAIN,6);if(p){go(e,p,'train',8);return;}}
   if(Math.random()<.35){const p=bfs(here,i=>frontier(i)||G.loot[i]>0,3,walk,40);if(p&&p.length){go(e,p,'idle',1.5);return;}}
-  if(G.rc[LIB]&&Math.random()<.5){const p=bfs(here,i=>G.room[i]===LIB,6);if(p){go(e,p,'study',8);return;}}
+  if(KINDS[e.kind].study&&G.rc[LIB]&&Math.random()<.5){const p=bfs(here,i=>G.room[i]===LIB,6);if(p){go(e,p,'study',8);return;}}
   let p=toBed(e);
   if(!p)p=bfs(here,i=>G.t[i]===CLAIM,8,walk,5);
   if(p)go(e,p,'idle',2+Math.random()*3);else{e.state='idle';e.timer=2;}
@@ -401,8 +401,8 @@ function tick(e,dt){
     case 'reinforce':doReinforce(e,dt);break;
     case 'sleep':if(ti(e)!==e.bed||!hasBed(e)){e.state='think';break;}e.hp=Math.min(e.maxhp,e.hp+e.maxhp*.06*dt);if(e.hp>=e.maxhp)e.state='think';break;
     case 'eat':if(G.room[ti(e)]!==HATCH){e.state='think';break;}if((e.timer-=dt)<=0){e.hunger=0;e.hp=Math.min(e.maxhp,e.hp+e.maxhp*.15);e.state='think';}break;
-    case 'train':if(G.room[ti(e)]!==TRAIN||G.money<=0){e.state='think';break;}G.money=Math.max(0,G.money-ECON.trainCost*dt);gainXP(e,(e.kind==='troll'?11:9)*(e.boost||1)*dt);if((e.timer-=dt)<=0)e.state='think';break;
-    case 'study':if(G.room[ti(e)]!==LIB){e.state='think';break;}research(dt*(e.kind==='warlock'?4:1.2)*(e.boost||1));if((e.timer-=dt)<=0)e.state='think';break;
+    case 'train':if(G.room[ti(e)]!==TRAIN||G.money<=0){e.state='think';break;}G.money=Math.max(0,G.money-ECON.trainCost*dt);gainXP(e,KINDS[e.kind].train*(e.boost||1)*dt);if((e.timer-=dt)<=0)e.state='think';break;
+    case 'study':if(G.room[ti(e)]!==LIB){e.state='think';break;}research(dt*KINDS[e.kind].study*(e.boost||1));if((e.timer-=dt)<=0)e.state='think';break;
     case 'fight':fight(e,dt);break;
     case 'march':march(e,dt);break;
     case 'leave':if(step(e,dt)){e.dead=true;toPool(e);fx({type:'ring',x:e.x,y:e.y,dur:.6,col:'#9b6bf0'});}break;
@@ -771,7 +771,7 @@ function dropHeld(i){
   const r=G.room[i],k=d.kind!=='imp'&&!d.leaving;
   // Dropped on a free Lair tile, a creature moves its bed there; another creature's bed stays locked.
   const bed=k&&r===LAIR&&!bedOwner(i,d);if(bed)d.bed=i;
-  d.after=k&&r===TRAIN&&G.money>0?['train',8]:k&&r===LIB?['study',8]:bed?['sleep',0]:k&&r===HATCH?['eat',2.5]:null;
+  d.after=k&&r===TRAIN&&G.money>0?['train',8]:k&&r===LIB&&KINDS[d.kind].study?['study',8]:bed?['sleep',0]:k&&r===HATCH?['eat',2.5]:null;
   d.boost=d.after?CFG.hand.workBoost:1;d.state='stun';d.timer=CFG.hand.dropStun;
   fx({type:'ring',x:d.x,y:d.y,dur:.4,col:'#eadcc6'});fx({type:'dust',x:d.x,y:d.y+.3,dur:.4,col:'#8a6446'});
 }

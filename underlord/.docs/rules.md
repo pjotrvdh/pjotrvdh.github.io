@@ -55,7 +55,7 @@ description: Underlord's rules as the player experiences them (goal, gold, rooms
 | Lair | `LAIR` 2 | One bed per tile; each creature locks one tile as its bed; portal needs Lair tiles > creatures |
 | Hatchery | `HATCH` 3 | Hungry creatures eat here (hunger reset, +15% health) |
 | Training Room | `TRAIN` 4 | Creatures gain XP; costs `economy.js` `trainCost` gold per second per trainee |
-| Library | `LIB` 5 | Creatures study; research unlocks spells |
+| Library | `LIB` 5 | Warlocks and Mistresses study; research unlocks spells |
 
 Mechanics of eating, sleeping, training, studying: [creatures](creatures.md).
 
@@ -72,7 +72,7 @@ Mechanics of eating, sleeping, training, studying: [creatures](creatures.md).
 
 ## Research and spells
 
-- Creatures in the Library add research points (`G.research`, a running total). A spell unlocks when the total reaches its `research` value in `spells/*.js`: Create Imp 0, Call to Arms 150, Heal 400, Lightning 500.
+- Creatures in the Library add research points (Warlock fastest; Orc and Troll never study) (`G.research`, a running total). A spell unlocks when the total reaches its `research` value in `spells/*.js`: Create Imp 0, Call to Arms 150, Heal 400, Lightning 500.
 - Call to Arms is free when cast on a claimed tile. Details: [spells](spells.md).
 
 ## Hero waves
@@ -92,3 +92,4 @@ Mechanics of eating, sleeping, training, studying: [creatures](creatures.md).
 - [creatures](creatures.md) — how creatures use rooms, get paid and leave
 - [heroes](heroes.md) — waves, tunnelling and the Heart
 - [spells](spells.md) — spell costs and effects
+- [dungeon-keeper](dungeon-keeper.md) — original Dungeon Keeper values and where these rules deviate
