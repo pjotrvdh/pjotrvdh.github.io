@@ -1,4 +1,3 @@
-import './styles/fonts.css';
 import './styles/arcade.css';
 import games from './games.js';
 

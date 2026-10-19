@@ -39,7 +39,7 @@ index.html              the Arcade index
 src/
   games.js              the games on the index: title, description, genres, date added
   main.js               renders the index: search, genre filter, game tiles
-  styles/               arcade.css (cyberpunk look) and the embedded OpenDyslexic font
+  styles/arcade.css     the cyberpunk look
   logo.svg              the graffiti ARCADE logo (letters as paths, no font needed)
   favicon.svg
 public/404.html         GitHub Pages' "not found" page; also sends old /Underlord/ links to /underlord/

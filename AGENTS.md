@@ -6,12 +6,12 @@ Arcade is the owner's collection of browser games, published at https://pjotrvdh
 
 - The root is the Arcade index: `index.html`, `src/` (`games.js` lists the games, `main.js` renders the index) and `vite.config.js`.
 - Every game lives in its own folder (for example `underlord/`), as an npm workspace listed in the root `package.json`, with a 16:9 `cover.svg` and an entry in `src/games.js`. The slug is the folder name and the URL: `/underlord/`.
-- Every page builds to one self-contained HTML file (JS, CSS, SVGs, favicon and font embedded) with `singleFilePage()` from `tools/vite.js`. Do not add files a build would have to ship separately.
+- Every page builds to one self-contained HTML file (JS, CSS, SVGs and favicon embedded) with `singleFilePage()` from `tools/vite.js`. Do not add files a build would have to ship separately.
 - `npm run build` builds every workspace, then the index, and copies each game's `dist/` to `dist/<slug>`. The `github pages` workflow publishes `dist/` on every push to `main`.
 - `public/404.html` is GitHub Pages' not-found page and also redirects the old `/Underlord/` URL to `/underlord/`.
 - `npm run dev` serves the index and every game (`/<slug>/`). DDEV (default `ddev.site` TLD, no PHP or database): `ddev start` runs it through `.ddev/start-vite.sh` on https://arcade.ddev.site. Run npm commands as `ddev npm …` when DDEV is used.
 - The index has a cyberpunk look (`src/styles/arcade.css`) and a graffiti logo, `src/logo.svg`, whose letters are paths (from Sedgwick Ave Display, SIL OFL), so no font is needed.
-- All text uses the OpenDyslexic font (Fontsource, embedded). Keep text contrast at WCAG AA or better.
+- Text uses system fonts only, so no font files are shipped (never Comic Sans). The Arcade index and Twistball use a DIN-like HUD stack (`Bahnschrift, "DIN Alternate", …`; Twistball's HUD numbers are monospaced); Underlord uses Palatino-style serifs for headings and a humanist sans (`"Gill Sans", "Segoe UI", "Trebuchet MS", …`) for the rest. Keep text contrast at WCAG AA or better.
 
 ## Twistball (`twistball/`)
 

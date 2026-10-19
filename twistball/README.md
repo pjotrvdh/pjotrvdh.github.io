@@ -31,7 +31,7 @@ src/
   game/net.js           online rooms over PeerJS
   game/audio.js         the laser sounds
   game/highscores.js    the local high score list
-  styles/               game.css and the embedded OpenDyslexic font
+  styles/game.css       the page and HUD
   config/               the game data, one file per part
     tunnel.js           sizes of the tunnel, paddles and ball
     rules.js            lives, spin, rally speed-up, online and CPU timings

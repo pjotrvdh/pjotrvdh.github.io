@@ -46,7 +46,7 @@ Set up the Arcade as described in the [root README](../README.md); `npm run dev`
 | `npm run dev -w underlord` | start a dev server for the game only |
 | `npm run build -w underlord` | build the game into one file, `underlord/dist/index.html` |
 
-The build is a single, self-contained HTML file: the JavaScript, the styles, the SVGs, the favicon and the font are all embedded. You can open it straight from disk, put it anywhere or send it to someone, also offline. The commit hash and time of the build are shown below the Chronicle.
+The build is a single, self-contained HTML file: the JavaScript, the styles, the SVGs and the favicon are all embedded. You can open it straight from disk, put it anywhere or send it to someone, also offline. The commit hash and time of the build are shown below the Chronicle.
 
 ## Project layout
 
@@ -58,7 +58,6 @@ src/
   assets/               SVG graphics and the favicon (see src/assets/README.md)
   main.js               entry point: styles, game and the version label
   game/underlord.js     the game itself
-  styles/fonts.css      the OpenDyslexic font (embedded in the build)
   styles/underlord.css
   config/               all game data, one file per item
     index.js            puts everything together for the game

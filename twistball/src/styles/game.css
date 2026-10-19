@@ -9,7 +9,9 @@
   --near: #00e5ff;
   --far: #ff2bd6;
   --accent: #f5e600;
-  --font: "OpenDyslexic", "Comic Sans MS", "Trebuchet MS", system-ui, sans-serif;
+  /* System fonts, so nothing to download: a DIN-like HUD look, with monospaced digits for the numbers. */
+  --font: Bahnschrift, "DIN Alternate", "Arial Narrow", "Roboto Condensed", sans-serif;
+  --mono: ui-monospace, "SF Mono", "Cascadia Mono", Consolas, Menlo, monospace;
   color-scheme: dark;
 }
 
@@ -55,7 +57,7 @@ a { color: var(--near); }
 .hud dl { display: flex; flex-wrap: wrap; gap: 4px 20px; margin: 0; }
 .hud dl div { display: flex; flex-direction: column; }
 .hud dt { color: var(--muted); font-size: 11px; text-transform: uppercase; }
-.hud dd { margin: 0; font-size: 16px; font-weight: 700; font-variant-numeric: tabular-nums; }
+.hud dd { margin: 0; font-family: var(--mono); font-size: 16px; font-weight: 700; font-variant-numeric: tabular-nums; }
 .hud .you dd { color: var(--near); letter-spacing: .1em; }
 .hud .them dd { color: var(--far); letter-spacing: .1em; }
 .hud .buttons { display: flex; gap: 8px; margin-left: auto; }

@@ -3,7 +3,9 @@
   --bg:#0d0a09; --panel:#16100e; --panel2:#1e1613; --line:#33251f;
   --ink:#eadcc6; --muted:#9a8672; --blood:#b3261e; --blood-hi:#e0483c;
   --gold:#e3b23c; --violet:#9b6bf0; --hero:#bcd2f0;
-  --f-body:"OpenDyslexic","Comic Sans MS","Trebuchet MS",system-ui,sans-serif;
+  /* System fonts, so nothing to download: an old-book serif for headings, a warm humanist sans for the rest. */
+  --f-display:"Palatino Linotype",Palatino,"Book Antiqua","Iowan Old Style",Georgia,serif;
+  --f-body:"Gill Sans","Segoe UI","Trebuchet MS",system-ui,sans-serif;
   color-scheme:dark;
 }
 html,body{height:100%}
@@ -25,7 +27,7 @@ h1 img{display:block;height:46px;width:auto}
 .hbar i{display:block;height:100%;background:linear-gradient(90deg,#7d1410,var(--blood-hi));width:100%;transition:width .2s}
 .ctrl{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
 .cheats{position:absolute;top:10px;right:10px;width:min(300px,calc(100% - 20px));background:rgba(22,16,14,.96);border:1px solid var(--blood);border-radius:4px;padding:10px;display:flex;flex-direction:column;gap:8px;max-height:calc(100% - 20px);overflow-y:auto;z-index:2}
-.cheats h2{font-family:var(--f-body);font-weight:500;font-size:19px;margin:0;color:var(--blood-hi)}
+.cheats h2{font-family:var(--f-display);font-weight:500;font-size:19px;margin:0;color:var(--blood-hi)}
 .cgrid{display:grid;grid-template-columns:1fr 1fr;gap:6px}
 .cgrid button{font-size:13px;padding:6px 8px;text-align:left}
 #bCheat[aria-expanded="true"]{border-color:var(--blood-hi);background:#2c1412}
@@ -42,7 +44,7 @@ canvas.grab{cursor:grab}
 .zoom button.fit{font-size:11px;letter-spacing:0;text-transform:uppercase}
 .tip{position:absolute;pointer-events:none;background:rgba(15,11,10,.92);border:1px solid var(--line);border-radius:3px;padding:3px 7px;font-size:12px;color:var(--ink);white-space:nowrap;font-variant-numeric:tabular-nums}
 aside{background:var(--panel);border:1px solid var(--line);border-radius:4px;padding:12px;display:flex;flex-direction:column;gap:12px;overflow-y:auto;min-height:0}
-aside h2{font-family:var(--f-body);font-weight:500;font-size:19px;margin:0 0 6px;color:var(--ink);letter-spacing:.03em}
+aside h2{font-family:var(--f-display);font-weight:500;font-size:19px;margin:0 0 6px;color:var(--ink);letter-spacing:.03em}
 .tools{display:grid;grid-template-columns:1fr 1fr;gap:6px}
 .tool{display:flex;flex-direction:column;align-items:flex-start;text-align:left;padding:6px 8px;gap:1px;line-height:1.15}
 .tool span{font-size:11px;color:var(--muted);font-variant-numeric:tabular-nums}
@@ -74,7 +76,7 @@ aside h2{font-family:var(--f-body);font-weight:500;font-size:19px;margin:0 0 6px
 .tabs button[aria-selected="true"]{border-color:var(--blood-hi);background:#2c1412}
 .tabs button[aria-selected="true"] span{color:var(--ink)}
 .tab{display:flex;flex-direction:column;gap:10px}
-.tab h3{font-family:var(--f-body);font-weight:500;font-size:17px;margin:0}
+.tab h3{font-family:var(--f-display);font-weight:500;font-size:17px;margin:0}
 .gauge{display:flex;flex-direction:column;gap:3px;font-size:12px}
 .glabel{display:flex;justify-content:space-between;gap:8px;color:var(--muted)}
 .glabel b{font-weight:500;color:var(--ink);font-variant-numeric:tabular-nums;text-align:right}
@@ -115,7 +117,7 @@ aside h2{font-family:var(--f-body);font-weight:500;font-size:19px;margin:0 0 6px
 .card .row{display:flex;flex-wrap:wrap;gap:8px;justify-content:center}
 .card button{font-size:17px;padding:8px 22px}
 .card button.main{background:#3a1512;border-color:var(--blood)}
-.banner{position:absolute;top:12%;left:0;right:0;text-align:center;font-family:var(--f-body);font-size:40px;color:var(--hero);text-shadow:0 0 20px rgba(120,170,255,.6);pointer-events:none;opacity:0;transition:opacity .4s}
+.banner{position:absolute;top:12%;left:0;right:0;text-align:center;font-family:var(--f-display);font-size:40px;color:var(--hero);text-shadow:0 0 20px rgba(120,170,255,.6);pointer-events:none;opacity:0;transition:opacity .4s}
 .banner.show{opacity:1}
 @media (max-width:820px){
   html,body{height:auto;overflow:auto}

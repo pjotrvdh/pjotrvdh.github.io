@@ -1,4 +1,3 @@
-import './styles/fonts.css';
 import './styles/game.css';
 import './game/game.js';
 

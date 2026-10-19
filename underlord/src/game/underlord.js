@@ -634,20 +634,20 @@ function drawEnt(e,now,ex,ey,alpha=1){
     const top=yy+r*.95-sz;
     if(e.face<0){ctx.save();ctx.translate(x,0);ctx.scale(-1,1);ctx.drawImage(us,-sz/2,top,sz,sz);ctx.restore();}else ctx.drawImage(us,x-sz/2,top,sz,sz);
     ctx.globalAlpha=alpha;
-    if(e.side===2){ctx.fillStyle='#d8d0c4';ctx.font='700 '+Math.round(r)+'px "OpenDyslexic",sans-serif';ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText('?',x,top+sz*.1);}
+    if(e.side===2){ctx.fillStyle='#d8d0c4';ctx.font='700 '+Math.round(r)+'px "Gill Sans","Segoe UI","Trebuchet MS",sans-serif';ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText('?',x,top+sz*.1);}
   }else{
   if(e.kind==='imp'){ctx.fillStyle='#e9a04a';for(const sx of[-1,1]){ctx.beginPath();ctx.moveTo(x+sx*r*.5,yy-r*.6);ctx.lineTo(x+sx*r*.95,yy-r*1.25);ctx.lineTo(x+sx*r*.15,yy-r*.8);ctx.fill();}}
   circ(x,yy,r+(e.side===1?2:1.2),e.side===1?'#e6eef9':e.side===2?'#7d756c':'#0b0706');
   circ(x,yy,r,e.slap>0&&Math.sin(now*30)>0?'#ffd2a8':e.side===2?'#5a554f':k.col);
   circ(x-r*.3,yy-r*.35,r*.35,'rgba(255,255,255,.18)');
   if(e.kind==='imp'){circ(x+e.face*r*.35,yy-r*.1,r*.14,'#ffe9a0');}
-  else{ctx.fillStyle=e.side===1?'#0e1520':e.side===2?'#d8d0c4':'#120c0a';ctx.font='700 '+Math.round(r*1.15)+'px "OpenDyslexic",sans-serif';ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText(e.side===2?'?':k.g,x,yy+r*.06);}
+  else{ctx.fillStyle=e.side===1?'#0e1520':e.side===2?'#d8d0c4':'#120c0a';ctx.font='700 '+Math.round(r*1.15)+'px "Gill Sans","Segoe UI","Trebuchet MS",sans-serif';ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText(e.side===2?'?':k.g,x,yy+r*.06);}
   if(e.side===1&&e.kind!=='tunneller'&&e.kind!=='archer'){ctx.fillStyle='#e6eef9';ctx.fillRect(x-r*.12,yy-r*1.45,r*.24,r*.4);}
   }
   if(e.carry>0)circ(x+r*.75,yy+r*.4,s*.08+s*.04*Math.min(1,e.carry/100),'#e3b23c');
   if(e.hp<e.maxhp){const w=s*.7,hy_=us?yy+r*.95-sz-s*.08:yy-r-s*.2;rr(x-w/2,hy_,w,s*.07,'rgba(0,0,0,.7)');rr(x-w/2,hy_,w*Math.max(0,e.hp/e.maxhp),s*.07,e.side===1?'#8fb4ef':'#5fcf6a');}
-  if(e.lvl>1){ctx.fillStyle='#e3b23c';ctx.font='700 '+Math.round(s*.3)+'px "OpenDyslexic",sans-serif';ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText(e.lvl,x+r*.95,yy-r*.8);}
-  if(e.state==='sleep'||e.state==='guard'){ctx.fillStyle=e.state==='guard'?'#bcd2f0':'#cdbbf5';ctx.font='700 '+Math.round(s*.32)+'px "OpenDyslexic",sans-serif';ctx.fillText('z',x+r*.9,yy-r*1.1-((now*.8+e.id)%1)*s*.3);}
+  if(e.lvl>1){ctx.fillStyle='#e3b23c';ctx.font='700 '+Math.round(s*.3)+'px "Gill Sans","Segoe UI","Trebuchet MS",sans-serif';ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText(e.lvl,x+r*.95,yy-r*.8);}
+  if(e.state==='sleep'||e.state==='guard'){ctx.fillStyle=e.state==='guard'?'#bcd2f0':'#cdbbf5';ctx.font='700 '+Math.round(s*.32)+'px "Gill Sans","Segoe UI","Trebuchet MS",sans-serif';ctx.fillText('z',x+r*.9,yy-r*1.1-((now*.8+e.id)%1)*s*.3);}
   ctx.globalAlpha=1;
 }
 function makeCloud(){
@@ -713,7 +713,7 @@ function draw(){
     if(f.type==='proj'){const x=(f.x+(f.x1-f.x)*p)*s,y=(f.y+(f.y1-f.y)*p)*s;circ(x,y,s*.14,f.col+'55');circ(x,y,s*.07,f.col);}
     else if(f.type==='dust'){ctx.globalAlpha=1-p;for(let k=0;k<4;k++){const a=k*1.7+f.x*3;circ((f.x+Math.cos(a)*p*.35)*s,(f.y+Math.sin(a)*p*.35)*s,s*.06,f.col);}ctx.globalAlpha=1;}
     else if(f.type==='ring'){ctx.strokeStyle=f.col;ctx.globalAlpha=1-p;ctx.lineWidth=2;ctx.beginPath();ctx.arc(f.x*s,f.y*s,s*(.2+p*.7),0,Math.PI*2);ctx.stroke();ctx.globalAlpha=1;}
-    else if(f.type==='text'){ctx.globalAlpha=1-p*p;ctx.fillStyle=f.col;ctx.font='700 '+Math.round(s*.42)+'px "OpenDyslexic",sans-serif';ctx.textAlign='center';ctx.fillText(f.txt,f.x*s,(f.y-p*.8)*s);ctx.globalAlpha=1;}
+    else if(f.type==='text'){ctx.globalAlpha=1-p*p;ctx.fillStyle=f.col;ctx.font='700 '+Math.round(s*.42)+'px "Gill Sans","Segoe UI","Trebuchet MS",sans-serif';ctx.textAlign='center';ctx.fillText(f.txt,f.x*s,(f.y-p*.8)*s);ctx.globalAlpha=1;}
     else if(f.type==='bolt'){ctx.globalAlpha=1-p;ctx.strokeStyle='#dfe9ff';ctx.lineWidth=3;ctx.beginPath();let bx=f.x*s,by=0;ctx.moveTo(bx,by);
       for(let k=1;k<=8;k++){by=f.y*s*k/8;bx=f.x*s+(k<8?(hash(k,f.seed)-.5)*s*1.4:0);ctx.lineTo(bx,by);}ctx.stroke();circ(f.x*s,f.y*s,s*1.6*(1-p),'rgba(200,220,255,.25)');ctx.globalAlpha=1;}
     else if(f.type==='heal'){ctx.strokeStyle='#7fe08a';ctx.globalAlpha=1-p;ctx.lineWidth=3;ctx.beginPath();ctx.arc(f.x*s,f.y*s,s*2.5*p,0,Math.PI*2);ctx.stroke();ctx.globalAlpha=1;}

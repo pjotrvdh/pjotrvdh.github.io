@@ -1,7 +1,7 @@
 /*
  * Arcade index. Cyberpunk street: near-black with a faint neon grid, the graffiti logo
  * (src/logo.svg) as the piece on the wall, clipped-corner HUD panels with neon edges, a yellow Play
- * button, and OpenDyslexic for every word.
+ * button, and a technical HUD-style system font (no font file, to keep the page small).
  */
 :root {
   --bg: #07060d;
@@ -15,7 +15,8 @@
   --violet: #7b5cff;
   --yellow: #f5e600;
   --cut: 16px;
-  --font: "OpenDyslexic", "Comic Sans MS", "Trebuchet MS", system-ui, sans-serif;
+  /* System fonts, so nothing to download: a technical, DIN-like HUD look (Bahnschrift on Windows, DIN on Apple). */
+  --font: Bahnschrift, "DIN Alternate", "Arial Narrow", "Roboto Condensed", sans-serif;
   color-scheme: dark;
 }
 

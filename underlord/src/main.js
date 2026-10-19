@@ -1,4 +1,3 @@
-import './styles/fonts.css';
 import './styles/underlord.css';
 import './game/underlord.js';
 
