@@ -33,28 +33,28 @@ rally {i, until} | null           (until is game time, G.time)
 ents: [{ SAVE_KEYS..., held }]
 ```
 
-- `SAVE_KEYS = ['id','kind','side','x','y','hp','maxhp','atk','lvl','xp','carry','hunger','guard','bed']`.
+- `SAVE_KEYS = ['id','kind','side','x','y','hp','maxhp','atk','lvl','xp','carry','hunger','guard','bed','leaving','fromPool']`.
+- `ents` is `G.ents` (held units included once, with `held: true`).
 - Not saved (reset on load): `state`, `path`, `next`, `timer`, `cd`, `slap`, `scan`, `ignoreT`, `target`, `resv`, `task`, `work`, `boost`, `after`, `face`; and on `G`: `res`, `fx`, `msgCd`, `crCycle`, `heartFlash`, `zapT`, `visT`, `rc` (recounted), `over`, the Chronicle.
 
 ## Load (`deserialize()`)
 
 1. `newGame()` first (a throwaway map and imps; resets `G` but keeps `G.cpu`), then overwrite `G` from the save.
 2. Every saved entity is created with `spawn()` defaults, then `Object.assign`-ed with the saved fields. State becomes `neutral` (side 2), `guard` (guards), `march` (heroes) or `think` (own units); path empty.
-3. `held` entities go back into both `G.ents` and `G.held`.
-4. `recount()`, fog rebuilt, Chronicle cleared with "Saved game loaded.", `syncCpu()`; overlay hidden, `running`, unpaused.
+3. `held` entities go back into both `G.ents` and `G.held`. Older saves listed held units twice; only the first entity per `id` is loaded.
+4. `pool` is merged over the `newGame()` pool, so a creature kind added later gets its config value.
+5. `recount()`, fog rebuilt, Chronicle cleared with "Saved game loaded.", `syncCpu()`; overlay hidden, `running`, unpaused.
 
 ## Compatibility rules
 
-- Fallbacks for fields an older v2 save may lack: `spawnQ || []`, `cpu || G.cpu`; any missing entity field keeps its `spawn()` default (`bed` -1, `guard` false, `carry` 0, ...).
+- Fallbacks for fields an older v2 save may lack: `spawnQ || []`, `cpu || G.cpu`, missing `pool` kinds; any missing entity field keeps its `spawn()` default (`bed` -1, `guard` false, `carry` 0, `leaving` '', `fromPool` false, ...).
 - New per-entity field: add it to `SAVE_KEYS` and make its `spawn()` default safe for old saves.
 - New `G` field: add it to both `serialize()` and `deserialize()` with a fallback (`s.x ?? default`), or it resets to the `newGame()` value.
 - Changing tile codes, room codes (`ROOM_IDS`), map size or entity `kind` keys breaks old saves: bump `SAVE_V`.
-- `pool` is restored as saved: a creature kind added later has no pool entry and can never arrive (Info tab shows "undefined left").
 
 ## Gotchas
 
-- Held units are saved twice (`G.ents.concat(G.held)`, and held units are in `G.ents` too). On load both copies become separate units in the hand: saving with creatures in hand duplicates them.
-- Load cancels transient behaviour: leaving creatures stay, sleepers wake, rallied creatures rethink (the rally itself is restored), imps drop their tasks.
+- Load cancels transient behaviour: sleepers wake, rallied creatures rethink (the rally itself is restored), imps drop their tasks. Leaving creatures keep `leaving` and head for the portal again.
 - `newGame()` inside `deserialize()` re-centres the camera on the Heart once the canvas is initialised.
 - Config is not saved: changing a config value changes loaded games too (except stats already baked into entities: `hp`, `maxhp`, `atk`).
 

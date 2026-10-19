@@ -56,7 +56,7 @@ After the loop: `G.hp` and `G.gold` per tile, then the caverns are populated.
 | 3, 4 | Chests of 250 and 150 |
 
 - Chests are `G.loot[i]` gold amounts. Any own unit standing on the tile takes what fits under capacity (`tick()`), so the chest can empty in parts.
-- Neutrals: frozen (`tick()` returns early for side 2), ignored by all targeting, drawn faded with a "?". In `vision()`, a neutral on a seen tile with an own, not-held unit within 3 tiles joins: `side=0`, state `think`. Joining does not touch `G.pool`.
+- Neutrals: frozen (`tick()` returns early for side 2), ignored by all targeting, drawn faded with a "?". In `vision()`, a neutral on a seen tile with an own, not-held unit within 3 tiles joins: `side=0`, state `think`. Joining does not touch `G.pool`, and a joined neutral never goes back to it.
 - Guards: see [heroes](heroes.md).
 
 ## Start of a game (`newGame()`)
@@ -84,7 +84,6 @@ After the loop: `G.hp` and `G.gold` per tile, then the caverns are populated.
 - Steps overwrite each other: caverns can erase gems and gold veins; the Heart square erases anything within 4 tiles of the Heart; the portal and gate patches cut into caverns.
 - If cavern 0 has < 3 usable cells, there is no hero camp on that map (the next caverns keep their own roles).
 - Cavern ranking uses the walk's start centre, not where its cells ended up.
-- Joined neutrals are not taken from `G.pool`, but `toPool()` adds them to the pool when they die or leave, so the pool can grow above its starting value.
 - `bfs()` with a goal that matches the start returns `[]` (length 0); callers that test `p.length` treat that as "no path".
 - The 40-attempt fallback can leave a map without a hero path. Heroes then stay at the gate, rerunning `dijkstra()` every tick (`march()` gets `null` -> `[]`), and the win check cannot pass until they are killed.
 

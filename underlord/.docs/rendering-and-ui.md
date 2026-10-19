@@ -63,7 +63,7 @@ description: Underlord drawing (caches, fog, minimap, sprites) and UI (tabs, HUD
 ## Input
 
 - Canvas pointer: left = current tool (Hand: pick up / drop / mark-drag; room or Sell: drag; spell: cast); right-drag or middle-drag pans, right-click without moving slaps; Look tool left-drag pans; two pointers pinch-zoom and pan. Wheel zooms at the cursor (x1.15).
-- Keys: `Space`/`P` pause (Space and Enter are left to a focused button), `1`-`3` speed, `+`/`-` zoom, arrows/WASD pan (700 px/s), `Esc` hand tool + cancel drag + close cheats, `` ` `` or Ctrl+C toggles the Cheats panel.
+- Keys: `Space`/`P` pause (Space and Enter are left to a focused button), `1`-`3` speed, `+`/`-` zoom, arrows/WASD pan (700 px/s), `Esc` hand tool + cancel drag + close cheats, `` ` `` or Ctrl+C (with no text selected) toggles the Cheats panel once it is unlocked. Other keys with Ctrl, Cmd or Alt are left to the browser (copy, print, ...).
 - Zoom buttons +, −, Fit (zoom 1).
 - Speed runs `update()` 1-3 times per frame; pause stops `update()` but drawing continues.
 
@@ -83,10 +83,8 @@ description: Underlord drawing (caches, fog, minimap, sprites) and UI (tabs, HUD
 
 - The terrain cache draws with `now = 0`: fallback gold sparkle and gem pulse do not animate.
 - The damaged-wall crack is only in the procedural wall fallback; with `tiles/wall.svg` damaged walls look intact.
-- `e.preventDefault()` runs for `` ` `` and Ctrl+C even before cheats are unlocked, so Ctrl+C copy never works on the page; Ctrl+P likewise toggles pause instead of printing.
 - The drag tip counts unseen non-diggable tiles (floor, lava) as "blocks"; only diggable ones get marked.
 - `affects()` has a duplicate, unreachable `unmark` branch.
-- HUD Imps/Creatures add `G.held` to counts that already contain it ([hand](hand.md)).
 
 ## See also
 

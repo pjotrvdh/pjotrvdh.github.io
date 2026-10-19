@@ -46,7 +46,7 @@ Select the spell tool, click the map: `cast(k, tile, fx, fy)`.
 
 ## Heal (`heal`)
 
-- Any clicked point; every own unit (imps too) within `radius` of the click is set to full health. Green ring effect.
+- Target tile must be seen. Every own unit (imps too) within `radius` of the click is set to full health. Green ring effect.
 
 ## Lightning (`bolt`)
 
@@ -55,11 +55,7 @@ Select the spell tool, click the map: `cast(k, tile, fx, fy)`.
 
 ## Gotchas
 
-- The tool button shows `spellCost(k)` without a tile, so Call to Arms always reads "300 gold" even though casting on your territory is free.
-- The Call to Arms tooltip hard-codes "20 seconds"; change it with `spells/rally.js` `duration`.
-- `toolValid()` marks Heal valid only on seen tiles, but `cast()` heals on unseen tiles too.
 - Own portal tiles are not `CLAIM`, so Call to Arms costs gold there.
-- The "Finish research" cheat calls `research(maxReq - G.research)`, which lowers `G.research` to the highest threshold when it was already above it.
 
 ## See also
 

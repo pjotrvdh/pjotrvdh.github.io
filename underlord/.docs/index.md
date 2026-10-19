@@ -76,8 +76,8 @@ Section markers inside `underlord.js` (search for `/* ---------- name ----------
 
 ## Gotchas
 
-- `G.held` entities stay in `G.ents` too; code that adds `G.held` counts to `G.ents` counts double-counts them (see [hand](hand.md)).
-- Several UI strings hard-code numbers that live in config: "20 seconds" (Call to Arms tip), "six invasions" (win card, intro), "10 seconds" (slap tip). Update them when changing the config.
+- `G.held` entities stay in `G.ents` too: never add `G.held` to a count of `G.ents` or `creatures()` (see [hand](hand.md)).
+- UI text that mentions a tunable reads it from config (Call to Arms duration, slap time, number of waves, the Lord's name). Keep it that way; `README.md` still says "six" waves in prose.
 - No fonts are embedded: the page uses system font stacks only (see [rendering-and-ui](rendering-and-ui.md)). Do not add font files.
 
 ## See also

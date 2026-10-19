@@ -28,6 +28,7 @@ function applyConfig(c){
   loadAssets();
 }
 const wage=k=>Math.round(KINDS[k].wage*ECON.wageMul);
+const words=n=>['no','one','two','three','four','five','six','seven','eight','nine','ten','eleven','twelve'][n]||String(n);
 
 /* ---------- assets ---------- */
 // SVGs are rasterised once per on-screen size into a cache, so they stay sharp at every zoom level.
@@ -49,6 +50,7 @@ function spr(k,x,y,w,h,flip=false){
   return true;
 }
 applyConfig(config);
+{const w=document.getElementById('waveCount');if(w)w.textContent=words(WAVES.length);}
 
 const cv=document.getElementById('cv'), mainCtx=cv.getContext('2d'), stage=document.getElementById('stage');
 const fogC=document.createElement('canvas');fogC.width=W;fogC.height=H;const fogX=fogC.getContext('2d');
@@ -83,13 +85,13 @@ function bfs(start,goal,k=1,pass=walk,maxLen=1e9){
   if(!m.length)return null;const g=m[rand(m.length)];return g===start?[]:buildPath(prev,g,start);
 }
 function hcost(i){if(walk(i))return 1;const t=G.t[i];return t===EARTH?4:t===GOLD?6:t===WALL?12:-1;}
-function dijkstra(start,goal){
+function dijkstra(start,goal,cost=hcost){
   const dist=new Float32Array(N).fill(1e9),prev=new Int32Array(N).fill(-1),hp=[];
   const push=(d,i)=>{hp.push([d,i]);let c=hp.length-1;while(c>0){const p=(c-1)>>1;if(hp[p][0]<=hp[c][0])break;[hp[p],hp[c]]=[hp[c],hp[p]];c=p;}};
   const pop=()=>{const top=hp[0],l=hp.pop();if(hp.length){hp[0]=l;let c=0;for(;;){const a=2*c+1,b=a+1;let s=c;if(a<hp.length&&hp[a][0]<hp[s][0])s=a;if(b<hp.length&&hp[b][0]<hp[s][0])s=b;if(s===c)break;[hp[s],hp[c]]=[hp[c],hp[s]];c=s;}}return top;};
   dist[start]=0;push(0,start);
   while(hp.length){const[d,c]=pop();if(d>dist[c])continue;if(goal(c))return buildPath(prev,c,start);
-    const x=tx(c),y=ty(c);for(const[dx,dy]of N4){const a=x+dx,b=y+dy;if(!inb(a,b))continue;const n=ix(a,b),k=hcost(n);if(k<0)continue;if(d+k<dist[n]){dist[n]=d+k;prev[n]=c;push(d+k,n);}}}
+    const x=tx(c),y=ty(c);for(const[dx,dy]of N4){const a=x+dx,b=y+dy;if(!inb(a,b))continue;const n=ix(a,b),k=cost(n);if(k<0)continue;if(d+k<dist[n]){dist[n]=d+k;prev[n]=c;push(d+k,n);}}}
   return null;
 }
 
@@ -191,7 +193,7 @@ function spawn(kind,x,y,mult=1){
   const k=KINDS[kind];
   const e={id:G.idc++,kind,side:k.side||0,x:x+.5,y:y+.5,hp:k.hp*mult,maxhp:k.hp*mult,atk:k.atk*mult,lvl:1,xp:0,
     state:k.side?'march':'think',path:[],next:null,nextT:0,timer:0,cd:0,carry:0,hunger:Math.random()*40,slap:0,
-    resv:-1,bed:-1,target:null,repath:0,scan:Math.random()*.5,ignoreT:0,dead:false,held:false,face:1,task:-1,guard:false};
+    resv:-1,bed:-1,target:null,leaving:'',fromPool:false,repath:0,scan:Math.random()*.5,ignoreT:0,dead:false,held:false,face:1,task:-1,guard:false};
   G.ents.push(e);return e;
 }
 function reserve(e,i){e.resv=i;G.res.set(i,(G.res.get(i)||0)+1);}
@@ -200,7 +202,7 @@ function go(e,path,next,t=0){e.path=path;e.next=next;e.nextT=t;e.state='walk';}
 function step(e,dt){
   if(!e.path.length)return true;
   const n=e.path[0],cx=tx(n)+.5,cy=ty(n)+.5,dx=cx-e.x,dy=cy-e.y,d=Math.hypot(dx,dy);
-  const sp=KINDS[e.kind].spd*(e.slap>0?SLAP_BOOST:1)*dt;
+  const sp=KINDS[e.kind].spd*(e.slap>0?CFG.hand.slapBoost:1)*dt;
   if(Math.abs(dx)>.01)e.face=Math.sign(dx);
   if(d<=sp){e.x=cx;e.y=cy;e.path.shift();return !e.path.length;}
   e.x+=dx/d*sp;e.y+=dy/d*sp;return false;
@@ -243,7 +245,7 @@ function doDig(e,dt){
   const j=e.task;
   if(j<0||!G.mark[j]||!diggable(j)||nb(ti(e),k=>k===j)<0){e.state='think';return;}
   e.face=Math.sign(tx(j)-tx(ti(e)))||e.face;
-  e.timer-=dt*(e.slap>0?SLAP_BOOST:1);if(e.timer>0)return;e.timer=.38;
+  e.timer-=dt*(e.slap>0?CFG.hand.slapBoost:1);if(e.timer>0)return;e.timer=.38;
   const t=G.t[j];
   if(t===EARTH||t===WALL){if(--G.hp[j]<=0)openTile(j);}
   else if(t===GOLD){const g=Math.min(20,G.gold[j]);G.gold[j]-=g;e.carry+=g;if(G.gold[j]<=0)openTile(j);}
@@ -257,14 +259,14 @@ function doReinforce(e,dt){
   const j=e.task;
   if(j<0||G.t[j]!==EARTH||G.mark[j]||G.t[ti(e)]!==CLAIM||nb(ti(e),k=>k===j)<0){e.state='think';return;}
   e.face=Math.sign(tx(j)-tx(ti(e)))||e.face;
-  e.timer-=dt*(e.slap>0?SLAP_BOOST:1);if(e.timer>0)return;e.timer=.5;
+  e.timer-=dt*(e.slap>0?CFG.hand.slapBoost:1);if(e.timer>0)return;e.timer=.5;
   e.work=(e.work||0)+1;fx({type:'dust',x:(e.x+tx(j)+.5)/2,y:(e.y+ty(j)+.5)/2,dur:.3,col:'#b8a89a'});
   if(e.work>=5){e.work=0;G.t[j]=WALL;G.hp[j]=WALL_HP;e.state='think';}
 }
 function doClaim(e,dt){
   const i=ti(e);
   if(i!==e.task||!(G.t[i]===FLOOR||(G.t[i]===PORTAL&&!G.pown[i]))){e.state='think';return;}
-  e.timer-=dt*(e.slap>0?SLAP_BOOST:1);if(e.timer>0)return;
+  e.timer-=dt*(e.slap>0?CFG.hand.slapBoost:1);if(e.timer>0)return;
   if(nb(i,j=>G.t[j]===CLAIM)>=0){
     if(G.t[i]===PORTAL){G.pown[i]=1;msg('A portal is yours. Creatures can now arrive through it.','portal'+i,'good');}
     else G.t[i]=CLAIM;
@@ -288,6 +290,7 @@ function toBed(e){
 }
 const frontier=i=>nb(i,j=>!G.seen[j])>=0;
 function creatureThink(e){
+  if(e.leaving){headOut(e);return;}
   release(e);const here=ti(e);
   if(G.rally&&G.time<G.rally.until){const p=bfs(here,i=>i===G.rally.i);if(p){go(e,p,'idle',1);return;}}
   if(e.hp<e.maxhp*.5){const p=toBed(e);if(p){go(e,p,'sleep');return;}}
@@ -306,10 +309,15 @@ function research(n){
   const before=G.research;G.research+=n;
   for(const[k,s]of Object.entries(SPELLS))if(s.req&&before<s.req&&G.research>=s.req)msg('Research complete: '+s.n+'.','sp'+k,'good');
 }
+// A creature that decides to leave keeps `leaving` set: picking it up, dropping it or loading a save only delays it.
 function leave(e,why){
-  release(e);e.target=null;
-  const p=bfs(ti(e),ownPortal);
+  e.leaving=why;
   msg('The '+KINDS[e.kind].n+' leaves your dungeon ('+why+').','lv'+e.id,'bad');
+  if(!e.held)headOut(e);
+}
+function headOut(e){
+  release(e);e.target=null;e.after=null;
+  const p=bfs(ti(e),ownPortal);
   if(!p){e.dead=true;toPool(e);return;}
   e.path=p;e.state='leave';
 }
@@ -341,7 +349,7 @@ function kill(t){
   t.dead=true;release(t);
   if(t.side===1){const k=KINDS[t.kind],a=addGold(Math.round(k.bounty*ECON.bountyMul));fx({type:'text',x:t.x,y:t.y,dur:1.2,txt:'+'+a,col:'#e3b23c'});
     if(t.kind==='lord')msg('The Lord of the Land has fallen!','lord','good');}
-  else{toPool(t);msg((t.kind==='imp'?'An imp':'Your '+KINDS[t.kind].n)+' has been slain.','die'+t.id,'bad');}
+  else{msg((t.kind==='imp'?'An imp':'Your '+KINDS[t.kind].n)+' has been slain.','die'+t.id,'bad');}
 }
 function fight(e,dt){
   const t=e.target;
@@ -376,10 +384,10 @@ function tick(e,dt){
   if(e.side===2)return;
   e.cd-=dt;if(e.slap>0)e.slap-=dt;
   if(e.side===0){const i=ti(e);if(G.loot[i]>0){const a=addGold(G.loot[i]);if(a>0){G.loot[i]-=a;fx({type:'text',x:e.x,y:e.y-.3,dur:1.2,txt:'+'+a,col:'#e3b23c'});msg('Treasure found: '+a+' gold.','loot'+i,'good');}}}
-  if(e.side===0&&e.kind!=='imp'){e.hunger+=dt*1.5;if(e.hunger>=200&&e.state!=='leave'){e.hunger=0;leave(e,'starving');}}
-  if(e.kind==='imp'&&e.state!=='flee'){e.scan-=dt;if(e.scan<=0){e.scan=.5;const o=nearestEnemy(e,3.2);
+  if(e.side===0&&e.kind!=='imp'){e.hunger+=dt*1.5;if(e.hunger>=200&&!e.leaving){e.hunger=0;leave(e,'starving');}}
+  if(e.kind==='imp'&&e.state!=='flee'&&e.state!=='stun'){e.scan-=dt;if(e.scan<=0){e.scan=.5;const o=nearestEnemy(e,3.2);
     if(o){release(e);const p=bfs(ti(e),i=>adjHeart(i)&&Math.hypot(tx(i)-o.x,ty(i)-o.y)>3,1);if(p&&p.length){go(e,p,'idle',3);e.state='flee';}}}}
-  if(e.kind!=='imp'&&e.state!=='fight'&&e.state!=='leave'){
+  if(e.kind!=='imp'&&e.state!=='fight'&&e.state!=='stun'&&!e.leaving){
     e.scan-=dt;if(e.scan<=0){e.scan=.5;if(G.time>=e.ignoreT){const o=nearestEnemy(e,e.side?5:8);if(o){release(e);e.state='fight';e.target=o;e.path=[];e.repath=0;}}}
   }
   switch(e.state){
@@ -402,21 +410,22 @@ function tick(e,dt){
   }
 }
 
-function toPool(e){if(e.side===0&&G.pool[e.kind]!==undefined)G.pool[e.kind]++;}
+// Only creatures that came through a portal go back to its pool, and only when they leave or are dismissed: slain ones are gone.
+function toPool(e){if(e.fromPool&&G.pool[e.kind]!==undefined){G.pool[e.kind]++;e.fromPool=false;}}
 function tryAttract(){
-  const n=creatures().length+G.held.filter(e=>e.kind!=='imp').length;
+  const n=creatures().length;
   if(n>=PORTAL_LIMIT){msg('Your dungeon has reached its creature limit of '+PORTAL_LIMIT+'.','limit','bad');return;}
   if(G.rc[LAIR]<=n){msg('Your creatures need a bigger Lair. The portal stays quiet until there is a free bed.','nolair','bad');return;}
   const opts=Object.keys(ATTRACT).filter(k=>G.pool[k]>0&&ATTRACT[k].ok());
   if(!opts.length)return;
   const k=opts[rand(opts.length)],own=G.portals.filter(p=>G.pown[p]),pt=own[rand(own.length)];G.pool[k]--;
-  const e=spawn(k,tx(pt),ty(pt));
+  const e=spawn(k,tx(pt),ty(pt));e.fromPool=true;
   fx({type:'ring',x:e.x,y:e.y,dur:.8,col:'#c58cff'});
   msg('A '+KINDS[k].n+' steps through the portal.','arr'+e.id,'good');
 }
 function payday(){
   let paid=0,gone=0;
-  for(const e of creatures()){if(e.state==='leave')continue;const w=wage(e.kind);
+  for(const e of creatures()){if(e.leaving)continue;const w=wage(e.kind);
     if(G.money>=w){G.money-=w;paid+=w;fx({type:'text',x:e.x,y:e.y-.4,dur:1,txt:'-'+w,col:'#e3b23c'});}else{gone++;leave(e,'unpaid');}}
   if(paid||gone)msg('Payday: '+paid+' gold paid out'+(gone?', '+gone+' went unpaid.':'.'),'pay'+G.time,gone?'bad':'');
 }
@@ -425,7 +434,7 @@ function launchWave(){
   const w=WAVES[G.wave];G.wave++;let d=0;
   for(const[k,c]of Object.entries(w))for(let i=0;i<c;i++){G.spawnQ.push({k,t:d});d+=1.2;}
   msg('Wave '+G.wave+': heroes are invading your realm!','wave'+G.wave,'bad');
-  banner(G.wave===WAVES.length?'The Lord of the Land approaches':'Heroes approach');
+  banner(w.lord?'The '+KINDS.lord.n+' approaches':'Heroes approach');
 }
 
 /* ---------- update ---------- */
@@ -453,7 +462,7 @@ function end(win){
   G.over=win?'win':'lose';
   const ov=document.getElementById('ov');
   ov.innerHTML=win
-    ?'<div class="card"><h2>The surface kneels</h2><p>All six invasions are broken and the Lord of the Land lies in your dungeon. Your reign is complete.</p><div class="row"><button id="bAgain" class="main" type="button">New dungeon</button></div></div>'
+    ?'<div class="card"><h2>The surface kneels</h2><p>All '+words(WAVES.length)+' invasions are broken'+(WAVES.some(w=>w.lord)?' and the '+KINDS.lord.n+' lies in your dungeon':'')+'. Your reign is complete.</p><div class="row"><button id="bAgain" class="main" type="button">New dungeon</button></div></div>'
     :'<div class="card"><h2>The Heart is broken</h2><p>The heroes destroyed your Dungeon Heart during wave '+G.wave+'. Dig deeper, build stronger and try again.</p><div class="row"><button id="bAgain" class="main" type="button">Try again</button><button id="bAgainLoad" type="button">Load last save</button></div></div>';
   ov.hidden=false;
   document.getElementById('bAgain').onclick=()=>{ov.hidden=true;newGame();paused=false;syncPause();};
@@ -467,22 +476,24 @@ function msg(text,key,cls=''){
 }
 
 /* ---------- save / load ---------- */
-const SAVE_V=2;const SAVE_KEYS=['id','kind','side','x','y','hp','maxhp','atk','lvl','xp','carry','hunger','guard','bed'];
+const SAVE_V=2;const SAVE_KEYS=['id','kind','side','x','y','hp','maxhp','atk','lvl','xp','carry','hunger','guard','bed','leaving','fromPool'];
 function serialize(){
   return {v:SAVE_V,savedAt:Date.now(),
     t:Array.from(G.t),room:Array.from(G.room),mark:Array.from(G.mark),hp:Array.from(G.hp),gold:Array.from(G.gold),seen:Array.from(G.seen),loot:Array.from(G.loot),
     money:G.money,heartHP:G.heartHP,heartMax:G.heartMax,time:G.time,nextWave:G.nextWave,wave:G.wave,spawnQ:G.spawnQ,research:G.research,
     cpu:G.cpu,payT:G.payT,pown:Array.from(G.pown),pool:G.pool,portals:G.portals,portalT:G.portalT,idc:G.idc,hx:G.hx,hy:G.hy,portal:G.portal,gate:G.gate,rally:G.rally,
-    ents:G.ents.concat(G.held).filter(e=>!e.dead).map(e=>{const o={};for(const k of SAVE_KEYS)o[k]=e[k];o.held=e.held;return o;})};
+    ents:G.ents.filter(e=>!e.dead).map(e=>{const o={};for(const k of SAVE_KEYS)o[k]=e[k];o.held=e.held;return o;})};
 }
 function deserialize(s){
   newGame();
   const A=(C,a)=>C.from(a);
   Object.assign(G,{t:A(Uint8Array,s.t),room:A(Uint8Array,s.room),mark:A(Uint8Array,s.mark),hp:A(Uint8Array,s.hp),gold:A(Int16Array,s.gold),seen:A(Uint8Array,s.seen),loot:A(Int16Array,s.loot),
     money:s.money,heartHP:s.heartHP,heartMax:s.heartMax,time:s.time,nextWave:s.nextWave,wave:s.wave,spawnQ:s.spawnQ||[],research:s.research,
-    cpu:s.cpu||G.cpu,payT:s.payT,pown:A(Uint8Array,s.pown),pool:s.pool,portals:s.portals,portalT:s.portalT,idc:s.idc,hx:s.hx,hy:s.hy,portal:s.portal,gate:s.gate,rally:s.rally,
+    cpu:s.cpu||G.cpu,payT:s.payT,pown:A(Uint8Array,s.pown),pool:{...G.pool,...s.pool},portals:s.portals,portalT:s.portalT,idc:s.idc,hx:s.hx,hy:s.hy,portal:s.portal,gate:s.gate,rally:s.rally,
     ents:[],held:[],fx:[],res:new Map(),msgCd:{},over:null});
-  for(const o of s.ents){const e=spawn(o.kind,0,0);G.ents.pop();Object.assign(e,o);
+  // Saves made before held units stopped being written twice list them twice: keep the first copy of each id.
+  const ids=new Set();
+  for(const o of s.ents){if(ids.has(o.id))continue;ids.add(o.id);const e=spawn(o.kind,0,0);G.ents.pop();Object.assign(e,o);
     e.state=e.side===2?'neutral':e.guard?'guard':e.side===1?'march':'think';e.path=[];
     if(o.held){e.held=true;G.held.push(e);}G.ents.push(e);}
   recount();G.fogDirty=true;
@@ -757,7 +768,7 @@ function toolValid(i){
 // Dropping a creature (Dungeon Keeper 2 style): it lands dazed, and if it lands in a room it starts working there with a bonus.
 function dropHeld(i){
   const d=G.held.pop();d.held=false;d.x=tx(i)+.5;d.y=ty(i)+.5;d.path=[];d.scan=0;d.target=null;
-  const r=G.room[i],k=d.kind!=='imp';
+  const r=G.room[i],k=d.kind!=='imp'&&!d.leaving;
   // Dropped on a free Lair tile, a creature moves its bed there; another creature's bed stays locked.
   const bed=k&&r===LAIR&&!bedOwner(i,d);if(bed)d.bed=i;
   d.after=k&&r===TRAIN&&G.money>0?['train',8]:k&&r===LIB?['study',8]:bed?['sleep',0]:k&&r===HATCH?['eat',2.5]:null;
@@ -784,18 +795,19 @@ function cpuTick(dt){
   if(d.attack||d.guard)cpuSpells(!!d.attack);
 }
 const marksCount=()=>{let n=0;for(let i=0;i<N;i++)n+=G.mark[i];return n;};
-function cpuMark(list){let n=marksCount();for(const i of list){if(n>=CFG.assistant.maxMarks)break;if(diggable(i)&&G.t[i]!==WALL&&!G.mark[i]){G.mark[i]=1;n++;}}}
+// Walls are only marked when `walls` is set: the paths below cost more through walls, so they only cross one when there is no other way.
+function cpuMark(list,walls){let n=marksCount();for(const i of list){if(n>=CFG.assistant.maxMarks)break;if(diggable(i)&&(walls||G.t[i]!==WALL)&&!G.mark[i]){G.mark[i]=1;n++;}}}
 function cpuBuild(){
   const A=CFG.assistant;
   // 1. tunnel to the nearest portal until one is ours
   if(!anyPortal()){for(const P of G.portals.slice().sort((a,b)=>Math.hypot(tx(a)-G.hx,ty(a)-G.hy)-Math.hypot(tx(b)-G.hx,ty(b)-G.hy))){
-    const p=bfs(P,i=>G.t[i]===CLAIM,1,i=>walk(i)||diggable(i)&&G.t[i]!==GEM);if(p){cpuMark(p);break;}}}
+    const p=dijkstra(P,i=>G.t[i]===CLAIM);if(p){cpuMark(p,true);break;}}}
   // 2. tunnel to the nearest gold seam (gold glints through the clouds, so the player knows where it is)
   if(G.money<cap()*.9&&marksCount()<CFG.assistant.maxMarks/2){
-    const p=bfs(ix(G.hx+2,G.hy),i=>(G.t[i]===GOLD||G.t[i]===GEM&&G.money<cap()*.5)&&!G.mark[i],1,i=>walk(i)||diggable(i)&&G.t[i]!==WALL);
-    if(p)cpuMark(p);}
+    const p=dijkstra(ix(G.hx+2,G.hy),i=>(G.t[i]===GOLD||G.t[i]===GEM&&G.money<cap()*.5)&&!G.mark[i],i=>G.t[i]===GEM?6:hcost(i));
+    if(p)cpuMark(p,true);}
   // 3. rooms, in the order a keeper needs them
-  const cre=creatures().length+G.held.filter(e=>e.kind!=='imp').length;
+  const cre=creatures().length;
   const want=[[LAIR,Math.max(4,cre+2)],[HATCH,4],[TREAS,G.money>cap()*.75?G.rc[TREAS]+4:Math.max(G.rc[TREAS],2)],[TRAIN,cre>=3?9:0],[LIB,cre>=3?9:0],[HATCH,cre>=5?9:4],[LAIR,cre>=5?Math.max(9,cre+2):0]];
   let short=false;
   for(const[r,n]of want){
@@ -818,7 +830,7 @@ function cpuBuild(){
   }
   // 5. enough imps for the size of the dungeon
   let claimed=0;for(let i=0;i<N;i++)claimed+=G.t[i]===CLAIM;
-  const imps=G.ents.filter(e=>e.kind==='imp'&&e.side===0).length+G.held.filter(e=>e.kind==='imp').length;
+  const imps=G.ents.filter(e=>e.kind==='imp'&&e.side===0).length;
   if(imps<Math.min(A.maxImps,CFG.imp.startCount+Math.floor(claimed/A.impsPerClaimed))&&G.money>impCost()+A.reserveGold){
     const r=[];for(let i=0;i<N;i++)if(G.t[i]===CLAIM&&adjHeart(i))r.push(i);if(r.length){cast('imp',r[rand(r.length)]);msg('Assistant: summoned an imp.','cpu-imp');}}
 }
@@ -830,13 +842,13 @@ function cpuMove(){
     for(let dy=-4;dy<=4;dy++)for(let dx=-4;dx<=4;dx++){const x=Math.floor(tgt.x)+dx,y=Math.floor(tgt.y)+dy;if(!inb(x,y))continue;const i=ix(x,y),d=Math.hypot(x+.5-tgt.x,y+.5-tgt.y);
       if(G.t[i]===CLAIM&&d>=1.5&&d<bd&&clearShot({x:x+.5,y:y+.5},tgt)){bd=d;drop=i;}}
     if(drop>=0){let n=0;
-      for(const e of creatures().filter(e=>activity(e)!=='fighting'&&e.hp>e.maxhp*.6&&Math.hypot(e.x-tgt.x,e.y-tgt.y)>8).sort((a,b)=>b.lvl-a.lvl)){
+      for(const e of creatures().filter(e=>!e.leaving&&activity(e)!=='fighting'&&e.hp>e.maxhp*.6&&Math.hypot(e.x-tgt.x,e.y-tgt.y)>8).sort((a,b)=>b.lvl-a.lvl)){
         if(n>=3||!pickUp(e))break;dropHeld(drop);n++;}
       if(n)msg('Assistant: dropped '+n+' creature'+(n>1?'s':'')+' on the invaders.','cpu-mv');}
     return;
   }
   // in peace time, put one idle creature to work in the Training Room
-  if(G.rc[TRAIN]&&G.money>CFG.assistant.reserveGold){const e=creatures().find(e=>activity(e)==='idle'&&e.lvl<10&&e.hunger<80);
+  if(G.rc[TRAIN]&&G.money>CFG.assistant.reserveGold){const e=creatures().find(e=>!e.leaving&&activity(e)==='idle'&&e.lvl<10&&e.hunger<80);
     if(e){const t=[];for(let i=0;i<N;i++)if(G.room[i]===TRAIN)t.push(i);if(t.length&&pickUp(e))dropHeld(t[rand(t.length)]);}}
 }
 function cpuSpells(aggressive){
@@ -845,13 +857,14 @@ function cpuSpells(aggressive){
     let best=null,bn=0;for(const h of heroes){const n=heroes.filter(o=>Math.hypot(o.x-h.x,o.y-h.y)<SPELLS.bolt.radius).length;if(n>bn){bn=n;best=h;}}
     if(best)cast('bolt',ti(best),best.x,best.y);
   }
-  if(aggressive&&heroes.length&&G.research>=SPELLS.rally.req&&G.money>SPELLS.rally.cost+A.reserveGold&&!(G.rally&&G.time<G.rally.until)){
-    const h=heroes[0],p=bfs(ti(h),walk,1,walk,6);if(p&&p.length)cast('rally',p[p.length-1],h.x,h.y);}
+  if(aggressive&&heroes.length&&G.research>=SPELLS.rally.req&&!(G.rally&&G.time<G.rally.until)){
+    const h=heroes[0],p=bfs(ti(h),walk,1,walk,6),i=p&&(p.length?p[p.length-1]:ti(h));
+    if(p&&G.money>spellCost('rally',i)+A.reserveGold)cast('rally',i,h.x,h.y);}
   if(!aggressive&&G.research>=SPELLS.heal.req&&G.money>SPELLS.heal.cost+A.reserveGold){
     const hurt=creatures().find(e=>activity(e)==='fighting'&&e.hp<e.maxhp*.4);if(hurt)cast('heal',ti(hurt),hurt.x,hurt.y);}
 }
 function entAt(fx,fy){let best=null,bd=.42;for(const e of G.ents){if(e.dead||e.held||e.side!==0)continue;const d=Math.hypot(e.x-fx,e.y-fy);if(d<bd){bd=d;best=e;}}return best;}
-function slapAt(fx,fy){const e=entAt(fx,fy);if(!e)return;e.slap=10;e.hp-=4;fx({type:'text',x:e.x,y:e.y-.3,dur:.6,txt:'Slap!',col:'#ffd2a8'});if(e.hp<=0){kill(e);return;}if(e.kind!=='imp'&&e.state!=='fight'){release(e);e.state='think';}}
+function slapAt(fx,fy){const e=entAt(fx,fy);if(!e)return;e.slap=CFG.hand.slapTime;e.hp-=CFG.hand.slapDamage;fx({type:'text',x:e.x,y:e.y-.3,dur:.6,txt:'Slap!',col:'#ffd2a8'});if(e.hp<=0){kill(e);return;}if(e.kind!=='imp'&&e.state!=='fight'){release(e);e.state='think';}}
 function build(i,r){
   if(G.t[i]!==CLAIM||G.room[i])return false;const c=ROOMS[r].cost;
   if(G.money<c){msg('Not enough gold for a '+ROOMS[r].n+'.','nogold','bad');return false;}
@@ -865,8 +878,6 @@ function applyRect(mode,R){
   if(G.money>cap()){msg('Not all the gold fit in your treasuries.','lost','bad');G.money=cap();}
 }
 function recount(){G.rc=[0,0,0,0,0,0];for(let i=0;i<N;i++)if(G.room[i])G.rc[G.room[i]]++;}
-// Dungeon Keeper: a slapped imp works 25% faster for a while.
-const SLAP_BOOST=1.25;
 function impCost(){return CFG.imp.baseCost+CFG.imp.perImp*G.ents.filter(e=>e.kind==='imp').length;}
 // Call to Arms is free on your own territory, as in Dungeon Keeper.
 function spellCost(k,i){return k==='imp'?impCost():k==='rally'&&i!==undefined&&G.t[i]===CLAIM?0:SPELLS[k].cost;}
@@ -875,8 +886,8 @@ function cast(k,i,fx_,fy_){
   const c=spellCost(k,i);if(G.money<c){msg('Not enough gold for '+s.n+'.','nogold','bad');return;}
   if(k==='imp'){if(G.t[i]!==CLAIM)return;const e=spawn('imp',tx(i),ty(i));fx({type:'ring',x:e.x,y:e.y,dur:.6,col:'#e0483c'});}
   else if(k==='bolt'){if(!G.seen[i])return;fx({type:'bolt',x:fx_,y:fy_,dur:.45,seed:rand(999)});for(const o of G.ents){if(o.dead||o.side!==1)continue;if(Math.hypot(o.x-fx_,o.y-fy_)<s.radius){o.hp-=s.damage;fx({type:'text',x:o.x,y:o.y-.3,dur:.8,txt:'-'+s.damage,col:'#dfe9ff'});if(o.hp<=0)kill(o);}}}
-  else if(k==='heal'){fx({type:'heal',x:fx_,y:fy_,dur:.6});for(const o of G.ents)if(!o.dead&&o.side===0&&Math.hypot(o.x-fx_,o.y-fy_)<s.radius)o.hp=o.maxhp;}
-  else if(k==='rally'){if(!G.seen[i]||!walk(i))return;G.rally={i,until:G.time+s.duration};for(const o of creatures())if(o.state!=='fight'&&o.state!=='leave'){release(o);o.state='think';}msg('Your creatures rally to arms.','rally','good');}
+  else if(k==='heal'){if(!G.seen[i])return;fx({type:'heal',x:fx_,y:fy_,dur:.6});for(const o of G.ents)if(!o.dead&&o.side===0&&Math.hypot(o.x-fx_,o.y-fy_)<s.radius)o.hp=o.maxhp;}
+  else if(k==='rally'){if(!G.seen[i]||!walk(i))return;G.rally={i,until:G.time+s.duration};for(const o of creatures())if(o.state!=='fight'&&!o.leaving){release(o);o.state='think';}msg('Your creatures rally to arms.','rally','good');}
   G.money-=c;
 }
 function scr(ev){const r=cv.getBoundingClientRect();return{sx:ev.clientX-r.left,sy:ev.clientY-r.top};}
@@ -954,15 +965,15 @@ const TILE_EN={0:'Rock (impenetrable)',1:'Earth',2:'Gold seam',3:'Gem seam (neve
 function ui(){
   const $=id=>document.getElementById(id);
   $('sGold').textContent=Math.floor(G.money)+' / '+cap();
-  $('sImps').textContent=G.ents.filter(e=>e.kind==='imp'&&e.side===0).length+G.held.filter(e=>e.kind==='imp').length;
-  $('sCre').textContent=creatures().length+G.held.filter(e=>e.kind!=='imp').length+' / '+G.rc[LAIR];
+  $('sImps').textContent=G.ents.filter(e=>e.kind==='imp'&&e.side===0).length;
+  $('sCre').textContent=creatures().length+' / '+G.rc[LAIR];
   $('sRes').textContent=Math.floor(G.research);
-  const due=creatures().concat(G.held.filter(e=>e.kind!=='imp')).reduce((a,e)=>a+wage(e.kind),0);
+  const due=creatures().filter(e=>!e.leaving).reduce((a,e)=>a+wage(e.kind),0);
   $('sPay').textContent=fmtT(G.payT)+(due?' · '+due+'g':'');$('sPay').style.color=due>G.money?'#f08a7e':'';
   $('sWave').textContent=G.wave>=WAVES.length?'final wave':('wave '+(G.wave+1)+' in '+fmtT(G.nextWave));
   $('sHeart').style.width=(100*G.heartHP/G.heartMax)+'%';
   for(const[k,s]of Object.entries(SPELLS)){const b=btns[k],locked=G.research<s.req;b.disabled=locked;
-    b.querySelector('span').textContent=locked?('research '+s.req):(spellCost(k)+' gold');}
+    b.querySelector('span').textContent=locked?('research '+s.req):k==='rally'?'free on your land, else '+s.cost:(spellCost(k)+' gold');}
   let h='';
   if(hover.in&&inb(hover.x,hover.y)){
     const i=ix(hover.x,hover.y);
@@ -976,12 +987,12 @@ function ui(){
       if(G.room[i])h+='<br>'+ROOMS[G.room[i]].n+': '+ROOMS[G.room[i]].tip.toLowerCase();}
   }else if(ROOMS[tool])h='<b>'+ROOMS[tool].n+'</b><br>'+ROOMS[tool].tip+'. Click a tile, or drag a rectangle over your territory.';
   else if(tool==='hand')h=G.held.length?'<b>In hand: '+G.held.length+'</b><br>Click your territory to drop.':'<b>Hand</b><br>Click a block to dig it, or drag to mark an area. Click a creature to pick it up.';
-  else if(SPELLS[tool])h='<b>'+SPELLS[tool].n+'</b><br>'+({imp:'Click your territory to summon a new imp.',bolt:'Strikes heroes around the clicked spot.',heal:'Heals your creatures around the clicked spot.',rally:'All creatures gather at this spot for 20 seconds. Free on your own territory.'})[tool];
+  else if(SPELLS[tool])h='<b>'+SPELLS[tool].n+'</b><br>'+({imp:'Click your territory to summon a new imp.',bolt:'Strikes heroes around the clicked spot.',heal:'Heals your creatures around the clicked spot.',rally:'All creatures gather at this spot for '+SPELLS.rally.duration+' seconds. Free on your own territory.'})[tool];
   else if(tool==='sell')h='<b>Sell</b><br>Click or drag over rooms to tear them down.';
   else if(tool==='look')h='<b>Look</b><br>Drag to scroll the map. Scroll or pinch to zoom.';
-  else h='<b>Slap</b><br>A slapped imp works faster for 10 seconds.';
+  else h='<b>Slap</b><br>A slapped imp works faster for '+CFG.hand.slapTime+' seconds.';
   const info=$('info');if(info.innerHTML!==h)info.innerHTML=h;
-  const n=creatures().length+G.held.filter(e=>e.kind!=='imp').length;
+  const n=creatures().length;
   let ph='';
   if(!anyPortal())ph='<li><span class="need">Claim a portal to attract creatures. No portal, no creatures.</span></li>';
   for(const[k,a]of Object.entries(ATTRACT)){const ok=a.ok();ph+='<li class="'+(ok?'ok':'')+'"><i class="dot" style="background:'+KINDS[k].col+'"></i><b>'+KINDS[k].n+'</b><span class="n">'+G.pool[k]+' left</span><span class="need">'+(ok?'✓ ':'Needs ')+a.need+'</span></li>';}
@@ -1044,7 +1055,7 @@ const CHEATS=[
   ['+500 gold',()=>{G.money+=500;return '+500 gold';}],
   ['+5000 gold',()=>{G.money+=5000;return '+5000 gold';}],
   ['Reveal map',()=>{G.seen.fill(1);G.fogDirty=true;return 'map revealed';}],
-  ['Finish research',()=>{research(Math.max(0,...Object.values(SPELLS).map(s=>s.req||0))-G.research);return 'all spells unlocked';}],
+  ['Finish research',()=>{research(Math.max(0,Math.max(...Object.values(SPELLS).map(s=>s.req||0))-G.research));return 'all spells unlocked';}],
   ['Restore Heart',()=>{G.heartHP=G.heartMax;return 'Heart restored';}],
   ['Free imp',()=>{const r=[];for(let i=0;i<N;i++)if(G.t[i]===CLAIM)r.push(i);const i=r[rand(r.length)];spawn('imp',tx(i),ty(i));return 'free imp';}],
   ...['orc','warlock','troll','mistress'].map(k=>['+ '+KINDS[k].n,()=>{const p=G.portals.find(q=>G.pown[q]);const i=p!==undefined?p:ix(G.hx+2,G.hy);const e=spawn(k,tx(i),ty(i));fx({type:'ring',x:e.x,y:e.y,dur:.8,col:'#c58cff'});return KINDS[k].n+' summoned';}]),
@@ -1082,9 +1093,11 @@ const keys=new Set();
 addEventListener('keydown',e=>{
   if(!cheatsOn&&e.key.length===1){typed=(typed+e.key.toLowerCase()).slice(-CHEAT_CODE.length);if(typed===CHEAT_CODE){unlockCheats();return;}}
   if(e.target.tagName==='BUTTON'&&(e.key===' '||e.key==='Enter'))return;
+  // Ctrl+C opens the cheats only once they are unlocked and nothing is selected; other modified keys (copy, print, ...) stay the browser's.
+  if(e.ctrlKey||e.metaKey||e.altKey){if(cheatsOn&&e.ctrlKey&&e.key==='c'&&getSelection().isCollapsed){e.preventDefault();toggleCheats();}return;}
   if(e.key===' '||e.key==='p'){e.preventDefault();paused=!paused;syncPause();}
   else if(e.key==='Escape'){setTool('hand');drag=null;updateTip();toggleCheats(false);}
-  else if(e.key==='`'||e.key==='c'&&e.ctrlKey){e.preventDefault();toggleCheats();}
+  else if(e.key==='`'&&cheatsOn){e.preventDefault();toggleCheats();}
   else if(e.key>='1'&&e.key<='3')setSpeed(+e.key);
   else if(e.key==='+'||e.key==='=')zoomAt(Z*1.25,SW/2,SH/2);
   else if(e.key==='-'||e.key==='_')zoomAt(Z/1.25,SW/2,SH/2);

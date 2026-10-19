@@ -63,11 +63,11 @@ Mechanics of eating, sleeping, training, studying: [creatures](creatures.md).
 
 - One portal per map, near the Heart ([map](map.md)). Imps claim it like floor (it needs claimed ground next to it); then `G.pown[i] = 1`.
 - After the first claim, an attempt every `settings/portal.js` `interval` (20 s); the first after `firstArrival` (6 s). `tryAttract()` per attempt:
-  1. creatures (+ held creatures) >= `portal.js` `creatureLimit` (15) -> nothing ("creature limit")
+  1. creatures (held ones included) >= `portal.js` `creatureLimit` (15) -> nothing ("creature limit")
   2. Lair tiles <= creature count -> nothing ("need a bigger Lair")
   3. candidates: kinds with `G.pool[k] > 0` whose `attract` rooms are met; random pick; random owned portal
 - `attract` in `creatures/*.js` is a minimum total tile count per room type (not one connected room): Orc none; Troll Lair 9 + Hatchery 9; Warlock Library 9; Dark Mistress Training 9.
-- `pool` in `creatures/*.js` is how many of that kind are left to come; it goes down per arrival and back up when one dies, leaves or is dismissed (`toPool()`).
+- `pool` in `creatures/*.js` is how many of that kind the portals hold on one map. It goes down per arrival and back up when a creature that came through a portal leaves or is dismissed (`toPool()`). Slain creatures are gone for good, and creatures that did not come through a portal (joined neutrals, cheats) never add to it, so the pool never exceeds its starting value.
 - The Info tab lists every kind, its pool, whether its needs are met, creatures / limit, free beds and the next arrival.
 
 ## Research and spells
@@ -85,8 +85,6 @@ Mechanics of eating, sleeping, training, studying: [creatures](creatures.md).
 
 - Capacity is enforced at income time, not continuously: cheats and room refunds can push `G.money` above `cap()` until the next room/sell drag clamps it.
 - Selling Treasury tiles lowers `cap()`; the clamp after the drag destroys the excess gold.
-- Creature-count checks (`tryAttract()`, HUD) add `G.held` on top of `creatures()`, which already contains held creatures, so creatures in the hand count twice (see [hand](hand.md)).
-- The win card text says "six invasions" regardless of `waves.js` length; the banner says "The Lord of the Land approaches" for the last wave even if it has no Lord.
 
 ## See also
 

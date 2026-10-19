@@ -12,7 +12,7 @@ export default {
     wage: 70,
     /** How far it can see, in tiles. */
     vision: 5,
-    /** How many can come through portals on one map. */
+    /** How many the portals hold on one map. Arrivals take one; one that leaves or is dismissed goes back, a slain one is gone. */
     pool: 5,
     /** Minimum room sizes (room key: tiles) before it comes through a portal; every creature also needs a free Lair bed. */
     attract: {

@@ -6,17 +6,17 @@ description: Underlord's Hand: pick up, drop (stun, room bonus, bed move), dismi
 ## When to use this
 
 - You touch `pickUp()`, `dropHeld()`, `slapAt()`, `entAt()`, the Hand branch of the canvas `pointerdown` handler, the `#held` list or `crPick()`
-- Keywords: hand, held, capacity, drop, stun, dazed, workBoost, dismiss, portal, slap
+- Keywords: hand, held, capacity, drop, stun, dazed, workBoost, dismiss, portal, slap, slapTime
 
 ## Settings
 
-`underlord/src/config/settings/hand.js`: `capacity` (8), `dropStun` (1.0 s), `workBoost` (1.1).
+`underlord/src/config/settings/hand.js`: `capacity` (8), `dropStun` (1.0 s), `workBoost` (1.1), `slapTime` (10 s), `slapDamage` (4), `slapBoost` (1.25).
 
 ## Picking up
 
 - Hand tool, left-click within 0.42 tiles of an own, living, not-held unit (`entAt()`; imps and creatures, any state, also fighting or leaving).
 - `pickUp(e)`: refused with "Your hand is full" at `capacity`. Otherwise `release(e)`, `held=true`, path/target cleared, `boost=1`, pushed onto `G.held` (a stack).
-- Held units stay in `G.ents` but do not `tick()`, are not drawn on the map, are not targeted, do not reveal fog and do not get hungry. They keep their bed.
+- Held units stay in `G.ents` (so `creatures()`, the HUD, wages, the portal's creature count, the assistant and saves count them once) but do not `tick()`, are not drawn on the map, are not targeted, do not reveal fog and do not get hungry. They keep their bed.
 - Also from the Creatures tab: number buttons pick up the next unit with that activity (cycling via `G.crCycle`), the portrait picks up the highest level; right-click centres the view instead ([rendering-and-ui](rendering-and-ui.md)).
 - The `#held` list shows the stack top first; clicking an entry moves it to the top ("next drop").
 - Up to 4 held units are drawn next to the cursor.
@@ -34,7 +34,8 @@ Left-click with something in hand (checked in this order in `pointerdown`):
 `dropHeld(i)`:
 
 - Unit placed at the tile centre, `scan = 0`, state `stun` for `dropStun`; white ring + dust.
-- For creatures (not imps), `e.after` is the job to start right after the stun:
+- A dazed unit does not scan for enemies (imps do not flee); with `scan = 0` it scans on the first tick after the daze, so an enemy nearby is attacked (or fled from) right after it.
+- For creatures (not imps, not leaving), `e.after` is the job to start right after the stun:
 
 | Dropped on | Job | Condition |
 |---|---|---|
@@ -48,21 +49,20 @@ Left-click with something in hand (checked in this order in `pointerdown`):
 
 ## Dismissing
 
-- Clicking an own portal with a non-imp creature on top of the stack: it is removed (`dead=true`), returned to the pool (`toPool()`), its bed frees, "You dismissed your ...".
+- Clicking an own portal with a non-imp creature on top of the stack: it is removed (`dead=true`), returned to the pool if it came through a portal (`toPool()`, see [creatures](creatures.md)), its bed frees, "You dismissed your ...".
 - An imp on top is dropped on the portal tile instead.
 
 ## Slapping
 
 - Right-click without dragging (or the Slap tool, left-click) on an own unit: `slapAt()`.
-- Effect: `e.slap = 10` s, `hp -= 4` (can kill; counts as "slain"), "Slap!" text.
-- While `slap > 0`: `SLAP_BOOST` 1.25 on imp work timers and on walking speed for any unit; the sprite flickers.
+- Effect: `e.slap = slapTime`, `hp -= slapDamage` (can kill; counts as "slain"), "Slap!" text.
+- While `slap > 0`: `slapBoost` on imp work timers and on walking speed for any unit; the sprite flickers.
 - A slapped creature (not imp) that is not fighting is interrupted: reservation released, back to `think` (wakes sleepers, ends training).
 
 ## Gotchas
 
-- Held units are in both `G.ents` and `G.held`. `creatures()`/`G.ents` counts already include them, but `tryAttract()`, the HUD Imps/Creatures stats, the wage total, the assistant's creature/imp counts and `serialize()` add `G.held` again, so held units count twice (and are saved twice, see [saving](saving.md)).
-- `scan = 0` on drop means an enemy within 8 tiles switches the creature straight from `stun` to `fight`; the daze only happens when no enemy is near. Imps likewise start fleeing.
-- Picking up and dropping a leaving creature cancels its leave.
+- Held units are in both `G.ents` and `G.held`: count `G.ents`/`creatures()` only, never add `G.held` on top.
+- A leaving creature stays leaving (`e.leaving`): after a drop it walks to the portal again. A creature that decides to leave while in the hand heads out once dropped.
 - Dismiss checks only the top of the stack.
 - `toolValid()` for the Hand with units in hand marks only `CLAIM` and own portals as valid; it does not mirror the unseen-tile drag case.
 

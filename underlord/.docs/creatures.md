@@ -62,12 +62,13 @@ Enemy scanning in `tick()` interrupts all of this: see [combat](combat.md).
 ## Wages and leaving
 
 - `payday()` ([rules](rules.md)): pays `wage(k) = round(wage * economy.wageMul)` per creature in `G.ents` order while gold lasts; the others `leave(e, 'unpaid')`. Leaving creatures are skipped.
-- `leave(e, why)`: message, BFS to an own portal; state `leave` walks there and then the creature is removed with `toPool()`. With no reachable own portal it vanishes immediately.
-- While leaving it does not scan for enemies, and the starving check is skipped (hunger still rises).
+- `leave(e, why)`: sets `e.leaving = why` (saved), message, then `headOut(e)`: BFS to an own portal; state `leave` walks there and then the creature is removed with `toPool()`. With no reachable own portal it vanishes immediately. A held creature heads out once dropped.
+- `e.leaving` is permanent: `creatureThink()` calls `headOut()` first, so a drop or a reload only delays the walk. A dropped leaving creature gets no room job.
+- While leaving it does not scan for enemies, is not paid or counted in the wage total, ignores Call to Arms and is skipped by the assistant's Move; the starving check is skipped (hunger still rises).
 
 ## Pool and arrivals
 
-- `G.pool[k]` starts at `pool` from `creatures/*.js` (Orc 8, Warlock 5, Troll 5, Mistress 3). `tryAttract()` takes one; `toPool()` gives one back on death, leaving or dismissal ([rules](rules.md)).
+- `G.pool[k]` starts at `pool` from `creatures/*.js` (Orc 8, Warlock 5, Troll 5, Mistress 3). `tryAttract()` takes one and sets `e.fromPool`; `toPool()` gives one back only for a `fromPool` creature that leaves or is dismissed. `kill()` never does ([rules](rules.md)).
 - `ATTRACT[k]` (built in `applyConfig()` for every own non-imp kind) holds the human-readable need text and `ok()`, which checks `G.rc` against `attract`.
 - Arrivals spawn at a random owned portal at level 1.
 
@@ -80,7 +81,6 @@ Enemy scanning in `tick()` interrupts all of this: see [combat](combat.md).
 
 ## Gotchas
 
-- Picking up a leaving creature and dropping it cancels the leave (the drop puts it in `stun` -> `think`). Loading a save does the same (state is not saved).
 - Starving resets `hunger` to 0 before leaving, so a rescued creature starts fresh.
 - Lair beds are claimed at think time (step 8) even for healthy creatures, so beds fill up fast; `tryAttract()` only compares Lair tile count with creature count, not with unclaimed beds.
 - `e.boost` resets to 1 in `think`; only the job a drop starts directly gets `hand.workBoost`.

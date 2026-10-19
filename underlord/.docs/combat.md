@@ -38,7 +38,7 @@ description: Underlord combat: enemy scanning, line of sight (clearShot), fight/
 ## kill(t)
 
 - Heroes: `addGold(round(bounty * economy.bountyMul))` (only what fits under capacity), "+N" text; the Lord posts "The Lord of the Land has fallen!".
-- Own units: `toPool(t)` (creatures return to the portal pool; imps have none) and "has been slain".
+- Own units: "has been slain". Slain creatures do not go back to the portal pool ([rules](rules.md)).
 - Also used by Lightning, the Heart zap, slaps and the "Defeat heroes" cheat.
 
 ## clearShot(a, b)

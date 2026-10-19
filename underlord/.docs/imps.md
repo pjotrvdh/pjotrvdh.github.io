@@ -53,11 +53,11 @@ Runs from state `think`. First `release(e)` drops any reservation. `full = G.mon
 
 ## Slap boost
 
-- `SLAP_BOOST = 1.25` while `e.slap > 0` (10 s after a slap): applies to the dig, claim and reinforce timers and to walking speed in `step()`. See [hand](hand.md).
+- `settings/hand.js` `slapBoost` (1.25) while `e.slap > 0` (`slapTime`, 10 s, after a slap): applies to the dig, claim and reinforce timers and to walking speed in `step()`. See [hand](hand.md).
 
 ## Gotchas
 
-- `step()` applies `SLAP_BOOST` to every unit, so slapped creatures also walk 25% faster.
+- `step()` applies `slapBoost` to every unit, so slapped creatures also walk 25% faster.
 - `digTarget()` with `allowGold=false` also skips marked walls and gems, not only gold.
 - Claiming needs an orthogonal `CLAIM` neighbour at the moment the timer ends; if none, the imp just rethinks.
 - The portal tile stays `PORTAL` after claiming; tiles next to only the portal are not claimable through it.
