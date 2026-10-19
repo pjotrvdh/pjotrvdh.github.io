@@ -1,0 +1,131 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Twistball</title>
+  <meta name="description" content="3D pong down a neon tunnel: put spin on the ball and curve it past the opponent.">
+  <link rel="icon" type="image/svg+xml" href="./src/favicon.svg">
+  <script type="module" src="./src/main.js"></script>
+</head>
+<body>
+  <div class="app">
+    <header class="hud">
+      <h1>Twistball</h1>
+      <dl>
+        <div class="solo-only"><dt>Score</dt><dd id="score">000000</dd></div>
+        <div><dt id="levelLabel">Level</dt><dd id="level">1 / 10</dd></div>
+        <div class="solo-only"><dt>Level bonus</dt><dd id="levelBonus">3000</dd></div>
+        <div class="you"><dt id="nearLabel">You</dt><dd id="nearLives"></dd></div>
+        <div class="them"><dt id="farLabel">Opponent</dt><dd id="farLives"></dd></div>
+      </dl>
+      <div class="buttons">
+        <button id="pause" type="button">Pause</button>
+        <button id="mute" type="button" aria-pressed="false">Sound on</button>
+      </div>
+    </header>
+
+    <main class="arena">
+      <canvas id="stage" aria-label="The tunnel. Move the mouse or drag to move your paddle; click to serve."></canvas>
+      <p class="call" id="call" role="status" aria-live="polite"></p>
+      <p class="hint" id="hint"></p>
+
+      <div class="overlay" id="overlay">
+        <section class="screen" id="screenTitle" aria-labelledby="titleHeading">
+          <h2 id="titleHeading">Twistball</h2>
+          <p>Pong, but down a tunnel. Your see-through paddle is at the front; the opponent guards the far end.</p>
+          <ul>
+            <li><strong>Move</strong> with the mouse, by dragging on a touch screen, or with the arrow keys or WASD.</li>
+            <li><strong>Serve</strong> with a click, a tap or Space.</li>
+            <li><strong>Curve the ball:</strong> move your paddle as you hit it. The faster you move, the more it bends.</li>
+            <li>Hit the ball in the <strong>centre</strong> of your paddle for a bonus. Clear a level fast for the level bonus.</li>
+            <li>Take the opponent's 3 lives to clear a level. You have 5 lives for all ten levels.</li>
+            <li><strong>Play online:</strong> make a room and send the code or link to a friend, or join theirs.</li>
+          </ul>
+          <div class="modes">
+            <button id="startSolo" class="main" type="button" autofocus>1 player</button>
+            <button id="startOnline" type="button">Play online</button>
+            <button id="startDemo" type="button">CPU vs CPU</button>
+          </div>
+          <p class="speed"><label for="startLevel">1 player: start at level</label>
+            <select id="startLevel"></select>
+          </p>
+          <p class="speed"><label for="palette">Colours</label>
+            <select id="palette"></select>
+          </p>
+          <p class="speed"><label for="speed">Speed online and CPU vs CPU</label>
+            <select id="speed">
+              <option value="1">1 (slow)</option><option value="2">2</option><option value="3">3</option><option value="4">4</option><option value="5">5</option>
+              <option value="6">6</option><option value="7">7</option><option value="8">8</option><option value="9">9</option><option value="10">10 (fast)</option>
+            </select>
+          </p>
+          <h3>High scores</h3>
+          <ol class="highscores"></ol>
+        </section>
+
+        <section class="screen" id="screenOnline" aria-labelledby="onlineTitle" hidden>
+          <h2 id="onlineTitle">Play online</h2>
+          <p>Make a room and send the code or the link to a friend, or type the code of their room.</p>
+          <div class="modes">
+            <button id="hostRoom" class="main" type="button">Make a room</button>
+          </div>
+          <div class="room" id="roomBox" hidden>
+            <p>Room code: <strong class="code" id="roomCode"></strong></p>
+            <div class="row">
+              <label class="visually-hidden" for="roomLink">Link to this room</label>
+              <input id="roomLink" readonly>
+              <button id="copyLink" type="button">Copy link</button>
+            </div>
+          </div>
+          <form id="joinForm">
+            <label for="joinCode">Join a room</label>
+            <div class="row">
+              <input id="joinCode" maxlength="5" autocomplete="off" autocapitalize="characters" spellcheck="false" placeholder="Code">
+              <button type="submit">Join</button>
+            </div>
+          </form>
+          <p class="status" id="onlineStatus" role="status" aria-live="polite"></p>
+          <button id="onlineBack" type="button">Back</button>
+        </section>
+
+        <section class="screen" id="screenClear" aria-labelledby="clearTitle" hidden>
+          <h2 id="clearTitle">Level cleared</h2>
+          <p>Level bonus: <strong id="clearBonus">0</strong></p>
+          <p>Score: <strong id="clearScore">0</strong></p>
+          <button id="continue" class="main" type="button">Next level</button>
+        </section>
+
+        <section class="screen" id="screenPause" aria-labelledby="pauseTitle" hidden>
+          <h2 id="pauseTitle">Paused</h2>
+          <div class="modes">
+            <button id="resume" class="main" type="button">Resume</button>
+            <button id="pauseMenu" type="button">Main menu</button>
+          </div>
+        </section>
+
+        <section class="screen" id="screenEnd" aria-labelledby="endTitle" hidden>
+          <h2 id="endTitle">Game over</h2>
+          <p id="endSummary">Score: <strong id="endScore">0</strong> · reached level <strong id="endLevel">1</strong></p>
+          <form id="scoreForm" hidden>
+            <label for="playerName">A new high score! Your name:</label>
+            <div class="row">
+              <input id="playerName" maxlength="12" autocomplete="nickname" required>
+              <button class="main" type="submit">Save</button>
+            </div>
+          </form>
+          <div id="endBoard">
+            <h3>High scores</h3>
+            <ol class="highscores"></ol>
+          </div>
+          <div class="modes">
+            <button id="playAgain" class="main" type="button">Play again</button>
+            <button id="endMenu" type="button">Main menu</button>
+          </div>
+        </section>
+      </div>
+    </main>
+
+    <footer><a href="../">Arcade</a><span class="version" id="version" hidden></span></footer>
+  </div>
+</body>
+</html>

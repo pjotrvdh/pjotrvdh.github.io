@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <!-- Twistball favicon: the tunnel seen head-on, with the glowing ball in it. -->
+  <rect width="64" height="64" rx="12" fill="#05040b"/>
+  <rect x="6" y="10" width="52" height="44" fill="none" stroke="#7b5cff" stroke-width="3"/>
+  <rect x="20" y="22" width="24" height="20" fill="none" stroke="#ff2bd6" stroke-width="3"/>
+  <path d="M6 10L20 22M58 10L44 22M58 54L44 42M6 54L20 42" stroke="#00e5ff" stroke-width="2.5"/>
+  <circle cx="35" cy="30" r="6" fill="#f5e600"/>
+</svg>

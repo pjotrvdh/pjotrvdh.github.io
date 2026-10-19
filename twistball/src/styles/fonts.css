@@ -1,0 +1,19 @@
+/*
+ * Fonts, embedded in the build (Fontsource packages, SIL Open Font License).
+ * OpenDyslexic is the font for all text; the Underlord logo is an SVG (src/assets/brand/logo.svg).
+ */
+@font-face {
+  font-family: "OpenDyslexic";
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url("@fontsource/opendyslexic/files/opendyslexic-latin-400-normal.woff2") format("woff2");
+}
+
+@font-face {
+  font-family: "OpenDyslexic";
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url("@fontsource/opendyslexic/files/opendyslexic-latin-700-normal.woff2") format("woff2");
+}

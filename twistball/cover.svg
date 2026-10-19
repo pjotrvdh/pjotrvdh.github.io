@@ -1,0 +1,34 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 480 270">
+  <!-- Twistball's cover on the Arcade index (16:9): the neon tunnel head-on, the opponent's paddle
+       far away, the glowing ball curving towards you, and your see-through paddle up front. -->
+  <defs>
+    <radialGradient id="ball" cx="40%" cy="38%" r="60%">
+      <stop offset="0" stop-color="#fffbe0"/>
+      <stop offset=".45" stop-color="#f5e600"/>
+      <stop offset="1" stop-color="#ff8a00"/>
+    </radialGradient>
+    <filter id="glow" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="4" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+  </defs>
+  <rect width="480" height="270" fill="#05040b"/>
+  <path d="M40 22H440L322 102H158Z" fill="#0c0a1d"/>
+  <path d="M440 22V248L322 168V102Z" fill="#0f0b24"/>
+  <path d="M40 248H440L322 168H158Z" fill="#120d2b"/>
+  <path d="M40 22V248L158 168V102Z" fill="#0f0b24"/>
+  <rect x="158" y="102" width="164" height="66" fill="#090716"/>
+  <g fill="none" stroke="#7b5cff">
+    <rect x="70" y="42" width="340" height="186" stroke-opacity=".5"/>
+    <rect x="98" y="61" width="284" height="148" stroke-opacity=".42"/>
+    <rect x="121" y="77" width="238" height="116" stroke-opacity=".34"/>
+    <rect x="140" y="90" width="200" height="90" stroke-opacity=".26"/>
+  </g>
+  <g stroke="#00e5ff" stroke-opacity=".3">
+    <path d="M40 22L158 102M440 22L322 102M440 248L322 168M40 248L158 168M240 22V102M240 248V168M40 135H158M440 135H322"/>
+  </g>
+  <rect x="98" y="61" width="284" height="148" fill="none" stroke="#f5e600" stroke-width="2.5" filter="url(#glow)"/>
+  <rect x="246" y="118" width="46" height="34" rx="6" fill="#ff2bd6" fill-opacity=".3" stroke="#ff2bd6" stroke-width="2"/>
+  <path d="M262 138C250 160 214 168 196 150" fill="none" stroke="#f5e600" stroke-width="3" stroke-dasharray="2 7" stroke-linecap="round" opacity=".8"/>
+  <circle cx="186" cy="146" r="16" fill="url(#ball)" filter="url(#glow)"/>
+  <rect x="58" y="128" width="168" height="118" rx="16" fill="#00e5ff" fill-opacity=".14" stroke="#00e5ff" stroke-width="4" filter="url(#glow)"/>
+  <path d="M130 187H154M142 175V199" stroke="#00e5ff" stroke-width="3"/>
+  <text x="240" y="62" fill="#f5e600" font-family="Trebuchet MS, Arial, sans-serif" font-size="34" font-weight="700" text-anchor="middle" filter="url(#glow)" letter-spacing="3">TWISTBALL</text>
+</svg>

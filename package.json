@@ -6,7 +6,8 @@
     "private": true,
     "type": "module",
     "workspaces": [
-        "underlord"
+        "underlord",
+        "twistball"
     ],
     "scripts": {
         "dev": "vite",

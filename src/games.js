@@ -7,6 +7,13 @@
  */
 export default [
     {
+        slug: 'twistball',
+        title: 'Twistball',
+        description: 'Pong down a neon tunnel. Move your paddle as you hit the ball to curve it past the opponent, through ten levels that get faster and wilder.',
+        tags: ['Arcade', 'Sports'],
+        added: '2026-10-19',
+    },
+    {
         slug: 'underlord',
         title: 'Underlord',
         description: 'Dig into the dark, build rooms and attract creatures, then defend your Dungeon Heart against six waves of heroes. In the spirit of Dungeon Keeper.',

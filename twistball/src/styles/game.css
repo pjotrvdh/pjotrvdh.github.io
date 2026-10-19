@@ -1,0 +1,173 @@
+/* Twistball: one screen. The HUD on top, the tunnel below it at the tunnel's own 1.4 : 1 ratio. */
+:root {
+  --bg: #05040b;
+  --panel: #110e22;
+  --line: #3b3166;
+  --ink: #eef0ff;
+  --muted: #b5b2d6;
+  /* Set from the chosen palette (src/config/palettes.js): your colour, the opponent's, the highlight. */
+  --near: #00e5ff;
+  --far: #ff2bd6;
+  --accent: #f5e600;
+  --font: "OpenDyslexic", "Comic Sans MS", "Trebuchet MS", system-ui, sans-serif;
+  color-scheme: dark;
+}
+
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+
+html, body { height: 100%; }
+body {
+  margin: 0;
+  color: var(--ink);
+  font-family: var(--font);
+  font-size: 14px;
+  background: var(--bg);
+  overflow: hidden;
+}
+
+button, input { font: inherit; }
+button {
+  padding: 6px 14px;
+  border: 2px solid var(--line);
+  border-radius: 6px;
+  color: var(--ink);
+  background: var(--panel);
+  cursor: pointer;
+}
+button:hover { border-color: var(--near); }
+button:focus-visible, input:focus-visible, a:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+button.main { color: var(--bg); border-color: var(--accent); background: var(--accent); font-weight: 700; }
+button.main:hover { background: var(--near); border-color: var(--near); }
+a { color: var(--near); }
+
+.app {
+  height: 100%;
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr) auto;
+  gap: 8px;
+  padding: 10px 16px;
+}
+
+/* ---------- HUD ---------- */
+.hud { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 22px; }
+.hud h1 { margin: 0; font-size: 20px; color: var(--accent); text-shadow: 0 0 12px color-mix(in srgb, var(--accent) 45%, transparent); }
+.hud dl { display: flex; flex-wrap: wrap; gap: 4px 20px; margin: 0; }
+.hud dl div { display: flex; flex-direction: column; }
+.hud dt { color: var(--muted); font-size: 11px; text-transform: uppercase; }
+.hud dd { margin: 0; font-size: 16px; font-weight: 700; font-variant-numeric: tabular-nums; }
+.hud .you dd { color: var(--near); letter-spacing: .1em; }
+.hud .them dd { color: var(--far); letter-spacing: .1em; }
+.hud .buttons { display: flex; gap: 8px; margin-left: auto; }
+
+/* ---------- arena ---------- */
+.arena {
+  position: relative;
+  justify-self: center;
+  align-self: center;
+  width: min(100%, (100vh - 120px) * 1.4);
+  aspect-ratio: 1.4;
+  max-height: 100%;
+  border: 2px solid var(--line);
+  border-radius: 6px;
+  overflow: hidden;
+}
+#stage { display: block; width: 100%; height: 100%; touch-action: none; cursor: none; }
+
+.call {
+  position: absolute;
+  top: 12%;
+  left: 0;
+  right: 0;
+  margin: 0;
+  text-align: center;
+  font-size: clamp(18px, 3.4vw, 34px);
+  font-weight: 700;
+  color: var(--accent);
+  text-shadow: 0 0 16px color-mix(in srgb, var(--accent) 60%, transparent), 0 2px 0 #000;
+  pointer-events: none;
+  opacity: 0;
+  transform: translateY(6px);
+  transition: opacity .2s, transform .2s;
+}
+.call.show { opacity: 1; transform: none; }
+.call.good { color: var(--near); text-shadow: 0 0 16px color-mix(in srgb, var(--near) 60%, transparent), 0 2px 0 #000; }
+.call.bad { color: #ff8a6a; text-shadow: 0 0 16px rgba(255, 138, 106, .6), 0 2px 0 #000; }
+
+.hint {
+  position: absolute;
+  bottom: 4%;
+  left: 0;
+  right: 0;
+  margin: 0;
+  text-align: center;
+  color: var(--ink);
+  text-shadow: 0 1px 0 #000, 0 0 8px #000;
+  pointer-events: none;
+}
+
+/* ---------- screens ---------- */
+.overlay {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  padding: 16px;
+  overflow: auto;
+  background: rgba(5, 4, 11, .82);
+}
+.screen {
+  width: min(100%, 540px);
+  padding: 22px 26px;
+  border: 2px solid var(--line);
+  border-radius: 10px;
+  background: var(--panel);
+  text-align: center;
+}
+.screen h2 { margin: 0 0 10px; font-size: 26px; color: var(--accent); }
+.screen h3 { margin: 20px 0 8px; font-size: 16px; color: var(--near); }
+.screen p { margin: 8px 0; }
+.screen ul { margin: 0 0 16px; padding-left: 20px; text-align: left; color: var(--muted); line-height: 1.55; }
+.screen ul strong { color: var(--ink); }
+.screen .main { margin-top: 10px; padding: 8px 26px; font-size: 16px; }
+
+.highscores { margin: 0; padding: 0; list-style: none; counter-reset: place; text-align: left; }
+.highscores li { display: grid; grid-template-columns: 2em 1fr auto auto; gap: 12px; padding: 3px 0; border-bottom: 1px solid var(--line); counter-increment: place; }
+.highscores li::before { content: counter(place) "."; color: var(--muted); }
+.highscores .hs-level { color: var(--muted); }
+.highscores .hs-score { font-variant-numeric: tabular-nums; font-weight: 700; }
+.highscores .hs-empty { display: block; color: var(--muted); text-align: center; border: 0; }
+.highscores .hs-empty::before { content: none; }
+
+.modes { display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; margin-top: 12px; }
+.modes button { padding: 8px 20px; font-size: 15px; }
+.screen .modes .main { margin-top: 0; }
+.speed { color: var(--muted); }
+.speed label { margin-right: 8px; }
+.speed select { padding: 4px 8px; border: 2px solid var(--line); border-radius: 6px; color: var(--ink); background: var(--bg); font: inherit; }
+.call.them { color: var(--far); text-shadow: 0 0 16px color-mix(in srgb, var(--far) 60%, transparent), 0 2px 0 #000; }
+
+.room { margin: 12px 0; }
+.room .code { font-size: 26px; letter-spacing: .18em; color: var(--accent); }
+.room input { width: 18em; max-width: 60vw; }
+.status { min-height: 1.4em; color: var(--near); }
+#joinCode { width: 7em; text-transform: uppercase; letter-spacing: .15em; text-align: center; }
+.visually-hidden { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+
+form { margin: 14px 0; }
+form label { display: block; margin-bottom: 6px; color: var(--near); }
+form .row { display: flex; gap: 8px; justify-content: center; }
+form input { width: 12em; padding: 6px 10px; border: 2px solid var(--line); border-radius: 6px; color: var(--ink); background: var(--bg); }
+form .main { margin-top: 0; }
+
+footer { display: flex; justify-content: space-between; gap: 12px; color: var(--muted); font-size: 12px; }
+
+@media (max-width: 640px) {
+  .app { padding: 8px; }
+  .hud .buttons { margin-left: 0; }
+  .arena { width: 100%; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .call { transition: none; }
+}

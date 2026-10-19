@@ -4,6 +4,7 @@ Browser games by pjotrvdh, at [pjotrvdh.github.io](https://pjotrvdh.github.io/).
 
 | Game | Play | Source |
 |---|---|---|
+| Twistball: pong down a neon tunnel; curve the ball past the computer or a friend online | [pjotrvdh.github.io/twistball](https://pjotrvdh.github.io/twistball/) | [`twistball/`](twistball) |
 | Underlord: dig a dungeon, attract creatures and defend your Dungeon Heart, in the spirit of Dungeon Keeper | [pjotrvdh.github.io/underlord](https://pjotrvdh.github.io/underlord/) | [`underlord/`](underlord) |
 
 ## Getting started
@@ -45,6 +46,7 @@ public/404.html         GitHub Pages' "not found" page; also sends old /Underlor
 tools/vite.js           shared Vite setup: every page builds to one self-contained HTML file
 vite.config.js          builds the index and copies every game's build into dist/<game>
 .ddev/                  DDEV: config.yaml and start-vite.sh, which runs the Vite dev server
+twistball/              a game: its own npm workspace, see twistball/README.md
 underlord/              a game: its own npm workspace, see underlord/README.md
 ```
 
