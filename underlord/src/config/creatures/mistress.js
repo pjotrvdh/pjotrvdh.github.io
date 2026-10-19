@@ -22,6 +22,8 @@ export default {
     attract: {
         training: 9,
     },
+    /** Dungeon Keeper: she enjoys a slap. It does her no harm and does not interrupt her; while it lasts (settings.hand.slapTime) she trains, studies and attacks settings.hand.slapBoost times faster. */
+    likesSlaps: true,
     /** Fallback colour when the SVG is missing; also marks its Lair bed. */
     color: '#c43d7e',
 };

@@ -6,7 +6,7 @@ description: Underlord's Hand: pick up, drop (stun, room bonus, bed move), dismi
 ## When to use this
 
 - You touch `pickUp()`, `dropHeld()`, `slapAt()`, `entAt()`, the Hand branch of the canvas `pointerdown` handler, the `#held` list or `crPick()`
-- Keywords: hand, held, capacity, drop, stun, dazed, workBoost, dismiss, portal, slap, slapTime
+- Keywords: hand, held, capacity, drop, stun, dazed, workBoost, dismiss, portal, slap, slapTime, likesSlaps, joy
 
 ## Settings
 
@@ -58,6 +58,7 @@ Left-click with something in hand (checked in this order in `pointerdown`):
 - Effect: `e.slap = slapTime`, `hp -= slapDamage` (can kill; counts as "slain"), "Slap!" text.
 - While `slap > 0`: `slapBoost` on imp work timers and on walking speed for any unit; the sprite flickers.
 - A slapped creature (not imp) that is not fighting is interrupted: reservation released, back to `think` (wakes sleepers, ends training).
+- A kind with `likesSlaps` (`creatures/*.js`; only the Dark Mistress, as in Dungeon Keeper) takes no damage and is not interrupted ("Yes, master!"). While `slap > 0`, `joy(e)` = `slapBoost` multiplies her training XP, research and attack speed (`cd = rate / joy`).
 
 ## Gotchas
 

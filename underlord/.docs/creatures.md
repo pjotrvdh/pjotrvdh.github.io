@@ -12,7 +12,7 @@ description: Underlord creature AI (creatureThink): hunger, Lair beds, training,
 ## Entities
 
 - `spawn(kind, x, y, mult=1)` creates every unit: `id`, `kind`, `side` (0 own, 1 hero, 2 neutral), `x/y` (tile centre +0.5), `hp/maxhp/atk` (x `mult`), `lvl` 1, `xp`, `state`, `path`, `hunger` (random 0-40), `slap`, `bed` -1, `guard`, ...
-- `KINDS[k]` is built in `applyConfig()` from `creatures/*.js` and `heroes/*.js`: `n` name, `hp`, `atk`, `spd`, `range`, `rate`, `wage`, `col`, `vision` (default 5), `pool`, `attract`, `train`, `study` (default 0), plus hero `bounty`, `dig`, `big`.
+- `KINDS[k]` is built in `applyConfig()` from `creatures/*.js` and `heroes/*.js`: `n` name, `hp`, `atk`, `spd`, `range`, `rate`, `wage`, `col`, `vision` (default 5), `pool`, `attract`, `train`, `study` (default 0), `likesSlaps`, plus hero `bounty`, `dig`, `big`.
 - `creatures()` = own, living, non-imp entities (held ones included).
 - States and their labels: `STATE_EN` at the top of `underlord/src/game/underlord.js`.
 
@@ -50,13 +50,13 @@ Enemy scanning in `tick()` interrupts all of this: see [combat](combat.md).
 
 ## Training
 
-- `train` (must stand on a Training tile, gold > 0): `G.money -= trainCost * dt` (`settings/economy.js` `trainCost` 1.5/s), XP `+train/s` x `e.boost`, for 8 s. `train` per kind in `creatures/*.js`: Orc, Warlock, Mistress 9, Troll 7 (the worst trainer, as in Dungeon Keeper).
+- `train` (must stand on a Training tile, gold > 0): `G.money -= trainCost * dt` (`settings/economy.js` `trainCost` 1.5/s), XP `+train/s` x `e.boost` x `joy(e)` ([hand](hand.md)), for 8 s. `train` per kind in `creatures/*.js`: Orc, Warlock, Mistress 9, Troll 7 (the worst trainer, as in Dungeon Keeper).
 - `gainXP(e, n)`: level up while `xp >= need(e) = 80 * lvl`, max level 10. Per level: `maxhp *= 1.12`, full heal, `atk *= 1.1`, "Level N" text.
 - Combat also gives XP ([combat](combat.md)).
 
 ## Research
 
-- `study` (must stand on a Library tile): `research(dt * study * boost)`, for 8 s. `study` per kind in `creatures/*.js`: Warlock 4, Mistress 1.2, Orc and Troll 0 (they cannot research, as in Dungeon Keeper).
+- `study` (must stand on a Library tile): `research(dt * study * boost * joy(e))`, for 8 s. `study` per kind in `creatures/*.js`: Warlock 4, Mistress 1.2, Orc and Troll 0 (they cannot research, as in Dungeon Keeper).
 - `research(n)` adds to `G.research` and posts "Research complete" for every spell threshold crossed ([spells](spells.md)).
 
 ## Wages and leaving

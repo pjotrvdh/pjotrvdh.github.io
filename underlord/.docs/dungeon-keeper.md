@@ -78,7 +78,7 @@ Other DK facts per kind:
 - **Levelling**: Underlord multiplies `maxhp` by 1.12 and `atk` by 1.1 per level (about 2.8x and 2.4x at level 10); DK adds 35% of the base per level (4.15x at level 10). Wages do not rise with level in Underlord.
 - **Food**: one Hatchery visit resets hunger; there are no per-kind chicken counts.
 - **Imps** defend the Heart while it is under attack (as in DK), but do not fight back when only another imp is near; otherwise they flee.
-- **Personality**: no Warlock Library aggression, no Mistress joy from slaps, no natural enemies or separate-Lair pairs, no happiness/anger beyond wages and hunger.
+- **Personality**: the Dark Mistress likes slaps (`likesSlaps`: no damage, no interruption, she works and attacks faster while slapped), but there is no Warlock Library aggression, no natural enemies or separate-Lair pairs, no happiness/anger beyond wages and hunger.
 - **Spells** have one fixed cost instead of a charge level; Call to Arms costs per cast, not per second.
 - **Create Imp** is deliberately much cheaper (100 + 25 per imp vs 150 + 150): imps are the only workers on a short map.
 

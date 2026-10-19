@@ -12,7 +12,7 @@ let CFG,ECON,KINDS,ROOMS,SPELLS,WAVES,ATTRACT,PORTAL_LIMIT,HEART_CAP,TREAS_CAP,W
 function applyConfig(c){
   CFG=c.settings;ECON=CFG.economy;HEART_CAP=ECON.heartCap;TREAS_CAP=ECON.treasCap;WALL_HP=CFG.walls.hp;PORTAL_LIMIT=CFG.portal.creatureLimit;
   const mk=(v,side,k)=>({n:v.name,g:k==='imp'?'':v.name[0],hp:v.hp,atk:v.attack,spd:v.speed,range:v.range,rate:v.rate,wage:v.wage||0,col:v.color,
-    side:side||undefined,bounty:v.bounty||0,dig:v.dig,big:v.big?1:0,vision:v.vision||5,pool:v.pool||0,attract:v.attract||{},train:v.train||0,study:v.study||0});
+    side:side||undefined,bounty:v.bounty||0,dig:v.dig,big:v.big?1:0,vision:v.vision||5,pool:v.pool||0,attract:v.attract||{},train:v.train||0,study:v.study||0,likesSlaps:!!v.likesSlaps});
   KINDS={};
   for(const[k,v]of Object.entries(c.creatures))KINDS[k]=mk(v,0,k);
   for(const[k,v]of Object.entries(c.heroes))KINDS[k]=mk(v,1,k);
@@ -336,6 +336,8 @@ function nearestEnemy(e,R){
   for(const o of G.ents){if(o.dead||o.held||o.side===e.side||o.side===2)continue;const dx=o.x-e.x,dy=o.y-e.y,d=dx*dx+dy*dy;if(d<bd&&clearShot(e,o)){bd=d;best=o;}}
   return best;
 }
+// Work and attack speed multiplier for a slapped creature that likes slaps.
+function joy(e){return e.slap>0&&KINDS[e.kind].likesSlaps?CFG.hand.slapBoost:1;}
 // The hero nearest to imp e that stands at the Heart, if e is close enough to the Heart to defend it.
 function heartFoe(e){
   const cx=G.hx+.5,cy=G.hy+.5;if(Math.hypot(e.x-cx,e.y-cy)>CFG.imp.defendRange)return null;
@@ -363,7 +365,7 @@ function fight(e,dt){
   if(!t||t.dead||t.held||t.side===e.side){e.state='think';e.target=null;return;}
   const k=KINDS[e.kind],d=Math.hypot(t.x-e.x,t.y-e.y);
   if(d>13){e.state='think';e.target=null;return;}
-  if(d<=k.range+.35&&clearShot(e,t)){e.path=[];e.face=Math.sign(t.x-e.x)||e.face;if(e.cd<=0){attack(e,t);e.cd=k.rate;}return;}
+  if(d<=k.range+.35&&clearShot(e,t)){e.path=[];e.face=Math.sign(t.x-e.x)||e.face;if(e.cd<=0){attack(e,t);e.cd=k.rate/joy(e);}return;}
   e.repath-=dt;
   if(e.repath<=0||!e.path.length){e.repath=.6;const g=ti(t);const p=bfs(ti(e),i=>i===g,1,walk,22);
     if(!p){e.state='think';e.target=null;e.ignoreT=G.time+3;return;}e.path=p;}
@@ -410,8 +412,8 @@ function tick(e,dt){
     case 'reinforce':doReinforce(e,dt);break;
     case 'sleep':if(ti(e)!==e.bed||!hasBed(e)){e.state='think';break;}e.hp=Math.min(e.maxhp,e.hp+e.maxhp*.06*dt);if(e.hp>=e.maxhp)e.state='think';break;
     case 'eat':if(G.room[ti(e)]!==HATCH){e.state='think';break;}if((e.timer-=dt)<=0){e.hunger=0;e.hp=Math.min(e.maxhp,e.hp+e.maxhp*.15);e.state='think';}break;
-    case 'train':if(G.room[ti(e)]!==TRAIN||G.money<=0){e.state='think';break;}G.money=Math.max(0,G.money-ECON.trainCost*dt);gainXP(e,KINDS[e.kind].train*(e.boost||1)*dt);if((e.timer-=dt)<=0)e.state='think';break;
-    case 'study':if(G.room[ti(e)]!==LIB){e.state='think';break;}research(dt*KINDS[e.kind].study*(e.boost||1));if((e.timer-=dt)<=0)e.state='think';break;
+    case 'train':if(G.room[ti(e)]!==TRAIN||G.money<=0){e.state='think';break;}G.money=Math.max(0,G.money-ECON.trainCost*dt);gainXP(e,KINDS[e.kind].train*(e.boost||1)*joy(e)*dt);if((e.timer-=dt)<=0)e.state='think';break;
+    case 'study':if(G.room[ti(e)]!==LIB){e.state='think';break;}research(dt*KINDS[e.kind].study*(e.boost||1)*joy(e));if((e.timer-=dt)<=0)e.state='think';break;
     case 'fight':fight(e,dt);break;
     case 'march':march(e,dt);break;
     case 'leave':if(step(e,dt)){e.dead=true;toPool(e);fx({type:'ring',x:e.x,y:e.y,dur:.6,col:'#9b6bf0'});}break;
@@ -874,7 +876,10 @@ function cpuSpells(aggressive){
     const hurt=creatures().find(e=>activity(e)==='fighting'&&e.hp<e.maxhp*.4);if(hurt)cast('heal',ti(hurt),hurt.x,hurt.y);}
 }
 function entAt(fx,fy){let best=null,bd=.42;for(const e of G.ents){if(e.dead||e.held||e.side!==0)continue;const d=Math.hypot(e.x-fx,e.y-fy);if(d<bd){bd=d;best=e;}}return best;}
-function slapAt(fx,fy){const e=entAt(fx,fy);if(!e)return;e.slap=CFG.hand.slapTime;e.hp-=CFG.hand.slapDamage;fx({type:'text',x:e.x,y:e.y-.3,dur:.6,txt:'Slap!',col:'#ffd2a8'});if(e.hp<=0){kill(e);return;}if(e.kind!=='imp'&&e.state!=='fight'){release(e);e.state='think';}}
+// A creature that likes slaps (the Dark Mistress) takes no damage, is not interrupted and works and fights faster (joy()).
+function slapAt(px,py){const e=entAt(px,py);if(!e)return;e.slap=CFG.hand.slapTime;
+  if(KINDS[e.kind].likesSlaps){fx({type:'text',x:e.x,y:e.y-.3,dur:.8,txt:'Yes, master!',col:'#ff9ccf'});return;}
+  e.hp-=CFG.hand.slapDamage;fx({type:'text',x:e.x,y:e.y-.3,dur:.6,txt:'Slap!',col:'#ffd2a8'});if(e.hp<=0){kill(e);return;}if(e.kind!=='imp'&&e.state!=='fight'){release(e);e.state='think';}}
 function build(i,r){
   if(G.t[i]!==CLAIM||G.room[i])return false;const c=ROOMS[r].cost;
   if(G.money<c){msg('Not enough gold for a '+ROOMS[r].n+'.','nogold','bad');return false;}

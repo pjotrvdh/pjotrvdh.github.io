@@ -17,7 +17,7 @@ The game is a web page built with [Vite](https://vite.dev). All game data (setti
   - Dropped on a free Lair tile, a creature moves its bed there and goes to sleep. Another creature's bed stays locked.
   - A dropped creature is dazed for a moment.
   - Dropping a creature on your own portal dismisses it.
-  - Right-click slaps a creature; slapped imps work 25% faster.
+  - Right-click slaps a creature; slapped imps work 25% faster. A Dark Mistress enjoys it: she takes no damage and trains, studies and fights faster for a while.
 - **Spells:** Create Imp, Call to Arms, Heal and Lightning, in the research order of Dungeon Keeper. You unlock the last three through research in the Library. Call to Arms is free on your own territory.
 - **Control panel:** a minimap at the top (click it to jump there), then Info, Rooms, Spells and Creatures tabs. The Creatures tab shows, for each type, how many are idle, working and fighting. Click a number to pick one of them up, or right-click it to look at it.
 - **Computer Assistant:** the **C** button on the minimap lets the computer play for you, in one of four modes: Aggressive, Defensive, Construction only or Move only.
