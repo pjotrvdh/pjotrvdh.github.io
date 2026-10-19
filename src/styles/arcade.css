@@ -1,5 +1,5 @@
 /*
- * Arcade index. Cyberpunk street: near-black with a faint neon grid and scanlines, the graffiti logo
+ * Arcade index. Cyberpunk street: near-black with a faint neon grid, the graffiti logo
  * (src/logo.svg) as the piece on the wall, clipped-corner HUD panels with neon edges, a yellow Play
  * button, and OpenDyslexic for every word.
  */
@@ -39,15 +39,6 @@ body {
     linear-gradient(rgba(123, 92, 255, .07) 1px, transparent 1px) 0 0 / 40px 40px,
     linear-gradient(90deg, rgba(123, 92, 255, .07) 1px, transparent 1px) 0 0 / 40px 40px,
     var(--bg);
-}
-
-/* Scanlines over everything, too faint to hurt reading. */
-body::after {
-  content: "";
-  position: fixed;
-  inset: 0;
-  pointer-events: none;
-  background: repeating-linear-gradient(0deg, rgba(0, 0, 0, .18) 0 1px, transparent 1px 3px);
 }
 
 a { color: var(--cyan); }
