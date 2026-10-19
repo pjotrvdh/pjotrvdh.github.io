@@ -1,3 +1,4 @@
+// Imps flee from heroes, but fight with attack/range/rate when they defend the Dungeon Heart (settings/imp.js).
 export default {
     name: 'Imp',
     hp: 40,

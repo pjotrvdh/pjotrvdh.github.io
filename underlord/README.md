@@ -7,6 +7,7 @@ The game is a web page built with [Vite](https://vite.dev). All game data (setti
 ## How to play
 
 - **Dig:** click a block to mark it for digging, or drag to mark a whole rectangle. You can mark blocks inside the clouds too. Your imps dig the blocks out, carry the gold to the Heart or a Treasury, and claim the new floor.
+- **Imps defend the Heart:** imps flee from heroes, but when the Dungeon Heart is under attack, the imps nearby rush in to fight.
 - **Walls:** idle imps reinforce the earth walls around your territory. Heroes take much longer to tunnel through a reinforced wall.
 - **Explore:** the map is hidden in clouds. Your units reveal what they can see, and walls block their sight. Gold seams and the portal near your Dungeon Heart shine through the clouds. Hidden caverns hold treasure chests, wandering creatures that join you, and a camp of sleeping heroes. Invading heroes show as white dots, on the map and the minimap, until they reach ground you have discovered; only then can you see which hero it is.
 - **Build:** you build rooms on claimed ground by clicking a tile or dragging a rectangle. The rooms are Treasury, Lair, Hatchery, Training Room and Library.

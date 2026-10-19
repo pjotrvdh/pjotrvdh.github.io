@@ -57,7 +57,7 @@ Section markers inside `underlord.js` (search for `/* ---------- name ----------
 |---|---|
 | [rules](rules.md) | You need the rules as the player sees them: goal, economy, rooms, portal, research, waves |
 | [map](map.md) | You touch `genMap()`, tile types, caverns, the portal, the gate, fog or vision |
-| [imps](imps.md) | You touch `impThink()`, digging, claiming, reinforcing, gold hauling or imp fleeing |
+| [imps](imps.md) | You touch `impThink()`, digging, claiming, reinforcing, gold hauling, imp fleeing or imps defending the Heart |
 | [creatures](creatures.md) | You touch `creatureThink()`, hunger, beds, training, research, wages, leaving, neutrals |
 | [hand](hand.md) | You touch pick up / drop / dismiss (`pickUp()`, `dropHeld()`) or slapping (`slapAt()`) |
 | [combat](combat.md) | You touch targeting, `fight()`, `attack()`, `kill()`, XP, bounties or line of sight |

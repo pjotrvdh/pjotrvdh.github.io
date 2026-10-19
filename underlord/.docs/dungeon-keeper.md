@@ -77,7 +77,7 @@ Other DK facts per kind:
 - **Jobs**: there is no Workshop, Torture Room or Guard Post, so Trolls, Mistresses and Orcs train instead. `train` and `study` in `creatures/*.js` follow DK's job values: the Troll trains slowest (7 XP/s vs 9), Orc and Troll never study (`study: 0`), the Warlock studies fastest (4 vs the Mistress's 1.2).
 - **Levelling**: Underlord multiplies `maxhp` by 1.12 and `atk` by 1.1 per level (about 2.8x and 2.4x at level 10); DK adds 35% of the base per level (4.15x at level 10). Wages do not rise with level in Underlord.
 - **Food**: one Hatchery visit resets hunger; there are no per-kind chicken counts.
-- **Imps** never fight in Underlord, not even to defend the Heart.
+- **Imps** defend the Heart while it is under attack (as in DK), but do not fight back when only another imp is near; otherwise they flee.
 - **Personality**: no Warlock Library aggression, no Mistress joy from slaps, no natural enemies or separate-Lair pairs, no happiness/anger beyond wages and hunger.
 - **Spells** have one fixed cost instead of a charge level; Call to Arms costs per cast, not per second.
 - **Create Imp** is deliberately much cheaper (100 + 25 per imp vs 150 + 150): imps are the only workers on a short map.

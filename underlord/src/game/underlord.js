@@ -144,7 +144,7 @@ function genMap(){
 
 function newGame(){
   G={t:null,room:new Uint8Array(N),mark:new Uint8Array(N),hp:new Uint8Array(N),gold:new Int16Array(N),seen:new Uint8Array(N),loot:new Int16Array(N),
-     res:new Map(),rc:[0,0,0,0,0,0],ents:[],fx:[],money:ECON.startGold,heartHP:CFG.heart.hp,heartMax:CFG.heart.hp,heartFlash:0,
+     res:new Map(),rc:[0,0,0,0,0,0],ents:[],fx:[],money:ECON.startGold,heartHP:CFG.heart.hp,heartMax:CFG.heart.hp,heartFlash:0,heartAlarm:0,
      time:0,nextWave:CFG.waves.first,zapT:0,wave:0,spawnQ:[],research:0,payT:ECON.payInterval,pown:new Uint8Array(N),pool:Object.fromEntries(Object.keys(ATTRACT).map(k=>[k,KINDS[k].pool])),portalT:CFG.portal.firstArrival,idc:1,
      held:[],over:null,rally:null,msgCd:{},visT:0,cpu:{on:!!(G&&G.cpu&&G.cpu.on),mode:(G&&G.cpu&&G.cpu.mode)||'defensive',t:0}};
   genMap();
@@ -336,6 +336,13 @@ function nearestEnemy(e,R){
   for(const o of G.ents){if(o.dead||o.held||o.side===e.side||o.side===2)continue;const dx=o.x-e.x,dy=o.y-e.y,d=dx*dx+dy*dy;if(d<bd&&clearShot(e,o)){bd=d;best=o;}}
   return best;
 }
+// The hero nearest to imp e that stands at the Heart, if e is close enough to the Heart to defend it.
+function heartFoe(e){
+  const cx=G.hx+.5,cy=G.hy+.5;if(Math.hypot(e.x-cx,e.y-cy)>CFG.imp.defendRange)return null;
+  let best=null,bd=1/0;
+  for(const o of G.ents){if(o.dead||o.held||o.side!==1||Math.hypot(o.x-cx,o.y-cy)>CFG.heart.zapRange)continue;const d=Math.hypot(o.x-e.x,o.y-e.y);if(d<bd){bd=d;best=o;}}
+  return best;
+}
 function attack(e,t){
   const k=KINDS[e.kind],dmg=e.atk*(.85+Math.random()*.3);
   if(k.range>1.5)fx({type:'proj',x:e.x,y:e.y,x1:t.x,y1:t.y,dur:.25,col:e.side?'#bcd2f0':'#c58cff'});
@@ -364,7 +371,7 @@ function fight(e,dt){
 }
 function march(e,dt){
   const here=ti(e);
-  if(adjHeart(here)){if(e.cd<=0){e.cd=KINDS[e.kind].rate;G.heartHP-=e.atk;G.heartFlash=.25;
+  if(adjHeart(here)){if(e.cd<=0){e.cd=KINDS[e.kind].rate;G.heartHP-=e.atk;G.heartFlash=.25;G.heartAlarm=CFG.imp.defendTime;
     fx({type:'dust',x:G.hx+.5+(e.x-G.hx-.5)*.4,y:G.hy+.5+(e.y-G.hy-.5)*.4,dur:.3,col:'#ff6a4a'});
     msg('Your Dungeon Heart is under attack!','heart','bad');}return;}
   e.repath-=dt;
@@ -385,8 +392,10 @@ function tick(e,dt){
   e.cd-=dt;if(e.slap>0)e.slap-=dt;
   if(e.side===0){const i=ti(e);if(G.loot[i]>0){const a=addGold(G.loot[i]);if(a>0){G.loot[i]-=a;fx({type:'text',x:e.x,y:e.y-.3,dur:1.2,txt:'+'+a,col:'#e3b23c'});msg('Treasure found: '+a+' gold.','loot'+i,'good');}}}
   if(e.side===0&&e.kind!=='imp'){e.hunger+=dt*1.5;if(e.hunger>=200&&!e.leaving){e.hunger=0;leave(e,'starving');}}
-  if(e.kind==='imp'&&e.state!=='flee'&&e.state!=='stun'){e.scan-=dt;if(e.scan<=0){e.scan=.5;const o=nearestEnemy(e,3.2);
-    if(o){release(e);const p=bfs(ti(e),i=>adjHeart(i)&&Math.hypot(tx(i)-o.x,ty(i)-o.y)>3,1);if(p&&p.length){go(e,p,'idle',3);e.state='flee';}}}}
+  // Imps flee from heroes, except while the Heart is under attack: then the ones nearby defend it.
+  if(e.kind==='imp'&&e.state!=='stun'&&e.state!=='fight'){e.scan-=dt;if(e.scan<=0){e.scan=.5;const h=G.heartAlarm>0&&heartFoe(e);
+    if(h){release(e);e.state='fight';e.target=h;e.path=[];e.repath=0;}
+    else if(e.state!=='flee'){const o=nearestEnemy(e,3.2);if(o){release(e);const p=bfs(ti(e),i=>adjHeart(i)&&Math.hypot(tx(i)-o.x,ty(i)-o.y)>3,1);if(p&&p.length){go(e,p,'idle',3);e.state='flee';}}}}}
   if(e.kind!=='imp'&&e.state!=='fight'&&e.state!=='stun'&&!e.leaving){
     e.scan-=dt;if(e.scan<=0){e.scan=.5;if(G.time>=e.ignoreT){const o=nearestEnemy(e,e.side?5:8);if(o){release(e);e.state='fight';e.target=o;e.path=[];e.repath=0;}}}
   }
@@ -447,6 +456,7 @@ function update(dt){
   if(anyPortal()){G.portalT-=dt;if(G.portalT<=0){G.portalT=CFG.portal.interval;tryAttract();}}
   G.payT-=dt;if(G.payT<=0){G.payT=ECON.payInterval;payday();}
   if(G.heartFlash>0)G.heartFlash-=dt;
+  if(G.heartAlarm>0)G.heartAlarm-=dt;
   if((G.zapT-=dt)<=0){const c={x:G.hx+.5,y:G.hy+.5};let best=null,bd=CFG.heart.zapRange;
     for(const o of G.ents){if(o.dead||o.side!==1)continue;const d=Math.hypot(o.x-c.x,o.y-c.y);if(d<bd){bd=d;best=o;}}
     if(best){G.zapT=CFG.heart.zapInterval;fx({type:'proj',x:c.x,y:c.y,x1:best.x,y1:best.y,dur:.2,col:'#ff6a4a'});best.hp-=CFG.heart.zapDamage;if(best.hp<=0)kill(best);}}

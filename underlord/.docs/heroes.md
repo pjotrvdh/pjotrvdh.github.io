@@ -24,7 +24,7 @@ description: Underlord hero waves, marching/tunnelling, the Heart zap, the hero 
 ## Marching (`march()`)
 
 - State after spawn and after every `think` (unless `guard`).
-- Standing next to the Heart (`adjHeart`): every `rate` seconds `G.heartHP -= e.atk` (no random spread), Heart flash, "Your Dungeon Heart is under attack!" (20 s message cooldown).
+- Standing next to the Heart (`adjHeart`): every `rate` seconds `G.heartHP -= e.atk` (no random spread), Heart flash, Heart alarm that sends nearby imps to defend it ([imps](imps.md)), "Your Dungeon Heart is under attack!" (20 s message cooldown).
 - Otherwise: path from `dijkstra(here, adjHeart)`, recomputed every 5 s or when empty. Costs `hcost()`: walkable 1, earth 4, gold 6, reinforced wall 12; rock, gem, lava and Heart impassable.
 - Next step not walkable: if diggable, hit it every `dig` seconds (`G.hp--`, `openTile()` at 0, dust); if not diggable, drop the path and recompute.
 - Tunnelling destroys gold: a gold tile opened by a hero becomes floor and its `G.gold` is lost. Dug tiles are unclaimed `FLOOR`; heroes never unclaim territory.

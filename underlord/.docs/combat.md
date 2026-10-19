@@ -13,7 +13,7 @@ description: Underlord combat: enemy scanning, line of sight (clearShot), fight/
 
 - Sides: 0 own, 1 heroes, 2 neutral. `nearestEnemy(e, R)` skips dead, held, same-side and side-2 units, and needs `clearShot()`.
 - Own creatures attack heroes (guards included). Heroes attack own creatures and imps. Neutrals are never targeted and never attack.
-- Imps never enter `fight`; they flee ([imps](imps.md)).
+- Imps flee from heroes, except while the Heart is under attack: then nearby imps `fight` the heroes at the Heart ([imps](imps.md)).
 
 ## Scanning (`tick()`)
 
@@ -31,7 +31,7 @@ description: Underlord combat: enemy scanning, line of sight (clearShot), fight/
 ## attack(e, t)
 
 - Damage `e.atk * (0.85..1.15)`. Ranged (`range > 1.5`: Warlock, Archer, Wizard) shows a projectile; damage is instant.
-- Own attackers (imps never attack) gain `damage * 0.4` XP ([creatures](creatures.md)).
+- Own attackers (imps included) gain `damage * 0.4` XP ([creatures](creatures.md)).
 - Hitting an own sleeping creature wakes it (`think`).
 - `t.hp <= 0` -> `kill(t)`.
 
@@ -56,7 +56,7 @@ description: Underlord combat: enemy scanning, line of sight (clearShot), fight/
 - Bounties are lost when the treasury is full.
 - `attack()` damage to the Heart is separate: heroes hit the Heart from `march()`, not `fight()`, with flat `e.atk` ([heroes](heroes.md)).
 - The chase BFS only uses walkable tiles; heroes only tunnel while marching.
-- Imps' `attack` / `range` / `rate` in `creatures/imp.js` are unused.
+- Imps' `attack` / `range` / `rate` in `creatures/imp.js` are only used when they defend the Heart.
 
 ## See also
 

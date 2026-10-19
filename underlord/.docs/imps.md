@@ -1,18 +1,18 @@
 ---
 name: imps
-description: Imp AI in Underlord (impThink): digging, gold hauling, claiming, reinforcing walls, fleeing, reservations. Read before changing imp work.
+description: Imp AI in Underlord (impThink): digging, gold hauling, claiming, reinforcing walls, fleeing, defending the Heart. Read before changing imp work.
 ---
 
 ## When to use this
 
 - You touch `impThink()`, `doDig()`, `doClaim()`, `doReinforce()`, `digTarget()`, `reinforceTarget()`, `depositGoal`, `arrive()`, `reserve()` / `release()`
 - Imps dig the wrong blocks, ignore gold, stop claiming, or crowd one tile
-- Keywords: imp, dig, mark, carry, deposit, claim, reinforce, wall, flee, slap boost
+- Keywords: imp, dig, mark, carry, deposit, claim, reinforce, wall, flee, defend, Heart alarm, slap boost
 
 ## Stats and sources
 
-- `underlord/src/config/creatures/imp.js`: `hp` 40, `speed` 3.0, `wage` 0. `attack`, `range`, `rate` are unused: imps never fight.
-- `underlord/src/config/settings/imp.js`: `startCount` (4), `vision` (4, overrides the creature default), `baseCost`/`perImp` for Create Imp ([spells](spells.md)).
+- `underlord/src/config/creatures/imp.js`: `hp` 40, `speed` 3.0, `wage` 0. `attack` (3), `range`, `rate` are only used when defending the Heart.
+- `underlord/src/config/settings/imp.js`: `startCount` (4), `vision` (4, overrides the creature default), `baseCost`/`perImp` for Create Imp ([spells](spells.md)), `defendTime` (5 s) and `defendRange` (10 tiles) for defending the Heart.
 - Imps never eat, sleep, train, study, get paid or leave; they are not in `creatures()`.
 
 ## impThink(e) priority
@@ -41,9 +41,12 @@ Runs from state `think`. First `release(e)` drops any reservation. `full = G.mon
 - `doReinforce()` — must stand on `CLAIM` next to the earth; a step every 0.5 s; after 5 steps the earth becomes `WALL` with `G.hp = WALL_HP`. Aborts if the tile gets marked or changes.
 - `arrive()` with `deposit`: `addGold(carry)`; leftover stays in `carry` with "Your treasuries are full. Build more."
 
-## Fleeing
+## Fleeing and defending the Heart
 
-- In `tick()`, every 0.5 s (not while already fleeing): an enemy within 3.2 tiles with a clear shot (`nearestEnemy(e, 3.2)`) makes the imp walk to a tile next to the Heart that is > 3 tiles from the enemy, state `flee`, then idle 3 s.
+- In `tick()`, every 0.5 s (not while dazed or fighting), the imp first checks the Heart alarm, then fleeing.
+- Heart alarm: every hero hit on the Heart (`march()`) sets `G.heartAlarm = defendTime`; `update()` counts it down. Not saved.
+- Defend: while `G.heartAlarm > 0`, an imp within `defendRange` tiles of the Heart centre picks the nearest hero within `settings/heart.js` `zapRange` of the Heart (`heartFoe()`), releases its reservation and enters `fight` ([combat](combat.md)). This also interrupts fleeing. It fights until the target dies or is out of reach, then goes back to `think`; fighting gives XP like any own unit.
+- Flee (not already fleeing, no Heart to defend): an enemy within 3.2 tiles with a clear shot (`nearestEnemy(e, 3.2)`) makes the imp walk to a tile next to the Heart that is > 3 tiles from the enemy, state `flee`, then idle 3 s.
 - Heroes target imps like any own unit ([combat](combat.md)).
 
 ## Reservations
@@ -63,6 +66,7 @@ Runs from state `think`. First `release(e)` drops any reservation. `full = G.mon
 - The portal tile stays `PORTAL` after claiming; tiles next to only the portal are not claimable through it.
 - Carry can exceed 100 (gold comes in steps of 20 and earth digging continues when full).
 - An imp killed while carrying loses the gold.
+- A hero that turns on the defending imps stops hitting the Heart, so the alarm runs out; imps already in `fight` keep fighting, but no new imps join until the Heart is hit again.
 
 ## See also
 

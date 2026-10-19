@@ -7,4 +7,8 @@ export default {
     startCount: 4,
     /** How far imps can see, in tiles. */
     vision: 4,
+    /** Seconds after the last hit on the Heart that imps keep defending it (Dungeon Keeper: imps defend the Heart). */
+    defendTime: 5,
+    /** Imps within this many tiles of the Heart come to defend it; they attack heroes within settings.heart.zapRange of it. */
+    defendRange: 10,
 };
