@@ -86,6 +86,32 @@ function zap(from, to, duration, { sweep = duration * 0.4, type = 'sawtooth', vo
     }
 }
 
+/** A burst of noise through a closing low-pass filter: the bang of an explosion. */
+function blast(duration, volume, delay = 0) {
+    const audio = muted ? null : ensureContext();
+    if (!audio) {
+        return;
+    }
+    const start = audio.currentTime + delay;
+    const samples = Math.ceil(audio.sampleRate * duration);
+    const buffer = audio.createBuffer(1, samples, audio.sampleRate);
+    const data = buffer.getChannelData(0);
+    for (let index = 0; index < samples; index++) {
+        data[index] = Math.random() * 2 - 1;
+    }
+    const noise = audio.createBufferSource();
+    noise.buffer = buffer;
+    const filter = audio.createBiquadFilter();
+    filter.type = 'lowpass';
+    filter.frequency.setValueAtTime(5000, start);
+    filter.frequency.exponentialRampToValueAtTime(90, start + duration);
+    const gain = audio.createGain();
+    gain.gain.setValueAtTime(volume, start);
+    gain.gain.exponentialRampToValueAtTime(0.0001, start + duration);
+    noise.connect(filter).connect(gain).connect(audio.destination);
+    noise.start(start);
+}
+
 export const sounds = {
     unlock: ensureContext,
     /** Off the wall: a tiny, high pew. */
@@ -105,6 +131,13 @@ export const sounds = {
     point: () => zap(90, 3200, 0.4, { sweep: 0.3, type: 'square', volume: 0.03 }),
     /** Level cleared: four rising pews. */
     levelClear: () => [140, 200, 280, 400].forEach((frequency, step) => zap(frequency, frequency * 12, 0.22, { sweep: 0.16, type: 'square', volume: 0.028, delay: step * 0.13 })),
+    /** The countdown: a short blip for 3, 2 and 1, a higher, longer one for 0. */
+    tick: (last) => zap(last ? 900 : 600, last ? 1800 : 600, last ? 0.35 : 0.12, { type: 'square', volume: 0.03, sweep: last ? 0.2 : 0.1, detune: 4 }),
+    /** A paddle explodes: a noisy bang over a deep, long pew. */
+    explosion: () => {
+        blast(1.1, 0.12);
+        zap(1800, 28, 1.3, { sweep: 0.7, volume: 0.05, wobble: 9 });
+    },
     /** Game over: three deep pews, each lower than the last. */
     gameOver: () => [3200, 2200, 1500].forEach((frequency, step) => zap(frequency, 35, 0.7, { sweep: 0.35, volume: 0.045, delay: step * 0.32 })),
 };

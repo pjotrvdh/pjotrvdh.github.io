@@ -29,6 +29,7 @@
       <canvas id="stage" aria-label="The tunnel. Move the mouse or drag to move your paddle; click to serve."></canvas>
       <p class="call" id="call" role="status" aria-live="polite"></p>
       <p class="hint" id="hint"></p>
+      <p class="countdown" id="countdown" role="timer" aria-live="assertive" hidden></p>
 
       <div class="overlay" id="overlay">
         <section class="screen" id="screenTitle" aria-labelledby="titleHeading">
@@ -50,9 +51,13 @@
           <p class="speed"><label for="startLevel">1 player: start at level</label>
             <select id="startLevel"></select>
           </p>
-          <p class="speed"><label for="palette">Colours</label>
-            <select id="palette"></select>
-          </p>
+          <fieldset class="palettes">
+            <legend>Colours</legend>
+            <p class="palette-key" aria-hidden="true">
+              <span><i class="key-near"></i>You</span><span><i class="key-far"></i>Opponent</span><span><i class="key-ball"></i>Ball</span><span><i class="key-tunnel"></i>Tunnel</span>
+            </p>
+            <div class="palette-list" id="palette"></div>
+          </fieldset>
           <p class="speed"><label for="speed">Speed online and CPU vs CPU</label>
             <select id="speed">
               <option value="1">1 (slow)</option><option value="2">2</option><option value="3">3</option><option value="4">4</option><option value="5">5</option>
@@ -86,6 +91,26 @@
           </form>
           <p class="status" id="onlineStatus" role="status" aria-live="polite"></p>
           <button id="onlineBack" type="button">Back</button>
+        </section>
+
+        <section class="screen" id="screenReady" aria-labelledby="readyTitle" hidden>
+          <h2 id="readyTitle">Ready?</h2>
+          <p>The match starts when both players are ready.</p>
+          <div class="modes">
+            <button id="readyButton" class="main" type="button">I'm ready</button>
+            <button id="readyLeave" type="button">Leave</button>
+          </div>
+          <p class="status" id="readyStatus" role="status" aria-live="polite"></p>
+        </section>
+
+        <section class="screen" id="screenResume" aria-labelledby="resumeTitle" hidden>
+          <h2 id="resumeTitle">Paused</h2>
+          <p>When you are both ready, a countdown from 3 starts the game again.</p>
+          <div class="modes">
+            <button id="resumeButton" class="main" type="button">I'm back, ready</button>
+            <button id="resumeLeave" type="button">Leave</button>
+          </div>
+          <p class="status" id="resumeStatus" role="status" aria-live="polite"></p>
         </section>
 
         <section class="screen" id="screenClear" aria-labelledby="clearTitle" hidden>

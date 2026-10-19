@@ -16,6 +16,8 @@ export default {
     matchLives: 5,
     /** The speed (level) a 2-player or CPU vs CPU match starts on, 1 to 10. */
     matchLevel: 4,
+    /** Seconds the exploding paddle gets before the end screen. */
+    explosionTime: 1.6,
     /** Seconds a computer player waits before it serves. */
     cpuServeDelay: 0.8,
     /** Seconds before the next CPU vs CPU match starts on its own. */

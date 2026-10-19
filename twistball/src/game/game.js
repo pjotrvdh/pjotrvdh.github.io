@@ -41,6 +41,8 @@ const state = {
     /** title | serve | play | wait | levelClear | over */
     mode: 'title',
     paused: false,
+    /** Online: the countdown after a pause is running. */
+    countingDown: false,
     score: 0,
     level: 0,
     /** Solo: the level this game started on (you can pick it on the title screen). */
@@ -66,6 +68,8 @@ const isGuest = () => state.role === 'guest';
 let session = null;
 /** When the last message from the other player arrived; both sides send many per second. */
 let lastHeard = 0;
+/** Online: who has said they are ready for the next match. The host starts it when both have. */
+const ready = { me: false, them: false };
 /** Host: things that happened this frame (sounds, calls, sparks), sent to the guest with the state. */
 let events = [];
 
@@ -139,6 +143,7 @@ function playEvent(event, mirrored) {
             break;
         }
         case 'start': call('Online match', 'good'); break;
+        case 'explode': explodePaddle(side); break;
         case 'end': showMatchEnd(side); break;
         default: break;
     }
@@ -168,12 +173,7 @@ function sessionHandlers() {
     return {
         onOpen: () => {
             lastHeard = performance.now();
-            if (state.role === 'host') {
-                startGame('online');
-            } else {
-                $('onlineStatus').textContent = 'Connected. The match starts in a moment.';
-                session.send({ t: 'hello' });
-            }
+            openReady();
         },
         onMessage: (message) => {
             lastHeard = performance.now();
@@ -183,9 +183,17 @@ function sessionHandlers() {
                     far.target.y = clamp(message.y, limitY);
                 } else if (message.t === 'serve') {
                     serve(far);
-                } else if (message.t === 'rematch' && state.mode === 'over') {
-                    startGame('online');
                 }
+            }
+            if (message.t === 'ready') {
+                ready.them = true;
+                updateReady();
+            } else if (message.t === 'pause') {
+                pauseOnline(false);
+            } else if (message.t === 'countdown') {
+                startCountdown();
+            } else if (state.role === 'host') {
+                return;
             } else if (message.t === 'start') {
                 startGuest(message);
             } else if (message.t === 'state') {
@@ -199,6 +207,149 @@ function sessionHandlers() {
             }
         },
     };
+}
+
+/** Online: both players confirm they are ready before a match (and before every rematch). */
+function openReady() {
+    // Only our own flag: the other player may already have said they are ready.
+    ready.me = false;
+    state.mode = 'lobby';
+    state.ballVisible = false;
+    $('readyButton').disabled = false;
+    $('readyButton').textContent = "I'm ready";
+    showScreen('screenReady');
+    updateReady();
+}
+
+function readyUp() {
+    if (!session || ready.me) {
+        return;
+    }
+    sounds.unlock();
+    ready.me = true;
+    session.send({ t: 'ready' });
+    $('readyButton').disabled = true;
+    $('readyButton').textContent = 'Ready!';
+    updateReady();
+}
+
+function updateReady() {
+    if (state.paused && state.kind === 'online') {
+        updateResume();
+
+        return;
+    }
+    $('readyStatus').textContent = ready.me && ready.them
+        ? 'Both ready. Here we go!'
+        : ready.them
+            ? 'Your opponent is ready. Are you?'
+            : ready.me
+                ? 'Waiting for your opponent to get ready…'
+                : 'Connected. Get ready when you are.';
+    if (ready.me && ready.them) {
+        ready.me = false;
+        ready.them = false;
+        if (state.role === 'host') {
+            startGame('online');
+        }
+    }
+}
+
+/* ---------- online pause: away from the page ---------- */
+
+/** Who left the page, for the resume screen. */
+let awayBy = null;
+
+/**
+ * Pauses an online match for both players. `byMe` when this player left the page; otherwise the
+ * other player did. Both have to say they are ready again, then a countdown from 3 resumes the game.
+ */
+function pauseOnline(byMe) {
+    // Only during a match: in play, or already paused or counting down (leaving again restarts the wait).
+    if (state.kind !== 'online' || !session || (!state.paused && !['serve', 'play', 'wait'].includes(state.mode))) {
+        return;
+    }
+    if (byMe) {
+        session.send({ t: 'pause' });
+    }
+    state.paused = true;
+    cancelCountdown();
+    awayBy = byMe ? 'me' : 'them';
+    ready.me = false;
+    ready.them = false;
+    $('resumeButton').disabled = false;
+    $('resumeButton').textContent = "I'm back, ready";
+    showScreen('screenResume');
+    updateResume();
+}
+
+function updateResume() {
+    $('resumeTitle').textContent = awayBy === 'me' ? 'Paused: you left the page' : 'Paused: your opponent left the page';
+    $('resumeStatus').textContent = ready.me && ready.them
+        ? 'Both ready.'
+        : ready.them
+            ? 'Your opponent is ready. Are you?'
+            : ready.me
+                ? 'Waiting for your opponent to get ready…'
+                : 'The game goes on when you are both ready.';
+    if (ready.me && ready.them) {
+        ready.me = false;
+        ready.them = false;
+        if (state.role === 'host') {
+            session.send({ t: 'countdown' });
+            startCountdown();
+        }
+    }
+}
+
+function readyToResume() {
+    if (!session || ready.me) {
+        return;
+    }
+    ready.me = true;
+    session.send({ t: 'ready' });
+    $('resumeButton').disabled = true;
+    $('resumeButton').textContent = 'Ready!';
+    updateResume();
+}
+
+let countdownTimer = 0;
+/**
+ * After a pause: 3, 2, 1, then the game goes on. The ball stays hidden until then (see render.js).
+ * Online, both players run it; the host unpauses its game at the end.
+ */
+function startCountdown() {
+    showScreen(null);
+    state.countingDown = true;
+    let count = 3;
+    const element = $('countdown');
+    const show = () => {
+        element.textContent = String(count);
+        element.hidden = false;
+        sounds.tick(false);
+    };
+    show();
+    clearInterval(countdownTimer);
+    countdownTimer = setInterval(() => {
+        count--;
+        if (count >= 1) {
+            show();
+
+            return;
+        }
+        clearInterval(countdownTimer);
+        element.hidden = true;
+        sounds.tick(true);
+        state.countingDown = false;
+        state.paused = false;
+        last = performance.now();
+    }, 1000);
+}
+
+function cancelCountdown() {
+    clearInterval(countdownTimer);
+    state.countingDown = false;
+    $('countdown').hidden = true;
 }
 
 function hostRoom() {
@@ -240,6 +391,8 @@ function startGuest(message) {
     far.human = true;
     near.name = 'You';
     far.name = 'Opponent';
+    near.lives = R.matchLives;
+    far.lives = R.matchLives;
     resetPaddles();
     showScreen(null);
     call('Online match', 'good');
@@ -350,6 +503,7 @@ function startGame(kind) {
 }
 
 function resetPaddles() {
+    renderer.restore();
     for (const side of [near, far]) {
         Object.assign(side, { x: 0, y: 0, vx: 0, vy: 0 });
         Object.assign(side.target, { x: 0, y: 0 });
@@ -491,14 +645,16 @@ function missed(side) {
     }
 
     if (side.lives <= 0) {
+        // Out of lives: the losing paddle blows up, then the level or match ends.
+        explodePaddle(side);
+        emit({ e: 'explode', side: side === near ? 'near' : 'far' });
         if (isSolo()) {
-            if (side === far) {
-                levelCleared();
-            } else {
-                endSolo(false);
-            }
-        } else {
+            pauseThen(R.explosionTime, side === far ? levelCleared : () => endSolo(false));
+        } else if (state.kind === 'demo') {
             endMatch(other);
+        } else {
+            state.mode = 'over';
+            setTimeout(() => endMatch(other), R.explosionTime * 1000);
         }
 
         return;
@@ -596,14 +752,20 @@ function showMatchEnd(winner) {
     showScreen('screenEnd');
 }
 
+/** Blows up a paddle (game over, a level cleared, a match lost). */
+function explodePaddle(side) {
+    renderer.explode(side === near ? 'near' : 'far', side);
+    sounds.explosion();
+    call(side === near ? 'Boom!' : 'Smashed!', side === near ? 'bad' : 'good');
+}
+
 function playAgain() {
     if (state.kind !== 'online') {
         startGame(state.kind);
-    } else if (isGuest()) {
-        session?.send({ t: 'rematch' });
-        $('playAgain').textContent = 'Waiting for your opponent…';
-    } else {
-        startGame('online');
+    } else if (session) {
+        // A rematch needs both players ready again.
+        openReady();
+        readyUp();
     }
 }
 
@@ -627,8 +789,17 @@ function togglePause() {
     if (state.kind === 'online' || !['serve', 'play', 'wait'].includes(state.mode)) {
         return;
     }
-    state.paused = !state.paused;
-    showScreen(state.paused ? 'screenPause' : null);
+    if (state.countingDown) {
+        // Paused again during the countdown: back to the pause screen.
+        cancelCountdown();
+        showScreen('screenPause');
+    } else if (!state.paused) {
+        state.paused = true;
+        showScreen('screenPause');
+    } else {
+        // Resume: a short countdown first, with the ball hidden.
+        startCountdown();
+    }
 }
 
 function toMenu() {
@@ -638,6 +809,7 @@ function toMenu() {
     state.mode = 'title';
     state.kind = 'solo';
     state.paused = false;
+    cancelCountdown();
     state.ballVisible = false;
     $('hint').textContent = '';
     renderHighScores();
@@ -854,18 +1026,37 @@ function applyPalette(key) {
     }
 }
 
+/** One choice in the palette list: a radio button with the palette's name and swatches of its colours. */
+function paletteOption(key, palette, checked) {
+    const label = document.createElement('label');
+    label.className = 'palette-option';
+    const input = Object.assign(document.createElement('input'), { type: 'radio', name: 'palette', value: key, checked });
+    input.addEventListener('change', () => applyPalette(key));
+    const swatches = document.createElement('span');
+    swatches.className = 'swatches';
+    swatches.setAttribute('aria-hidden', 'true');
+    for (const [title, color] of [['You', palette.near.edge], ['Opponent', palette.far.edge], ['Ball', palette.ball[1]], ['Tunnel', palette.walls[2]]]) {
+        const swatch = document.createElement('i');
+        swatch.style.background = color;
+        swatch.title = title;
+        swatches.append(swatch);
+    }
+    const name = Object.assign(document.createElement('span'), { className: 'palette-name', textContent: palette.name });
+    label.append(input, swatches, name);
+
+    return label;
+}
+
 function initPalettes() {
-    const select = $('palette');
-    select.replaceChildren(...Object.entries(PALETTES).map(([key, palette]) => Object.assign(document.createElement('option'), { value: key, textContent: palette.name })));
     let saved = null;
     try {
         saved = localStorage.getItem('twistball-palette');
     } catch {
         // Use the first palette.
     }
-    select.value = PALETTES[saved] ? saved : Object.keys(PALETTES)[0];
-    applyPalette(select.value);
-    select.addEventListener('change', () => applyPalette(select.value));
+    const chosen = PALETTES[saved] ? saved : Object.keys(PALETTES)[0];
+    $('palette').replaceChildren(...Object.entries(PALETTES).map(([key, palette]) => paletteOption(key, palette, key === chosen)));
+    applyPalette(chosen);
 }
 
 /* ---------- input ---------- */
@@ -910,9 +1101,16 @@ addEventListener('keydown', (event) => {
     }
 });
 addEventListener('keyup', (event) => keys.delete(event.key.length === 1 ? event.key.toLowerCase() : event.key));
+// Online: leaving the page (another tab or window) pauses the match for both players.
+document.addEventListener('visibilitychange', () => {
+    if (document.hidden) {
+        pauseOnline(true);
+    }
+});
 addEventListener('blur', () => {
     keys.clear();
-    if (state.kind === 'solo' && ['serve', 'play', 'wait'].includes(state.mode) && !state.paused) {
+    pauseOnline(true);
+    if (state.kind === 'solo' && ['serve', 'play', 'wait'].includes(state.mode) && (!state.paused || state.countingDown)) {
         togglePause();
     }
 });
@@ -956,6 +1154,10 @@ $('copyLink').addEventListener('click', async () => {
     }
 });
 $('onlineBack').addEventListener('click', toMenu);
+$('readyButton').addEventListener('click', readyUp);
+$('resumeButton').addEventListener('click', readyToResume);
+$('resumeLeave').addEventListener('click', toMenu);
+$('readyLeave').addEventListener('click', toMenu);
 $('continue').addEventListener('click', nextLevel);
 $('resume').addEventListener('click', togglePause);
 $('pauseMenu').addEventListener('click', toMenu);
