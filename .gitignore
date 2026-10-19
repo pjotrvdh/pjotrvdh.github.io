@@ -6,4 +6,5 @@ Thumbs.db
 /.zed
 /.claude
 /node_modules
-/dist
+dist/
+/.ddev/traefik
