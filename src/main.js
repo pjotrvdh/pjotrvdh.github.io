@@ -26,18 +26,19 @@ function el(tag, attributes = {}, ...children) {
 }
 
 function card(game) {
-    const href = `./${game.slug}/`;
+    // Every game opens in a new tab, so the Arcade stays open behind it.
+    const link = { href: `./${game.slug}/`, target: '_blank', rel: 'noopener' };
     const cover = covers[`../${game.slug}/cover.svg`];
 
     return el('li', { class: 'game' }, el('div', { class: 'frame' },
-        el('a', { class: 'cover', href, tabindex: '-1', 'aria-hidden': 'true' },
+        el('a', { class: 'cover', ...link, tabindex: '-1', 'aria-hidden': 'true' },
             cover ? el('img', { src: cover, alt: '', width: '480', height: '270' }) : ''),
         el('div', { class: 'body' },
-            el('h2', {}, el('a', { href }, game.title)),
+            el('h2', {}, el('a', { ...link, 'aria-label': `${game.title} (opens in a new tab)` }, game.title)),
             el('p', { class: 'added' }, `Added ${dateFormat.format(new Date(game.added))}`),
             el('p', { class: 'description' }, game.description),
             el('ul', { class: 'tags', 'aria-label': 'Genres' }, ...game.tags.map((tag) => el('li', {}, tag))),
-            el('a', { class: 'play', href, 'aria-label': `Play ${game.title}` }, 'Play'))));
+            el('a', { class: 'play', ...link, 'aria-label': `Play ${game.title} (opens in a new tab)` }, 'Play'))));
 }
 
 function matches(game) {

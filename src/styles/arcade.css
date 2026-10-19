@@ -213,6 +213,7 @@ main {
   clip-path: polygon(0 0, calc(100% - 12px) 0, 100% 50%, calc(100% - 12px) 100%, 0 100%);
 }
 .play:hover { background: var(--cyan); }
+.play::after { content: " \2197"; }
 
 .empty { color: var(--muted); text-align: center; }
 
