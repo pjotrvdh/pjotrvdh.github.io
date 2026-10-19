@@ -3,100 +3,34 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <title>Underlord</title>
-  <link rel="icon" type="image/svg+xml" href="./src/assets/favicon.svg">
-  <script type="module" src="/src/main.js"></script>
+  <title>Arcade · pjotrvdh</title>
+  <meta name="description" content="Browser games by pjotrvdh. Each one is a single page: open it and play.">
+  <link rel="icon" type="image/svg+xml" href="./src/favicon.svg">
+  <script type="module" src="./src/main.js"></script>
 </head>
 <body>
-<div class="app">
-  <header>
-    <h1><img src="./src/assets/brand/logo.svg" alt="Underlord"></h1>
-    <div class="stats">
-      <div class="stat gold"><small>Gold</small><b id="sGold">0</b></div>
-      <div class="stat"><small>Imps</small><b id="sImps">0</b></div>
-      <div class="stat"><small>Creatures</small><b id="sCre">0</b></div>
-      <div class="stat"><small>Research</small><b id="sRes">0</b></div>
-      <div class="stat"><small>Payday</small><b id="sPay">0</b></div>
-      <div class="stat wave"><small>Heroes</small><b id="sWave">-</b></div>
-      <div class="stat heart"><small>Dungeon Heart</small><div class="hbar"><i id="sHeart"></i></div></div>
-    </div>
-    <div class="ctrl">
-      <span class="saved" id="savedAt"></span>
-      <button id="bSave" type="button">Save</button>
-      <button id="bLoad" type="button">Load</button>
-      <!-- Hidden until someone types the cheat code (iliketocheat); see src/game/underlord.js. -->
-      <button id="bCheat" type="button" aria-expanded="false" aria-controls="cheats" hidden>Cheats</button>
-      <button id="bPause" type="button">Pause</button>
-      <button id="bSpeed" type="button" aria-label="Game speed: 1×">1×</button>
-    </div>
+  <header class="marquee">
+    <p class="owner" data-text="pjotrvdh presents">pjotrvdh presents</p>
+    <h1 class="title"><img src="./src/logo.svg" alt="Arcade" width="1102" height="420"></h1>
+    <p class="intro">Browser games I made, each one a single page. No installs, no accounts: pick a game and play.</p>
   </header>
 
-  <main class="stage" id="stage">
-    <canvas id="cv" aria-label="Dungeon map. Click to dig, build or cast; drag to mark an area; right-click to slap."></canvas>
-    <div class="banner" id="banner" aria-hidden="true"></div>
-    <div class="tip" id="tip" hidden></div>
-    <div class="cheats" id="cheats" hidden>
-      <h2>Cheats</h2>
-      <div class="cgrid" id="cheatList"></div>
-    </div>
-    <div class="zoom"><button id="zin" type="button" title="Zoom in" aria-label="Zoom in">+</button><button id="zout" type="button" title="Zoom out" aria-label="Zoom out">−</button><button id="zfit" class="fit" type="button" title="Show the whole map" aria-label="Show the whole map">Fit</button></div>
-    <div class="overlay" id="ov">
-      <div class="card">
-        <h2><img src="./src/assets/brand/logo.svg" alt="Underlord"></h2>
-        <p>The heroes of the surface world are coming for your Dungeon Heart. Dig into the dark, build rooms, attract creatures and survive six invasions.</p>
-        <ul>
-          <li>Click a block to mark it for digging. Drag to mark a whole area at once. Your imps dig, haul gold and claim new ground.</li>
-          <li>The map is hidden in clouds, but gold seams and portals shine through. Mark blocks anywhere, even in the clouds, and dig to find treasure and wandering creatures.</li>
-          <li>A portal near your Dungeon Heart is always visible. Claim it to attract creatures. Each creature needs a free bed in your Lair; stronger creatures also need bigger rooms. Each map has a limited pool of creatures.</li>
-          <li>Invading heroes show as white dots until they reach ground you have discovered.</li>
-          <li>Pick creatures up with the hand and drop them where the fighting is. Right-click slaps: slapped imps work faster.</li>
-          <li>Scroll or pinch to zoom. Drag with the right or middle mouse button, or use the arrow keys or WASD, to look around.</li>
-        </ul>
-        <div class="row">
-          <button id="bStart" class="main" type="button">New game</button>
-          <button id="bContinue" type="button" hidden>Continue saved game</button>
-        </div>
-      </div>
-    </div>
+  <main>
+    <section class="controls" aria-label="Find a game">
+      <label class="search">
+        <span>Search</span>
+        <input id="search" type="search" placeholder="Name or genre" autocomplete="off">
+      </label>
+      <div class="genres" id="genres" role="group" aria-label="Genre"></div>
+      <p class="count" id="count" aria-live="polite"></p>
+    </section>
+
+    <ul class="games" id="games"></ul>
+    <p class="empty" id="empty" hidden>No game matches that. Try another name or genre.</p>
   </main>
 
-  <aside>
-    <div class="mm">
-      <canvas id="mini" aria-label="Minimap. Click or drag to move the view."></canvas>
-      <button id="bCpu" class="cpu" type="button" aria-pressed="false" title="Computer Assistant: let the computer play for you">C</button>
-    </div>
-    <div class="cpu-modes" id="cpuModes" hidden>
-      <span>Computer Assistant</span>
-      <div class="seg" id="cpuSeg">
-        <button type="button" data-mode="aggressive">Aggressive</button>
-        <button type="button" data-mode="defensive">Defensive</button>
-        <button type="button" data-mode="construction">Construction only</button>
-        <button type="button" data-mode="move">Move only</button>
-      </div>
-    </div>
-    <div><div class="tools hand" id="tHand"></div><div class="held" id="held" hidden></div></div>
-    <div class="tabs" role="tablist" id="tabs">
-      <button type="button" role="tab" id="tabbtn-info" data-tab="info" aria-controls="tab-info" title="Information">?<span>Info</span></button>
-      <button type="button" role="tab" id="tabbtn-rooms" data-tab="rooms" aria-controls="tab-rooms" title="Rooms">▦<span>Rooms</span></button>
-      <button type="button" role="tab" id="tabbtn-spells" data-tab="spells" aria-controls="tab-spells" title="Spells">✦<span>Spells</span></button>
-      <button type="button" role="tab" id="tabbtn-creatures" data-tab="creatures" aria-controls="tab-creatures" title="Creatures">☗<span>Creatures</span></button>
-    </div>
-    <section class="tab" id="tab-info" role="tabpanel" aria-labelledby="tabbtn-info">
-      <div class="gauge"><div class="glabel"><span>Payday</span><b id="gPayTxt"></b></div><div class="gbar"><i id="gPay"></i></div></div>
-      <div class="gauge"><div class="glabel"><span>Research</span><b id="gResTxt"></b></div><div class="gbar res"><i id="gRes"></i></div></div>
-      <h3>Portal</h3><ul class="pool" id="pool"></ul>
-    </section>
-    <section class="tab" id="tab-rooms" role="tabpanel" aria-labelledby="tabbtn-rooms" hidden><div class="tools" id="tRooms"></div></section>
-    <section class="tab" id="tab-spells" role="tabpanel" aria-labelledby="tabbtn-spells" hidden><div class="tools" id="tSpells"></div></section>
-    <section class="tab" id="tab-creatures" role="tabpanel" aria-labelledby="tabbtn-creatures" hidden>
-      <div class="crgrid" id="crGrid"></div>
-      <p class="crhint">Click a number to pick up a creature doing that. Right-click to look at it. Click a portrait to pick up the most experienced one.</p>
-      <ul class="crlist" id="crList"></ul>
-    </section>
-    <div class="info" id="info">Hover over the map for details.</div>
-    <section><h2>Chronicle</h2><ul class="log" id="log" role="log" aria-live="polite" aria-label="Chronicle"></ul></section>
-    <p class="version" id="version" hidden></p>
-  </aside>
-</div>
+  <footer>
+    <p>Source on <a href="https://github.com/pjotrvdh/pjotrvdh.github.io">GitHub</a>. <span class="version" id="version" hidden></span></p>
+  </footer>
 </body>
 </html>

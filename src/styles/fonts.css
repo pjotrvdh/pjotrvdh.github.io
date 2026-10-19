@@ -1,7 +1,4 @@
-/*
- * Fonts, embedded in the build (Fontsource packages, SIL Open Font License).
- * OpenDyslexic is the font for all text; the Underlord logo is an SVG (src/assets/brand/logo.svg).
- */
+/* OpenDyslexic, embedded in the build (Fontsource, SIL Open Font License), like in the games. */
 @font-face {
   font-family: "OpenDyslexic";
   font-style: normal;
