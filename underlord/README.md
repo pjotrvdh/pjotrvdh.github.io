@@ -2,7 +2,7 @@
 
 A browser game in the spirit of *Dungeon Keeper*. You are an evil overlord deep underground: dig into a cloud-covered map, claim territory, build rooms, attract creatures through portals and defend your Dungeon Heart against six invasions from the surface.
 
-The game is a web page built with [Vite](https://vite.dev). All game data (settings, creatures, heroes, rooms, spells and waves) lives in plain JavaScript files under [`src/config`](src/config). Play it at [pjotrvdh.github.io/underlord](https://pjotrvdh.github.io/underlord/). It is one of the games in the [Arcade](../README.md).
+The game is a web page built with [Vite](https://vite.dev) and drawn in 3D with [three.js](https://threejs.org), with models from Kenney and KayKit (see [`src/assets/README.md`](src/assets/README.md)). All game data (settings, creatures, heroes, rooms, spells and waves) lives in plain JavaScript files under [`src/config`](src/config). Play it at [pjotrvdh.github.io/underlord](https://pjotrvdh.github.io/underlord/). It is one of the games in the [Arcade](../README.md).
 
 ## How to play
 
@@ -32,6 +32,7 @@ The game is a web page built with [Vite](https://vite.dev). All game data (setti
 | Mark for digging / build | click or drag | |
 | Slap | right-click | |
 | Scroll the map | right- or middle-drag, the **Look** tool, two-finger drag | arrow keys / WASD |
+| Turn the view | **⟲ / ⟳** buttons | `Q` / `E` |
 | Zoom | mouse wheel, pinch, **+ / − / Fit** buttons | `+` / `-` |
 | Pause | **Pause** button | `Space` / `P` |
 | Game speed | **1×** button | `1` `2` `3` |
@@ -45,20 +46,25 @@ Set up the Arcade as described in the [root README](../README.md); `npm run dev`
 | Command | What it does |
 |---|---|
 | `npm run dev -w underlord` | start a dev server for the game only |
-| `npm run build -w underlord` | build the game into one file, `underlord/dist/index.html` |
+| `npm run build -w underlord` | build the game into `underlord/dist`: `index.html` and the 3D models in `models/` |
 
-The build is a single, self-contained HTML file: the JavaScript, the styles, the SVGs and the favicon are all embedded. You can open it straight from disk, put it anywhere or send it to someone, also offline. The commit hash and time of the build are shown below the Chronicle.
+The build is one HTML file with the JavaScript, the styles, the SVGs and the favicon embedded, plus the 3D models in `models/` next to it, which the page loads at start. Serve the folder over HTTP (browsers do not load the models from a page opened straight from disk). The commit hash and time of the build are shown below the Chronicle.
+
+Open the game with `?characters` (`/underlord/?characters`) for the character viewer: every creature and hero with each animation.
 
 ## Project layout
 
 ```
 index.html              the game page
 cover.svg               the game's tile on the Arcade index (16:9)
-vite.config.js          builds one self-contained HTML file (see ../tools/vite.js)
+vite.config.js          builds the page and copies models/ next to it (see ../tools/vite.js)
+models/                 3D models (.glb), see src/assets/README.md
+tools/import-models.mjs copies the models from the downloaded packs
 src/
-  assets/               SVG graphics and the favicon (see src/assets/README.md)
+  assets/               portrait SVGs, logo and favicon (see src/assets/README.md)
   main.js               entry point: styles, game and the version label
-  game/underlord.js     the game itself
+  game/                 the game: rules and simulation, input and the panel (one module per part)
+  render/               the 3D view (three.js): camera, terrain, rooms, units, effects, clouds
   styles/underlord.css
   config/               all game data, one file per item
     index.js            puts everything together for the game
@@ -68,7 +74,7 @@ src/
     rooms/              treasury.js, lair.js, hatchery.js, training.js, library.js
     spells/             imp.js, rally.js, heal.js, bolt.js
     waves.js            the hero invasions, in order
-    assets.js           which SVG the game draws for what
+    assets.js           which model the game draws for what
 ```
 
 ## Game data
@@ -77,4 +83,8 @@ src/
 - The `index.js` in each folder lists the files; for creatures, heroes and spells it also sets the order the game uses (rooms follow a fixed order in the game). To add something, add a file and list it there.
 - Keys are fixed: the game logic, the waves and the assets refer to them.
 - Only creatures and heroes from the original Dungeon Keeper (1997) belong in the game.
-- See [`src/assets/README.md`](src/assets/README.md) for the size and orientation of the SVGs.
+- See [`src/assets/README.md`](src/assets/README.md) for the models and SVGs, and where they come from.
+
+## Credits
+
+3D models by [Kenney](https://kenney.nl) (Mini Dungeon, Modular Dungeon Kit, Modular Cave Kit) and [Kay Lousberg](https://www.kaylousberg.com) (KayKit Adventurers), all CC0.

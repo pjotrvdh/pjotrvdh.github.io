@@ -1,94 +1,114 @@
 ---
 name: rendering-and-ui
-description: Underlord drawing (caches, fog, minimap, sprites) and UI (tabs, HUD, input, fonts, ARIA, cheats). Read before visual or UI changes.
+description: Underlord's 3D view (three.js: camera, picking, terrain, rooms, units, clouds), the character viewer and the UI. Read before visual, input or UI changes.
 ---
 
 ## When to use this
 
-- You touch `draw()`, `drawTile()`, `drawRoom()`, `drawSpecials()`, `drawEnt()`, `drawFog()`, `makeCloud()`, `drawMini()`, `sprite()`/`spr()`, `ui()`, `buildTools()`, `showTab()`, input handlers, cheats
-- You change `underlord/index.html`, `underlord/src/styles/underlord.css`, `underlord/src/config/assets.js` or an SVG
-- Keywords: canvas, cache, fog, clouds, minimap, sprite, HUD, tab, Chronicle, tooltip, zoom, pan, font, contrast, ARIA, cheat
+- You touch `underlord/src/render/` (`view.js`, `camera.js`, `terrain.js`, `rooms.js`, `specials.js`, `units.js`, `effects.js`, `fog.js`, `overlay.js`, `cursor.js`, `models.js`, `instances.js`, `gallery.js`)
+- You touch `underlord/src/game/input.js` or `ui.js` (HUD, panel, tabs, minimap, cheats), `underlord/index.html`, `underlord/src/styles/underlord.css`
+- You change `underlord/src/config/assets.js`, a model in `underlord/models` or an SVG
+- Keywords: three.js, camera, rotate, zoom, pick, raycast, instanced, model, glb, KayKit, Kenney, animation, clouds, fog, minimap, overlay, label, HUD, tab, Chronicle, character viewer
 
-## Canvas and camera
+## Structure
 
-- `#cv` fills `#stage`; `resize()` (ResizeObserver) sets `SW`/`SH`, `DPR`, `BASE = min(SW/W, SH/H)` (whole map fits at zoom 1) and rebuilds the cloud texture.
-- `TS = BASE * Z` px per tile; `Z` 1..4, starts at 1.7. `cam` is the screen offset of the map; `clampCam()` centres the map when it is smaller than the view.
-- `setWorld()` sets the world transform. Drawing helpers (`rr`, `circ`, `spr`) draw on the global `ctx`, which is pointed at an offscreen canvas while caches render.
+- `render/view.js` exports `view`, the only thing game code uses: `init()` (renderer, lights, model loading), `render(dt, time)` every frame, `pick()`, `pickUnit()`, and camera calls (`centerOn`, `zoomAt`, `zoomBy`, `fit`, `rotate`, `panStart`/`panTo`, `panKeys`, `groundView`).
+- `game/index.js` boots: `applyConfig()`, `initUi()`, `initInput()`, `await view.init()` (the New game button shows "Loading N%"), then `newGame()` and the frame loop: `update(dt)` x speed, `keyPan()`, `view.render()`; `ui()` + `drawMini()` every 0.2 s. With `?characters` in the URL it opens the character viewer instead.
+- The renderer only reads `G` (it never changes game state). Exceptions it relies on: render hints the game sets for it (`e.hitT` attack, `e.hurtT` hit, `e.digging` hero tunnelling, `e.aim` direction, fx type `death`), all short-lived and not saved; and `fog.js` clears `G.fogDirty`.
 
-## draw() order
+## World and camera (`camera.js`)
 
-1. Background; terrain cache (below); lava (animated) and Hatchery chickens every frame on seen tiles.
-2. `drawSpecials()`: Heart (sprite + pulsing glow, white flash when hit), portals (glow + rotating sprite: owned 1.4 rad/s, unclaimed 0.4), Hero Gate (only when seen).
-3. Entities sorted by `y`: own always; heroes and neutrals only on seen tiles. Held units are skipped.
-4. Effects `G.fx` (`proj`, `dust`, `ring`, `text`, `bolt`, `heal`), aged in `update()`.
-5. `drawFog()`; then white dots for `unknownHeroes()` ([heroes](heroes.md)); the Call to Arms flag.
-6. Drag rectangle with per-tile highlight (`affects()`), or the hover outline (`toolValid()`: light = valid, red = invalid); held units at the cursor.
+- 1 world unit = 1 tile. Tile (x, y) spans x..x+1 on X and y..y+1 on Z; floors at Y = 0, solid blocks `TOP` (1) high (`terrain.js`), the clouds at `FOG_Y` (`fog.js`).
+- `CameraRig`: a perspective camera (FOV 38) looking at `target` on the ground from pitch `PITCH` (~56 degrees), at distance `dist` (5..70), turned by `yaw`. Yaw 0 looks north, so the view matches the minimap. `rotate(±1)` eases a quarter turn (Q / E, the ⟲ ⟳ buttons).
+- `zoomAt()` keeps the ground point under the pointer fixed; `panStart()`/`panTo()` drag the ground point under the pointer; `panKeys()` scrolls in screen directions; `fit()` shows the whole map; `clamp()` keeps the target on the map.
+- `groundView()` returns the four ground points at the screen corners: the trapezoid on the minimap.
 
-## Terrain cache
+## Picking
 
-- `terr` holds the static tiles of the visible area. `terrKey` = hash `sig` of type, room, mark, seen, chest flag and damaged-wall flag for the visible tiles (+1 margin), plus camera, `TS`, canvas width, treasury fill (tenths), loaded image count and the bed map. Any change redraws the cache with `now = 0`.
-- `drawTile()`: sprite from `TILE_SPR` (`GATE`/`PORTAL` use floor, `HEART` uses claimed; lava always procedural); earth, rock, floor, gold, gem mirrored by `hash(x,y,77)`. Procedural fallback per type when the sprite is missing. Then wall/floor edge shadows, chest, dig mark, room overlay.
-- `drawRoom()`: tint + prop per room: Treasury pile scaled by fill; Lair nest only on owned beds plus a dot in the owner's colour (`beds` map, rebuilt each frame); Hatchery straw (chickens drawn live); Training dummy on a checkerboard; Library shelf on every tile; coloured border on every side where the neighbour is not the same room (another room or plain ground).
+- `view.pick(sx, sy)` walks the view ray from the cloud height down to the floor and returns the first tile whose visible surface it reaches (`surface(i)` in `cursor.js`: clouds over unseen tiles, block tops over seen solid tiles, else the floor): `{ fx, fy, x, y }`. So clicking the top of a block or a cloud picks that tile, not the floor behind it.
+- `view.pickUnit(sx, sy, filter)` measures the screen distance to each drawn unit's upright line (feet to head) and takes the nearest within about half its on-screen height.
+- `game/input.js` uses `pick()` for tiles (marking, building, casting, dropping) and `pickUnit()` for units (Hand pick-up, slapping, the hover info via `app.hover.unit`).
 
-## Fog of war
+## Models and instancing
 
-- `rebuildFog()` -> `fogC` (W x H alpha mask, unseen = opaque) when `G.fogDirty`.
-- `drawFog()` into `layer`: mask scaled up with smoothing (soft edges), `source-in` with the tiled `cloud` texture drifting sideways, then `drawShroudTile()` for unseen tiles in view (gold and gem glints at 70% alpha, dig marks). Redrawn when its key changes or every 0.1 s.
-- `makeCloud()` paints random radial blobs once per resize.
+- `models.js`: `loadModels()` loads every file `assets.js` names (`view.js` `modelFiles()`); `parts(file)` gives the meshes of a static model for instancing, `clone(file)` a full copy with its own skeleton (SkeletonUtils), `animations('Rig_Medium')` the shared KayKit clips. A model that fails to load is skipped (logged); its instances or figure are simply missing.
+- `instances.js` `Instances`: one `InstancedMesh` per mesh of a model, filled with `begin()`, `add(matrix, tint)`, `end()`; grows as needed. `place(x, y, z, rotY, scale)` builds the matrix. Per-instance tint uses `instanceColor`.
 
-## Sprites (`underlord/src/config/assets.js`)
+## Terrain (`terrain.js`)
 
-- Groups `units`, `tiles`, `props` -> `ASSETS['group.key']` (e.g. `units.orc`, `props.lair-nest`). `loadAssets()` loads each as an `Image`; `IMG` fills as they load.
-- `sprite(k, w, h)` rasterises an SVG once per pixel size into the `SPR` cache (cleared above 800 entries or when an image loads). `spr()` returns `false` when the image is missing, and every caller then draws its procedural fallback.
-- Units: drawn at `r * 2.9` (`r` = 0.24 tile for imps, 0.44 for `big`, else 0.32), mirrored when `face < 0`, ground ring coloured by side, neutrals at 65% alpha with "?", slap flicker, health bar when hurt, level number above 1, "z" when sleeping or guarding.
-- SVG rules (viewBox, facing, style): `underlord/src/assets/README.md`. Plain SVG only; browsers block external content when drawing SVGs to canvas.
+- Rebuilt only when `signature()` changes (tile types, rooms present, marks, seen, chests, reinforced wall damage).
+- Unseen tiles draw nothing (the clouds cover them), except dig marks, which float above the clouds and are drawn after them (render order 12, clouds 10), so a marked area stays visible through the shroud.
+- Floors: Kenney Cave Kit floor (unclaimed, gate, portal). Claimed ground, the Heart and rooms: a tiled stone floor drawn in code (`tileTexture()`), tinted with the keeper colour (`assets.js` `keeper`), rooms towards their room colour; every claimed tile outside rooms has an inlaid keeper emblem (`emblems`). Lava: a flat animated shader slightly below the floor.
+- Solid blocks: a dark cap per tile (colour per type, `CAP_COLORS`) plus a Kenney `template-wall` piece on every side that faces a seen open tile: Cave Kit for earth, gold, gems and rock (rock tinted dark); reinforced walls are brick slabs drawn in code (`brickTexture()`, same footprint as a wall piece, darker as they are damaged), with a keeper-coloured jewel on top (`jewels`). A block in the inner corner of a reinforced wall (`wallCorner()`: diagonal to open ground, reinforced walls on both sides) gets a reinforced top and jewel, although imps never reinforce it. Gold nuggets and gem crystals stick out of gold and gem faces and tops.
+- Chests (Mini Dungeon) on tiles with `G.loot`.
 
-## Minimap (`drawMini()`, every 0.2 s)
+## Rooms (`rooms.js`)
 
-- One cell per tile: unseen = cloud colour, or dark gold for unseen gold/gem; rooms in their room colour; otherwise per tile type.
-- Portals always drawn (pink owned, violet unclaimed); white dots for unseen invading heroes; units (own always, others only on seen tiles); the view rectangle.
-- Click or drag on `#mini` centres the view there. The C button sits on top ([computer-assistant](computer-assistant.md)).
+- Rebuilt when rooms, the Treasury fill (tenths) or the set of claimed beds change.
+- A trim in the room colour along each room's outline. Treasury: coins, more and bigger as it fills. Lair: a straw nest on each claimed bed, with a ball in the owner's colour. Hatchery: straw and chickens (animated every frame). Training Room: wooden posts with shields on a checkerboard, and swords or spears. Library: bookshelves (built in code), tables with chairs and potions, banners.
 
-## Panel and HUD (`underlord/index.html`, `ui()` every 0.2 s)
+## Landmarks (`specials.js`)
 
-- Header stats: Gold `money / cap`, Imps, Creatures `count / Lair tiles`, Research, Payday `m:ss · due g` (red when due > gold), Heroes `wave N in m:ss` / `final wave`, Heart bar.
-- Header buttons: Save, Load, Cheats (hidden), Pause/Resume, speed `1× 2× 3×`.
-- Tools (`buildTools()`): Hand / Slap / Look; Rooms tab: each room (`cost gold per tile`, colour swatch) + Sell; Spells tab: every spell (cost or "research N", disabled while locked). `setTool()` highlights with `.on`.
-- Tabs (`showTab()`, remembered in `localStorage['underlord-tab']`): Info (payday and research gauges, portal pool list), Rooms, Spells, Creatures (grid of idle/working/fighting per kind via `activity()`, list of creatures by kind and level).
-- `#info`: hover details for the tile or unit (`TILE_EN`, `STATE_EN`), or help for the current tool.
-- Chronicle `#log`: `msg(text, key, cls)` prepends, keeps 7, `good`/`bad` classes; the same `key` is muted for 20 s of game time.
-- Banner for waves; overlay card for intro and end. Drag tooltip `#tip` ("Dig N blocks", "Room × N · cost").
-- Version label `#version` below the Chronicle: `underlord/src/main.js` fills `hash · time` from `__BUILD_VERSION__` (`buildVersion()` in `tools/vite.js`, commit time in Europe/Amsterdam); hidden when it is `null` (no git).
+- Heart: four Dungeon Kit columns, a pedestal and a floating crystal in the keeper colour (`assets.js` `keeper`), after The Dark Crystal: a tall tilted shard with smaller shards (`shardGeometry()`, uneven facets), a glow, a light and a faint shaft of light from above. It pulses, dims as `heartHP` falls and flashes white on `heartFlash`. Portals: a Cave Kit arch with a swirl (bright once owned). Hero Gate: Dungeon Kit bars with a blue light, only once seen. The Call to Arms flag while a rally lasts. Rebuilt when `G` changes (new game, load).
 
-## Input
+## Units (`units.js`)
 
-- Canvas pointer: left = current tool (Hand: pick up / drop / mark-drag; room or Sell: drag; spell: cast); right-drag or middle-drag pans, right-click without moving slaps; Look tool left-drag pans; two pointers pinch-zoom and pan. Wheel zooms at the cursor (x1.15).
-- Keys: `Space`/`P` pause (Space and Enter are left to a focused button), `1`-`3` speed, `+`/`-` zoom, arrows/WASD pan (700 px/s), `Esc` hand tool + cancel drag + close cheats, `` ` `` or Ctrl+C (with no text selected) toggles the Cheats panel once it is unlocked. Other keys with Ctrl, Cmd or Alt are left to the browser (copy, print, ...).
-- Zoom buttons +, −, Fit (zoom 1).
-- Speed runs `update()` 1-3 times per frame; pause stops `update()` but drawing continues.
+- `Figure` per drawn unit: a KayKit model (see `assets.js` `units`: `height`, `width`, `tint`, per-part `tints`, `hide`, `borrow`, `extras`, `right`/`left`) with an `AnimationMixer`, a ring in the side's colour, and a gold nugget above it while it carries gold.
+- Drawn: your units always; heroes and wanderers only on seen tiles; units in the hand (up to 4) float at the pointer. Wanderers are see-through; hit units glow red, slapped ones flicker.
+- Animation by activity (`activityOf()` + `CLIPS`): walk (speed-matched), attack (`hitT`), dig (imp jobs, hero tunnelling), train, study, eat, sleep, stun, hurt, guard, held, die. Facing follows movement, else the fight target, the dug block or `aim`.
+- Deaths: fx `death` spawns a copy that plays its death and fades out.
+- Parts: `dress()` hides parts by name, rebinds borrowed KayKit parts to the figure's skeleton (same rig), and adds `extras` on the head bone (`crown`, `horns`). `makeTool()` builds the pickaxe and mattock.
+
+## Clouds, overlay, cursor, effects
+
+- `fog.js`: one plane at `FOG_Y` with a shader: a `W x H` mask texture (unseen = opaque, linear filtering for soft edges) and drifting fbm clouds. Glints (points) for unseen gold and gems; pulsing white dots for `unknownHeroes()`.
+- `overlay.js`: HTML labels in `#labels` over the canvas: per unit a health bar (when hurt), level above 1, "z" when sleeping or guarding, "?" on wanderers; and the floating texts (fx `text`).
+- `cursor.js`: the hover outline on the visible surface (light = `toolValid()`, red = not), the drag rectangle and a tint on every tile `affects()` would change.
+- `effects.js`: fx `proj` (glowing shot; from the Heart's core for the zap), `dust`, `ring`, `heal`, `bolt` (jagged line, glow and a flash light).
+
+## Character viewer (`gallery.js`)
+
+- Open the game with `?characters`. A tab per unit kind: a tab shows that figure alone; with Compare on, tabs add or remove figures to see side by side; All shows every kind. Each stands on a stone tile, labelled with its model. Buttons play an animation on the figures in view; "Turn" spins them; clicking a figure (not comparing) shows it alone; the info line lists model, height, width, held items and clip for up to three figures; drag orbits, scroll zooms. Uses `Figure`, so it shows exactly what the game draws.
+
+## Panel and HUD (`underlord/index.html`, `game/ui.js`, `ui()` every 0.2 s)
+
+- Header stats: Gold `money / cap`, Imps, Creatures `count / Lair tiles`, Research, Payday `m:ss · due g` (red when due > gold), Heroes `wave N in m:ss` / `final wave`, Heart bar. Buttons: Save, Load, Cheats (hidden), Pause/Resume, speed `1× 2× 3×`.
+- Tools (`buildTools()`): Hand / Slap / Look; Rooms tab: each room + Sell; Spells tab: every spell (cost or "research N", disabled while locked).
+- Tabs (`showTab()`, remembered in `localStorage['underlord-tab']`): Info (payday and research gauges, portal pool list), Rooms, Spells, Creatures (idle/working/fighting per kind with SVG portraits from `assets.js` `icons`, list by kind and level).
+- `#info`: hover details for the unit (`app.hover.unit`) or tile under the pointer, or help for the current tool.
+- Chronicle `#log`: `msg(text, key, cls)` prepends, keeps 7; the same `key` is muted for 20 s of game time. Banner for waves; overlay card for intro and end; drag tip `#tip`.
+- Minimap (`drawMini()`): one cell per tile (unseen = cloud colour, or dark gold for unseen gold/gem; rooms in their colour), portals, white dots, units, and the camera's view trapezoid. Click or drag it to look there.
+- Version label `#version` (`src/main.js`, `__BUILD_VERSION__`).
+
+## Input (`game/input.js`)
+
+- Canvas: left = current tool (Hand: pick up / dismiss / drop / mark-drag; room or Sell: drag; spell: cast at the picked point); right-drag or middle-drag pans, right-click without moving slaps; Look tool left-drag pans; two pointers pinch-zoom and pan; wheel zooms at the pointer (x1.15).
+- Keys: `Space`/`P` pause, `1`-`3` speed, `+`/`-` zoom, `Q`/`E` turn, arrows/WASD scroll, `Esc` hand tool + cancel drag + close cheats, `` ` `` or Ctrl+C toggles the Cheats panel once unlocked. Keys with Ctrl, Cmd or Alt are left to the browser.
+- Buttons ⟲ ⟳ + − Fit on the map.
 
 ## Fonts and accessibility
 
-- System fonts only, nothing embedded: CSS `--f-display` (Palatino stack, headings) and `--f-body` (Gill Sans / Segoe UI / Trebuchet MS / system-ui); canvas text uses the Gill Sans stack. The logo is `underlord/src/assets/brand/logo.svg`.
-- Keep text at WCAG AA: `--muted` `#9a8672` on `--panel` `#16100e` is about 5.4:1; check new colours against the dark panels.
-- ARIA: canvas and minimap `aria-label`; tabs use `role=tablist/tab/tabpanel` + `aria-selected`; C and mode buttons `aria-pressed`; Cheats `aria-expanded`/`aria-controls`; speed button `aria-label`; Chronicle `role=log aria-live=polite`; banner `aria-hidden`; zoom and creature-count buttons labelled. Focus ring: gold outline on `:focus-visible`.
-- `prefers-reduced-motion` removes CSS transitions; under 820 px the panel moves below the map.
+- System fonts only: CSS `--f-display` (Palatino stack) and `--f-body` (Gill Sans / Segoe UI / Trebuchet MS / system-ui). Labels over the map use `--f-body` with a dark text shadow.
+- Keep text at WCAG AA: `--muted` `#9a8672` on `--panel` `#16100e` is about 5.4:1.
+- ARIA: canvas and minimap `aria-label`; `#labels` is `aria-hidden`; tabs use `role=tablist/tab/tabpanel`; C and mode buttons `aria-pressed`; Cheats `aria-expanded`/`aria-controls`; speed, zoom and turn buttons labelled; Chronicle `role=log aria-live=polite`.
 
 ## Cheats
 
-- Typing `iliketocheat` (any single-character keys, case-insensitive, rolling buffer) sets `cheatsOn`, shows `#bCheat` and opens `#cheats`. Not stored: a reload locks it again.
-- `CHEATS`: +500 / +5000 gold, Reveal map, Finish research, Restore Heart, Free imp, + Orc / Warlock / Troll / Dark Mistress (at an owned portal, or next to the Heart without one; ignoring pool and limit), Level up all, Next wave now, Defeat heroes. Buttons work only while running and not over.
+- Typing `iliketocheat` unlocks the Cheats panel (`cheatKey()` in `ui.js`); keys that continue the code from its third letter on are swallowed, so its E's do not turn the view. Not stored: a reload locks it again.
+- `cheatList()`: +500 / +5000 gold, Reveal map, Finish research, Restore Heart, Free imp, + Orc / Warlock / Troll / Dark Mistress (at an owned portal, or next to the Heart without one; ignoring pool and limit), Level up all, Next wave now, Defeat heroes.
 
 ## Gotchas
 
-- The terrain cache draws with `now = 0`: fallback gold sparkle and gem pulse do not animate.
-- The damaged-wall crack is only in the procedural wall fallback; with `tiles/wall.svg` damaged walls look intact.
+- Models are separate files (`underlord/models`, copied to `dist/models` by `singleFilePage({ copy: ['models'] })`): the page must be served over HTTP; opened from disk, the models do not load.
+- Kenney models reference an external texture; `tools/import-models.mjs` embeds it. Copy new models through that script, not by hand.
+- GLTFLoader drops `.` from node names (`handslot.r` becomes `handslotr`); look bones up with `byName()`.
+- KayKit's right hand slot points a weapon straight ahead with its blade up; `attach()` turns right-hand items half a turn around their length so blades face down. Left-hand items (shields, bows, books) are not turned. Pointing weapons straight down makes long ones go through the floor.
+- Instanced meshes are not frustum-culled (the whole map is small); terrain and rooms only rebuild on a signature change, so anything they draw must be part of that signature.
 - The drag tip counts unseen non-diggable tiles (floor, lava) as "blocks"; only diggable ones get marked.
-- `affects()` has a duplicate, unreachable `unmark` branch.
 
 ## See also
 
 - [map](map.md) — what `G.seen` means and what shows through the clouds
 - [heroes](heroes.md) — white dots
 - [saving](saving.md) — Save / Load buttons
-- `underlord/src/assets/README.md` — SVG conventions
+- `underlord/src/assets/README.md` — the model packs, the import script and the SVGs

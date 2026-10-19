@@ -14,7 +14,7 @@ description: Underlord creature AI (creatureThink): hunger, Lair beds, training,
 - `spawn(kind, x, y, mult=1)` creates every unit: `id`, `kind`, `side` (0 own, 1 hero, 2 neutral), `x/y` (tile centre +0.5), `hp/maxhp/atk` (x `mult`), `lvl` 1, `xp`, `state`, `path`, `hunger` (random 0-40), `slap`, `bed` -1, `guard`, ...
 - `KINDS[k]` is built in `applyConfig()` from `creatures/*.js` and `heroes/*.js`: `n` name, `hp`, `atk`, `spd`, `range`, `rate`, `wage`, `col`, `vision` (default 5), `pool`, `attract`, `train`, `study` (default 0), `likesSlaps`, plus hero `bounty`, `dig`, `big`.
 - `creatures()` = own, living, non-imp entities (held ones included).
-- States and their labels: `STATE_EN` at the top of `underlord/src/game/underlord.js`.
+- States and their labels: `STATE_EN` in `underlord/src/game/constants.js`. Code: AI in `creatures.js`, the state machine `tick()` in `world.js`, beds, XP and leaving in `entities.js`.
 
 ## creatureThink(e) priority
 
@@ -75,7 +75,7 @@ Enemy scanning in `tick()` interrupts all of this: see [combat](combat.md).
 ## Adding a creature
 
 1. Add `underlord/src/config/creatures/<key>.js` with every field documented (copy `orc.js`), list it in `creatures/index.js`.
-2. Add `units.<key>` in `underlord/src/config/assets.js` and the SVG under `underlord/src/assets/units/`.
+2. Add `units.<key>` (its KayKit figure) and its portrait to `icons` in `underlord/src/config/assets.js`, and the SVG under `underlord/src/assets/units/`. Check it in the character viewer (`?characters`).
 3. It is attractable automatically. Set `train` and `study` (0 = never studies). Per-kind logic is hard-coded by key: the Warlock's Library preference, the cheat list (`orc`, `warlock`, `troll`, `mistress`), the neutrals in `genMap()` (`orc`, `troll`).
 4. Only Dungeon Keeper (1997) creatures.
 

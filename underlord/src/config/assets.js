@@ -1,52 +1,74 @@
 /**
- * SVG graphics the game draws, as files under src/assets. Swap a file or a path to restyle something;
- * remove an entry to fall back to the built-in drawing. Sizes and orientation: src/assets/README.md.
- * The build embeds every SVG in the HTML file as a data URI.
+ * What the game draws for what. 3D models are .glb files under underlord/models (copied there by
+ * underlord/tools/import-models.mjs; Kenney and KayKit packs, CC0), loaded at run time from ./models/.
+ * The SVG portraits under src/assets/units are only used in the panel (Creatures tab).
+ * See src/assets/README.md.
  */
-const files = import.meta.glob('../assets/{units,tiles,props}/*.svg', { eager: true, query: '?url', import: 'default' });
+const icons = import.meta.glob('../assets/units/*.svg', { eager: true, query: '?url', import: 'default' });
 
-/** The URL of an SVG under src/assets (a data URI in the build). */
-function svg(path) {
-    const url = files[`../assets/${path}`];
+/** The URL of a portrait SVG under src/assets/units (a data URI in the build). */
+function icon(kind) {
+    const url = icons[`../assets/units/${kind}.svg`];
     if (!url) {
-        throw new Error(`Missing asset src/assets/${path}`);
+        throw new Error(`Missing asset src/assets/units/${kind}.svg`);
     }
 
     return url;
 }
 
 export default {
+    /** Your colour as the keeper: claimed floor, the emblem on it, the jewels on reinforced walls, your units' rings. */
+    keeper: '#e0483c',
+
+    /** Panel portraits per unit kind. */
+    icons: Object.fromEntries(['imp', 'orc', 'warlock', 'troll', 'mistress', 'tunneller', 'archer', 'wizard', 'knight', 'lord'].map((k) => [k, icon(k)])),
+
+    /**
+     * Unit figures, all KayKit Adventurers (they share one skeleton, animated with the Rig_Medium clips
+     * in `rigs`). `model`: a .glb under models/; `height`: in tiles; `width`: extra breadth (1 = as
+     * modelled); `tint`: multiplied into every colour; `tints`: per part, matched on the mesh name (a colour, or [colour, brightness]);
+     * `hide`: parts left out; `borrow`: parts taken from another KayKit model; `extras`: built-in
+     * pieces on the head ('crown', 'horns'); `right` / `left`: a model held in that hand ('pickaxe' and 'mattock' are built in). Check them all
+     * in the character viewer: the game with ?characters.
+     */
     units: {
-        imp: svg('units/imp.svg'),
-        orc: svg('units/orc.svg'),
-        warlock: svg('units/warlock.svg'),
-        troll: svg('units/troll.svg'),
-        mistress: svg('units/mistress.svg'),
-        tunneller: svg('units/tunneller.svg'),
-        archer: svg('units/archer.svg'),
-        wizard: svg('units/wizard.svg'),
-        knight: svg('units/knight.svg'),
-        lord: svg('units/lord.svg'),
+        imp: { model: 'kaykit/Rogue.glb', rig: 'kaykit', height: 0.5, width: 1.1, hide: ['Cape'], tints: { Head: '#ff7a5c', Arm: '#ff7a5c', Body: '#d06a50', Leg: '#9a5a48' }, extras: ['horns'], right: 'pickaxe' },
+        orc: { model: 'kaykit/Knight.glb', rig: 'kaykit', height: 0.84, width: 1.1, hide: ['Visor'], tints: { Head: '#8fcf6a', Helmet: '#7d8272', Body: '#7d8272', Arm: '#7d8272', Leg: '#7d8272', Cape: '#5a3a2a' }, right: 'kaykit/axe_1handed.glb' },
+        warlock: { model: 'kaykit/Rogue_Hooded.glb', rig: 'kaykit', height: 0.74, tint: '#b796e6', right: 'kaykit/staff.glb', left: 'kaykit/spellbook_open.glb' },
+        troll: { model: 'kaykit/Barbarian.glb', rig: 'kaykit', height: 0.7, width: 1.2, hide: ['BearHat'], tints: { Head: '#8fbf6a', Arm: '#8fbf6a', Body: '#a0b07a' }, right: 'kaykit/axe_1handed.glb' },
+        mistress: { model: 'kaykit/Rogue.glb', rig: 'kaykit', height: 0.78, tint: '#f0a0cc', right: 'kaykit/dagger.glb' },
+        tunneller: { model: 'kaykit/Barbarian.glb', rig: 'kaykit', height: 0.6, width: 1.25, hide: ['BearHat'], borrow: [{ from: 'kaykit/Knight.glb', part: 'Knight_Helmet' }], tints: { Helmet: ['#e8a85a', 1.6] }, right: 'mattock' },
+        archer: { model: 'kaykit/Ranger.glb', rig: 'kaykit', height: 0.76, left: 'kaykit/bow_withString.glb' },
+        wizard: { model: 'kaykit/Mage.glb', rig: 'kaykit', height: 0.82, right: 'kaykit/staff.glb' },
+        knight: { model: 'kaykit/Knight.glb', rig: 'kaykit', height: 0.82, right: 'kaykit/sword_1handed.glb', left: 'kaykit/shield_badge_color.glb' },
+        lord: { model: 'kaykit/Knight.glb', rig: 'kaykit', height: 0.82, tints: { Helmet: ['#ffc83a', 1.75], Body: ['#ffc83a', 1.75], Arm: ['#ffc83a', 1.75], Leg: ['#ffc83a', 1.75], Cape: '#8a3ad0' }, extras: ['crown'], right: 'kaykit/sword_2handed_color.glb' },
     },
+
+    /** Animation clips shared by every KayKit figure. */
+    rigs: ['kaykit/Rig_Medium_General.glb', 'kaykit/Rig_Medium_MovementBasic.glb'],
+
+    /** Unclaimed floor and earth walls (Kenney Modular Cave Kit). Claimed tiles and reinforced (brick) walls are drawn in code. */
     tiles: {
-        earth: svg('tiles/earth.svg'),
-        gold: svg('tiles/gold.svg'),
-        gem: svg('tiles/gem.svg'),
-        rock: svg('tiles/rock.svg'),
-        floor: svg('tiles/floor.svg'),
-        claimed: svg('tiles/claimed.svg'),
-        wall: svg('tiles/wall.svg'),
+        floor: 'cave/template-floor.glb',
+        floorDetail: 'cave/template-floor-detail.glb',
+        claimedDetail: 'mini/floor-detail.glb', // the stands in the character viewer
+        wall: 'cave/template-wall.glb',
     },
+
+    /** Props in rooms and landmarks (Kenney). */
     props: {
-        heart: svg('props/heart.svg'),
-        portal: svg('props/portal.svg'),
-        "portal-unclaimed": svg('props/portal-unclaimed.svg'),
-        gate: svg('props/gate.svg'),
-        chest: svg('props/chest.svg'),
-        "treasury-pile": svg('props/treasury-pile.svg'),
-        "lair-nest": svg('props/lair-nest.svg'),
-        "hatchery-chicken": svg('props/hatchery-chicken.svg'),
-        "training-dummy": svg('props/training-dummy.svg'),
-        "library-shelf": svg('props/library-shelf.svg'),
+        chest: 'mini/chest.glb',
+        coin: 'mini/coin.glb',
+        dummy: 'mini/wood-support.glb',
+        shield: 'mini/shield-round.glb',
+        sword: 'mini/weapon-sword.glb',
+        spear: 'mini/weapon-spear.glb',
+        table: 'mini/table.glb',
+        chair: 'mini/chair.glb',
+        potion: 'mini/potion.glb',
+        banner: 'mini/banner.glb',
+        heartColumn: 'dungeon/template-detail.glb',
+        portalArch: 'cave/gate.glb',
+        heroGate: 'dungeon/gate-metal-bars.glb',
     },
 };

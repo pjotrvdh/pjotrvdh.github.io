@@ -24,7 +24,7 @@
       <span class="saved" id="savedAt"></span>
       <button id="bSave" type="button">Save</button>
       <button id="bLoad" type="button">Load</button>
-      <!-- Hidden until someone types the cheat code (iliketocheat); see src/game/underlord.js. -->
+      <!-- Hidden until someone types the cheat code (iliketocheat); see src/game/ui.js. -->
       <button id="bCheat" type="button" aria-expanded="false" aria-controls="cheats" hidden>Cheats</button>
       <button id="bPause" type="button">Pause</button>
       <button id="bSpeed" type="button" aria-label="Game speed: 1×">1×</button>
@@ -33,13 +33,14 @@
 
   <main class="stage" id="stage">
     <canvas id="cv" aria-label="Dungeon map. Click to dig, build or cast; drag to mark an area; right-click to slap."></canvas>
+    <div class="labels" id="labels" aria-hidden="true"></div>
     <div class="banner" id="banner" aria-hidden="true"></div>
     <div class="tip" id="tip" hidden></div>
     <div class="cheats" id="cheats" hidden>
       <h2>Cheats</h2>
       <div class="cgrid" id="cheatList"></div>
     </div>
-    <div class="zoom"><button id="zin" type="button" title="Zoom in" aria-label="Zoom in">+</button><button id="zout" type="button" title="Zoom out" aria-label="Zoom out">−</button><button id="zfit" class="fit" type="button" title="Show the whole map" aria-label="Show the whole map">Fit</button></div>
+    <div class="zoom"><button id="rotl" type="button" title="Turn left (Q)" aria-label="Turn the view left">⟲</button><button id="rotr" type="button" title="Turn right (E)" aria-label="Turn the view right">⟳</button><button id="zin" type="button" title="Zoom in" aria-label="Zoom in">+</button><button id="zout" type="button" title="Zoom out" aria-label="Zoom out">−</button><button id="zfit" class="fit" type="button" title="Show the whole map" aria-label="Show the whole map">Fit</button></div>
     <div class="overlay" id="ov">
       <div class="card">
         <h2><img src="./src/assets/brand/logo.svg" alt="Underlord"></h2>
@@ -50,7 +51,7 @@
           <li>A portal near your Dungeon Heart is always visible. Claim it to attract creatures. Each creature needs a free bed in your Lair; stronger creatures also need bigger rooms. Each map has a limited pool of creatures.</li>
           <li>Invading heroes show as white dots until they reach ground you have discovered.</li>
           <li>Pick creatures up with the hand and drop them where the fighting is. Right-click slaps: slapped imps work faster.</li>
-          <li>Scroll or pinch to zoom. Drag with the right or middle mouse button, or use the arrow keys or WASD, to look around.</li>
+          <li>Scroll or pinch to zoom. Drag with the right or middle mouse button, or use the arrow keys or WASD, to look around. Q and E turn the view.</li>
         </ul>
         <div class="row">
           <button id="bStart" class="main" type="button">New game</button>

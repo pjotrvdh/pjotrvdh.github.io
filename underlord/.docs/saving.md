@@ -5,7 +5,7 @@ description: Underlord save games: localStorage, SAVE_V format, autosave, saved 
 
 ## When to use this
 
-- You touch `serialize()`, `deserialize()`, `saveGame()`, `loadGame()`, `lsGet()`/`lsSet()`, `refreshContinue()`, `SAVE_V` or `SAVE_KEYS`
+- You touch `serialize()`, `deserialize()`, `saveGame()`, `loadGame()`, `lsGet()`/`lsSet()`, `refreshContinue()`, `SAVE_V` or `SAVE_KEYS` (all in `underlord/src/game/save.js`)
 - You add a field to `G` or to entities and it must survive a reload
 - Keywords: save, load, continue, autosave, localStorage, version, compatibility
 
@@ -35,7 +35,7 @@ ents: [{ SAVE_KEYS..., held }]
 
 - `SAVE_KEYS = ['id','kind','side','x','y','hp','maxhp','atk','lvl','xp','carry','hunger','guard','bed','leaving','fromPool']`.
 - `ents` is `G.ents` (held units included once, with `held: true`).
-- Not saved (reset on load): `state`, `path`, `next`, `timer`, `cd`, `slap`, `scan`, `ignoreT`, `target`, `resv`, `task`, `work`, `boost`, `after`, `face`; and on `G`: `res`, `fx`, `msgCd`, `crCycle`, `heartFlash`, `zapT`, `visT`, `rc` (recounted), `over`, the Chronicle.
+- Not saved (reset on load): `state`, `path`, `next`, `timer`, `cd`, `slap`, `scan`, `ignoreT`, `target`, `resv`, `task`, `work`, `boost`, `after`, `face`, and the render hints `hitT`, `hurtT`, `digging`, `aim`; and on `G`: `res`, `fx`, `msgCd`, `crCycle`, `heartFlash`, `heartAlarm`, `zapT`, `visT`, `rc` (recounted), `over`, the Chronicle. The camera is not saved.
 
 ## Load (`deserialize()`)
 
@@ -55,7 +55,7 @@ ents: [{ SAVE_KEYS..., held }]
 ## Gotchas
 
 - Load cancels transient behaviour: sleepers wake, rallied creatures rethink (the rally itself is restored), imps drop their tasks. Leaving creatures keep `leaving` and head for the portal again.
-- `newGame()` inside `deserialize()` re-centres the camera on the Heart once the canvas is initialised.
+- `newGame()` inside `deserialize()` re-centres the camera on the Heart.
 - Config is not saved: changing a config value changes loaded games too (except stats already baked into entities: `hp`, `maxhp`, `atk`).
 
 ## See also

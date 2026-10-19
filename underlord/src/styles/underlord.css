@@ -39,6 +39,15 @@ button:disabled{color:var(--muted);background:var(--panel);border-style:dashed;c
 .stage{position:relative;min-height:0;min-width:0;background:#050404;border:1px solid var(--line);border-radius:4px;overflow:hidden}
 canvas{display:block;touch-action:none;cursor:crosshair;position:absolute;inset:0}
 canvas.grab{cursor:grab}
+.labels{position:absolute;inset:0;pointer-events:none;overflow:hidden}
+.ulabel{position:absolute;left:0;top:0;display:flex;flex-direction:column;align-items:center;gap:2px;margin:-26px 0 0 -18px;width:36px;transform-origin:50% 100%;font:700 12px/1 var(--f-body);text-shadow:0 1px 2px #000,0 0 3px #000}
+.ulabel .lv{color:#e3b23c;min-height:12px}
+.ulabel .z{position:absolute;left:28px;top:-6px;color:#cdbbf5}
+.ulabel .z.guard{color:#bcd2f0}
+.ulabel .bar{display:block;width:30px;height:4px;background:rgba(0,0,0,.7);border-radius:1px;overflow:hidden}
+.ulabel .bar i{display:block;height:100%;background:#5fcf6a}
+.ulabel.hero .bar i{background:#8fb4ef}
+.ftext{position:absolute;left:0;top:0;margin:-10px 0 0 -40px;width:80px;text-align:center;font:700 15px/1 var(--f-body);text-shadow:0 1px 2px #000,0 0 4px #000;white-space:nowrap}
 .zoom{position:absolute;right:10px;bottom:10px;display:flex;flex-direction:column;gap:4px}
 .zoom button{width:34px;height:34px;padding:0;font-size:18px;line-height:1;background:rgba(22,16,14,.88)}
 .zoom button.fit{font-size:11px;letter-spacing:0;text-transform:uppercase}
@@ -126,3 +135,21 @@ aside h2{font-family:var(--f-display);font-weight:500;font-size:19px;margin:0 0 
   h1 img{height:36px}
 }
 @media (prefers-reduced-motion:reduce){.hbar i,.banner{transition:none}}
+
+/* character viewer (?characters, src/render/gallery.js) */
+.gallery{position:fixed;inset:0;background:#0d0a09}
+.gallery canvas{position:absolute;inset:0;cursor:grab}
+.glabels{position:absolute;inset:0;pointer-events:none;overflow:hidden}
+.gtag{position:absolute;left:0;top:0;width:120px;margin-left:-60px;text-align:center;font:12px/1.3 var(--f-body);color:var(--muted);text-shadow:0 1px 2px #000}
+.gtag b{display:block;color:var(--ink);font-size:13px}
+.gtop{position:absolute;left:12px;right:12px;top:12px;display:flex;flex-direction:column;gap:6px;padding:8px 10px;background:rgba(22,16,14,.92);border:1px solid var(--line);border-radius:4px;font:13px var(--f-body);color:var(--muted)}
+.gtop .grow{display:flex;flex-wrap:wrap;align-items:center;gap:6px}
+.gtop b{font-family:var(--f-display);color:var(--ink);font-size:16px;margin-right:6px}
+.gtop .gtabs,.gtop .acts{display:flex;flex-wrap:wrap;gap:4px}
+.gtop .gtabs button{padding:4px 10px;font-size:13px;border-bottom-width:2px}
+.gtop .acts button{padding:3px 8px;font-size:12px}
+.gtop button.on{border-color:var(--gold);color:var(--gold)}
+.gtop .glbl{min-width:70px}
+.gtop .gcmp{margin-left:8px}
+.gtop a{margin-left:auto;color:var(--gold)}
+.ginfo{position:absolute;left:12px;bottom:8px;margin:0;font:13px var(--f-body);color:var(--muted);text-shadow:0 1px 2px #000}

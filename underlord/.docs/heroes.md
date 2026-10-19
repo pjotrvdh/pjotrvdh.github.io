@@ -45,20 +45,19 @@ description: Underlord hero waves, marching/tunnelling, the Heart zap, the hero 
 ## White dots for unseen heroes
 
 - `unknownHeroes()`: living heroes, not guards, on a tile with `G.seen = 0`.
-- `draw()` draws them as pulsing white dots after the fog; `drawMini()` draws white dots on the minimap.
+- `render/fog.js` draws them as pulsing white dots above the clouds; `drawMini()` draws white dots on the minimap.
 - On a seen tile the hero is drawn with its sprite, and hover shows its name. `G.seen` is permanent, so this happens as soon as it enters discovered ground, not only within sight of your units.
 
 ## The Lord of the Land
 
-- In the last wave of `waves.js` (`lord: 1`), 1000 hp, bounty 1000, `dig` 0.6, drawn with radius 0.44 tiles instead of 0.32.
+- In the last wave of `waves.js` (`lord: 1`), 1000 hp, bounty 1000, `dig` 0.6. Drawn as the Knight in gold armour with a crown (`assets.js`); `big` only widens its ring.
 - Killing it posts "The Lord of the Land has fallen!". Victory still needs every non-guard hero dead.
 
 ## Adding a hero
 
 1. `underlord/src/config/heroes/<key>.js` (copy `knight.js`, document every field), list it in `heroes/index.js`.
-2. `units.<key>` in `underlord/src/config/assets.js` + SVG in `underlord/src/assets/units/` (facing right).
+2. `units.<key>` (its KayKit figure) and `icons` in `underlord/src/config/assets.js` + portrait SVG in `underlord/src/assets/units/` (facing right). Check it in the character viewer (`?characters`).
 3. Use the key in `waves.js`.
-4. Fallback drawing adds a white helmet bar for every hero except `tunneller` and `archer` (hard-coded in `drawEnt()`).
 
 ## Gotchas
 

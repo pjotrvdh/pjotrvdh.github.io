@@ -1,5 +1,5 @@
 import './styles/underlord.css';
-import './game/underlord.js';
+import './game/index.js';
 
 // The commit this build was made from (see vite.config.js), shown below the Chronicle.
 const version = document.getElementById('version');

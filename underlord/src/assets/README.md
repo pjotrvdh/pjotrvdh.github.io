@@ -1,25 +1,29 @@
 # Assets
 
-All graphics are SVG files. You can restyle the game by editing them in any vector editor (Inkscape, Figma, Illustrator) or by hand. The game rasterises each SVG at the exact on-screen size, so the graphics stay sharp at every zoom level.
+The game is drawn in 3D with three.js. [`src/config/assets.js`](../config/assets.js) decides which model is used for what: point an entry at a different file to swap it.
 
-[`src/config/assets.js`](../config/assets.js) decides which file is used for what. Point an entry at a different file to swap it. Remove an entry to fall back to the built-in procedural drawing. The build embeds every SVG in the HTML file.
+## 3D models (`underlord/models`)
 
-## Conventions
+Self-contained `.glb` files, loaded at run time from `./models/` and copied next to the page by the build. They come from free CC0 packs:
 
-| Folder | viewBox | Notes |
+| Folder | Pack | Used for |
 |---|---|---|
-| `units/` | `0 0 64 64` | Facing **right**; the game mirrors them when a unit walks left. Feet at about y = 58, body centred on x = 32. Drawn at roughly 2.9 × the unit's radius: imps are smaller and the Lord is bigger. |
-| `tiles/` | `0 0 64 64` | They must tile seamlessly. Earth, rock, floor, gold and gem are mirrored at random for variety, so avoid content that only reads one way. Shadows from neighbouring walls are added by the game. |
-| `props/` | `0 0 64 64`, except `heart.svg` (`0 0 192 192`, covering the 3 × 3 Heart) | Drawn on top of tiles. Portals rotate around their centre. The treasury pile is scaled by how full your treasuries are. The chicken faces right. |
+| `models/cave/` | [Kenney Modular Cave Kit](https://kenney.nl/assets/modular-cave-kit) | Unclaimed floor, earth walls, the portal arch |
+| `models/dungeon/` | [Kenney Modular Dungeon Kit](https://kenney.nl/assets/modular-dungeon-kit) | The Heart's columns, the Hero Gate |
+| `models/mini/` | [Kenney Mini Dungeon](https://kenney.nl/assets/mini-dungeon) | Room props: coins, chests, tables, chairs, banners, weapons, training posts; the stands in the character viewer |
+| `models/kaykit/` | [KayKit Adventurers](https://kaylousberg.itch.io/kaykit-adventurers) | Every creature and hero, their weapons and the shared animations (`Rig_Medium_*`) |
 
-- **Style:** *Plants vs. Zombies*: thin dark-brown outlines (`#2b1b12`, about 1.3 px at the 64 grid), muted colours and soft airbrushed shading (radial and linear gradients). Creatures are hunched, with no neck, heavy eyelids, limp arms and flat feet.
-- **Likeness:** creatures and heroes look like their counterparts in the original *Dungeon Keeper* (1997).
-- **Tiles:** outline only the details inside a tile (stones, nuggets, crystals, joints), never the tile edge, so neighbouring tiles join seamlessly.
-- Use only plain SVG, with no external images, fonts or scripts. Browsers block those when they draw an SVG to a canvas.
-- Lava, the clouds, the Heart's pulse, health bars and all effects are still drawn in code.
+- Copy them with `node underlord/tools/import-models.mjs` (from the repository root) after unzipping the packs into `downloads/` (ignored by git). The script embeds each model's texture, so every file stands alone, and only copies the models it lists.
+- Kenney's modular kits use 4 × 4-unit tiles (scaled to one tile); a wall piece faces +Z with its body half a tile behind it. The Mini Dungeon uses 1 × 1 tiles.
+- All KayKit figures share one skeleton, so a figure can borrow parts from another (the Tunneller wears the Knight's helmet) and all play the same clips. Weapons sit on the `handslot.r` / `handslot.l` bones. The pickaxe (imp) and the mattock (Tunneller) are built in code, in the same style.
+- Look at every figure and animation in the character viewer: open the game with `?characters` (for example `/underlord/?characters`). Pick a tab to see one figure, or switch on Compare to put several side by side.
 
-## Files
+## SVGs (`src/assets`)
 
-- `units/`: imp, orc, warlock, troll, mistress, tunneller, archer, wizard, knight, lord
-- `tiles/`: earth, gold, gem, rock, floor, claimed, wall
-- `props/`: heart, portal, portal-unclaimed, gate, chest, treasury-pile, lair-nest, hatchery-chicken, training-dummy, library-shelf
+- `units/`: portraits of every creature and hero, only used in the panel's Creatures tab (`0 0 64 64`, facing right, *Plants vs. Zombies* style with thin dark-brown outlines `#2b1b12`).
+- `brand/logo.svg`: the Underlord logo; `favicon.svg`.
+- The build embeds these SVGs in the HTML file.
+
+## Built in code
+
+The tiled floor of claimed ground with the keeper emblem, the brick reinforced walls and their jewels, the imp's horns, the Lord's crown, the pickaxe and mattock, the block tops, gold nuggets and gems in the rock, lava, the clouds, the Heart's crystal and the swirls in the portals, nests, straw, chickens and bookshelves, and every effect (shots, dust, rings, lightning).

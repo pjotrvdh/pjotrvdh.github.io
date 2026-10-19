@@ -1,9 +1,31 @@
 import { execSync } from 'node:child_process';
+import { copyFileSync, existsSync, mkdirSync, readdirSync, rmSync } from 'node:fs';
+import { join } from 'node:path';
 
 /*
  * Vite helpers shared by the Arcade index (vite.config.js in the root) and every game
- * (<game>/vite.config.js): each page builds to one self-contained HTML file.
+ * (<game>/vite.config.js): each page builds to one self-contained HTML file, plus any folders a
+ * game names in `copy` (Underlord's 3D models), which are copied next to it unchanged.
  */
+
+/**
+ * Copies a folder file by file. (fs.cpSync fails on folders in the DDEV container's mounted file system.)
+ *
+ * @param {string} from
+ * @param {string} to
+ */
+export function copyFolder(from, to) {
+    mkdirSync(to, { recursive: true });
+    for (const entry of readdirSync(from, { withFileTypes: true })) {
+        const source = `${from}/${entry.name}`;
+        const target = `${to}/${entry.name}`;
+        if (entry.isDirectory()) {
+            copyFolder(source, target);
+        } else {
+            copyFileSync(source, target);
+        }
+    }
+}
 
 /**
  * The short hash and commit time (Europe/Amsterdam) of HEAD, or null outside a git checkout.
@@ -91,12 +113,45 @@ export function singleFile() {
 export const ddevHost = process.env.IS_DDEV_PROJECT ? process.env.DDEV_HOSTNAME?.split(',')[0] : null;
 
 /**
+ * Copies folders of the page (such as `models`) unchanged into dist, next to index.html. The page loads
+ * them with relative URLs (`./models/...`), which work the same in the dev server and in the build.
+ *
+ * @param {string[]} folders
+ * @returns {import('vite').Plugin}
+ */
+function copyFolders(folders) {
+    let root = '.';
+    let outDir = 'dist';
+
+    return {
+        name: 'arcade-copy-folders',
+        apply: 'build',
+        configResolved(config) {
+            root = config.root;
+            outDir = config.build.outDir;
+        },
+        closeBundle() {
+            for (const folder of folders) {
+                const from = join(root, folder);
+                if (!existsSync(from)) {
+                    throw new Error(`${from} does not exist.`);
+                }
+                const to = join(root, outDir, folder);
+                rmSync(to, { recursive: true, force: true });
+                copyFolder(from, to);
+            }
+        },
+    };
+}
+
+/**
  * The Vite config every page shares: relative paths, everything inlined into one HTML file, the
  * build version as __BUILD_VERSION__, and the DDEV dev server when running in DDEV.
  *
+ * @param {{copy?: string[]}} [options] `copy`: folders copied next to the page as they are (see copyFolders()).
  * @returns {import('vite').UserConfig}
  */
-export function singleFilePage() {
+export function singleFilePage({ copy = [] } = {}) {
     return {
         // Relative paths, so nothing in the page depends on where it is served from.
         base: './',
@@ -106,7 +161,7 @@ export function singleFilePage() {
             cssCodeSplit: false,
             modulePreload: { polyfill: false },
         },
-        plugins: [singleFile()],
+        plugins: [singleFile(), ...(copy.length ? [copyFolders(copy)] : [])],
         server: ddevHost ? {
             host: true,
             port: 5173,

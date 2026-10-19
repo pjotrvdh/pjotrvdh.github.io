@@ -1,0 +1,135 @@
+/**
+ * Copies the 3D models Underlord uses from the downloaded asset packs into underlord/models, as
+ * self-contained .glb files: textures (and .bin buffers) are embedded, so every model is one file.
+ *
+ * Usage, from the repository root, with the packs unzipped in ./downloads (ignored by git):
+ *     node underlord/tools/import-models.mjs
+ *
+ * The packs (all CC0): Kenney Mini Dungeon, Modular Dungeon Kit and Modular Cave Kit (kenney.nl),
+ * KayKit Adventurers 2.0 (kaylousberg.itch.io). See underlord/src/assets/README.md.
+ */
+import { mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { dirname, join } from 'node:path';
+
+const SOURCE = 'downloads';
+const TARGET = 'underlord/models';
+
+const MINI = 'kenney_mini-dungeon/Models/GLB format';
+const DUNGEON = 'kenney_modular-dungeon-kit_1.0/Models/GLB format';
+const CAVE = 'kenney_modular-cave-kit_1.0/Models/GLB format';
+const KAYKIT = 'KayKit_Adventurers_2.0_FREE';
+
+/** [target name, source file] */
+const MODELS = [
+    ...['floor-detail', 'coin', 'chest', 'table', 'chair', 'banner', 'potion', 'wood-support', 'weapon-sword', 'weapon-spear', 'shield-round']
+        .map((name) => [`mini/${name}.glb`, `${MINI}/${name}.glb`]),
+    ...['template-detail', 'gate-metal-bars']
+        .map((name) => [`dungeon/${name}.glb`, `${DUNGEON}/${name}.glb`]),
+    ...['template-floor', 'template-floor-detail', 'template-wall', 'gate']
+        .map((name) => [`cave/${name}.glb`, `${CAVE}/${name}.glb`]),
+    ...['Barbarian', 'Knight', 'Mage', 'Ranger', 'Rogue', 'Rogue_Hooded']
+        .map((name) => [`kaykit/${name}.glb`, `${KAYKIT}/Characters/gltf/${name}.glb`]),
+    ...['General', 'MovementBasic']
+        .map((name) => [`kaykit/Rig_Medium_${name}.glb`, `${KAYKIT}/Animations/gltf/Rig_Medium/Rig_Medium_${name}.glb`]),
+    ...['sword_1handed', 'sword_2handed_color', 'shield_badge_color', 'bow_withString', 'staff', 'axe_1handed', 'dagger', 'spellbook_open']
+        .map((name) => [`kaykit/${name}.glb`, `${KAYKIT}/Assets/gltf/${name}.gltf`]),
+];
+
+const pad4 = (n) => (n + 3) & ~3;
+
+/** Reads a .glb into its JSON and binary chunks. */
+function readGlb(bytes) {
+    const view = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
+    const jsonLength = view.getUint32(12, true);
+    const json = JSON.parse(new TextDecoder().decode(bytes.subarray(20, 20 + jsonLength)));
+    const binStart = 20 + jsonLength;
+    const bin = binStart < bytes.length ? bytes.subarray(binStart + 8, binStart + 8 + view.getUint32(binStart, true)) : new Uint8Array(0);
+
+    return { json, bin };
+}
+
+/** Writes JSON and binary chunks as a .glb. */
+function writeGlb(json, bin) {
+    const jsonBytes = new TextEncoder().encode(JSON.stringify(json));
+    const jsonLength = pad4(jsonBytes.length);
+    const binLength = pad4(bin.length);
+    const out = new Uint8Array(12 + 8 + jsonLength + 8 + binLength);
+    const view = new DataView(out.buffer);
+    view.setUint32(0, 0x46546c67, true); // "glTF"
+    view.setUint32(4, 2, true);
+    view.setUint32(8, out.length, true);
+    view.setUint32(12, jsonLength, true);
+    view.setUint32(16, 0x4e4f534a, true); // "JSON"
+    out.fill(0x20, 20, 20 + jsonLength);
+    out.set(jsonBytes, 20);
+    const binStart = 20 + jsonLength;
+    view.setUint32(binStart, binLength, true);
+    view.setUint32(binStart + 4, 0x004e4942, true); // "BIN"
+    out.set(bin, binStart + 8);
+
+    return out;
+}
+
+/** Appends a file to the binary chunk and returns a buffer view for it. */
+function append(json, chunks, bytes) {
+    const offset = chunks.reduce((sum, chunk) => sum + chunk.length, 0);
+    chunks.push(bytes, new Uint8Array(pad4(bytes.length) - bytes.length));
+    json.bufferViews.push({ buffer: 0, byteOffset: offset, byteLength: bytes.length });
+
+    return json.bufferViews.length - 1;
+}
+
+/** Turns a .glb or .gltf with external files into one self-contained .glb. */
+function embed(file) {
+    const folder = dirname(file);
+    let json;
+    let chunks;
+    if (file.endsWith('.glb')) {
+        const glb = readGlb(readFileSync(file));
+        json = glb.json;
+        chunks = [glb.bin, new Uint8Array(pad4(glb.bin.length) - glb.bin.length)];
+    } else {
+        json = JSON.parse(readFileSync(file, 'utf8'));
+        // Every buffer of a .gltf becomes part of the one binary chunk, in order.
+        chunks = [];
+        const offsets = [];
+        let offset = 0;
+        for (const buffer of json.buffers) {
+            const bytes = readFileSync(join(folder, buffer.uri));
+            offsets.push(offset);
+            chunks.push(bytes, new Uint8Array(pad4(bytes.length) - bytes.length));
+            offset += pad4(bytes.length);
+        }
+        for (const view of json.bufferViews) {
+            view.byteOffset = (view.byteOffset ?? 0) + offsets[view.buffer];
+            view.buffer = 0;
+        }
+    }
+    json.bufferViews ??= [];
+    for (const image of json.images ?? []) {
+        if (!image.uri || image.uri.startsWith('data:')) {
+            continue;
+        }
+        image.bufferView = append(json, chunks, readFileSync(join(folder, decodeURIComponent(image.uri))));
+        image.mimeType ??= image.uri.endsWith('.png') ? 'image/png' : 'image/jpeg';
+        delete image.uri;
+    }
+    const bin = new Uint8Array(chunks.reduce((sum, chunk) => sum + chunk.length, 0));
+    let at = 0;
+    for (const chunk of chunks) {
+        bin.set(chunk, at);
+        at += chunk.length;
+    }
+    json.buffers = [{ byteLength: bin.length }];
+
+    return writeGlb(json, bin);
+}
+
+rmSync(TARGET, { recursive: true, force: true });
+for (const [target, source] of MODELS) {
+    const out = join(TARGET, target);
+    mkdirSync(dirname(out), { recursive: true });
+    const glb = embed(join(SOURCE, source));
+    writeFileSync(out, glb);
+    console.log(`${out} (${Math.round(glb.length / 1024)} KB)`);
+}

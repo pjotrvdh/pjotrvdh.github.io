@@ -5,7 +5,7 @@ description: Underlord's Hand: pick up, drop (stun, room bonus, bed move), dismi
 
 ## When to use this
 
-- You touch `pickUp()`, `dropHeld()`, `slapAt()`, `entAt()`, the Hand branch of the canvas `pointerdown` handler, the `#held` list or `crPick()`
+- You touch `pickUp()`, `dropHeld()`, `dismissHeld()`, `slap()` (`underlord/src/game/actions.js`), the Hand branch of `onDown()` in `underlord/src/game/input.js`, the `#held` list or `crPick()`
 - Keywords: hand, held, capacity, drop, stun, dazed, workBoost, dismiss, portal, slap, slapTime, likesSlaps, joy
 
 ## Settings
@@ -23,9 +23,9 @@ description: Underlord's Hand: pick up, drop (stun, room bonus, bed move), dismi
 
 ## Dropping
 
-Left-click with something in hand (checked in this order in `pointerdown`):
+Left-click with something in hand (checked in this order in `onDown()`):
 
-1. An own unit under the cursor: picks it up instead.
+1. An own unit under the cursor (`view.pickUnit()`, see [rendering-and-ui](rendering-and-ui.md)): picks it up instead.
 2. Own portal and the top unit is not an imp: dismiss (see below).
 3. `CLAIM` tile or own portal: `dropHeld(i)` for the top unit.
 4. Any other seen tile: "You can only drop creatures on your own territory."
@@ -54,9 +54,9 @@ Left-click with something in hand (checked in this order in `pointerdown`):
 
 ## Slapping
 
-- Right-click without dragging (or the Slap tool, left-click) on an own unit: `slapAt()`.
+- Right-click without dragging (or the Slap tool, left-click) on an own unit (`view.pickUnit()`): `slap(e)`.
 - Effect: `e.slap = slapTime`, `hp -= slapDamage` (can kill; counts as "slain"), "Slap!" text.
-- While `slap > 0`: `slapBoost` on imp work timers and on walking speed for any unit; the sprite flickers.
+- While `slap > 0`: `slapBoost` on imp work timers and on walking speed for any unit; the figure flickers.
 - A slapped creature (not imp) that is not fighting is interrupted: reservation released, back to `think` (wakes sleepers, ends training).
 - A kind with `likesSlaps` (`creatures/*.js`; only the Dark Mistress, as in Dungeon Keeper) takes no damage and is not interrupted ("Yes, master!"). While `slap > 0`, `joy(e)` = `slapBoost` multiplies her training XP, research and attack speed (`cd = rate / joy`).
 

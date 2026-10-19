@@ -5,7 +5,7 @@ description: Underlord map generation (genMap), tile types, caverns, portal, gat
 
 ## When to use this
 
-- You touch `genMap()`, `newGame()`, `vision()`, `los()`, `rebuildFog()` in `underlord/src/game/underlord.js`
+- You touch `genMap()`, `newGame()`, `vision()`, `los()` in `underlord/src/game/map.js`, or the tile helpers in `tiles.js` / `path.js`
 - You add a tile type, change gold/lava/gem placement, caverns, loot, neutrals or the hero camp
 - Keywords: tunnel size, Heart, portal, Hero Gate, seen, fog, clouds, shroud
 
@@ -70,9 +70,9 @@ After the loop: `G.hp` and `G.gold` per tile, then the caverns are populated.
 - `G.seen[i]` is permanent: once discovered, a tile stays visible; there is no live line of sight on seen ground. Heroes on seen tiles are always visible.
 - `vision()` (every 0.25 s from `update()`): every own unit that is not held reveals all tiles within its radius (`offsets(R)`, a disc) that pass `los()`. `los()` steps through the line and fails on any non-transparent intermediate tile; the end tile itself is revealed even if solid, so walls show.
 - Radius: imps `settings/imp.js` `vision` (4), creatures `vision` in their `creatures/*.js` (5). Heroes and neutrals reveal nothing.
-- New seen tiles set `G.fogDirty`; `rebuildFog()` writes the W x H alpha mask used by the fog drawing.
-- Through the clouds the player sees (drawn by `drawShroudTile()` / `drawMini()`): gold and gem tiles (glints), dig marks, the portal(s) (always drawn, minimap too) and invading heroes as white dots ([heroes](heroes.md)). Chests, caverns, the gate, lava and neutrals do not show.
-- The Hero Gate glow and sprite are drawn only once the gate tile is seen.
+- New seen tiles set `G.fogDirty`; the cloud layer (`underlord/src/render/fog.js`) then rewrites its W x H mask and clears the flag.
+- Through the clouds the player sees (drawn by `render/fog.js`, `render/terrain.js` and `drawMini()`): gold and gem tiles (glints), dig marks, the portal(s) (always drawn, minimap too) and invading heroes as white dots ([heroes](heroes.md)). Chests, caverns, the gate, lava and neutrals do not show.
+- The Hero Gate (model and light) is drawn only once the gate tile is seen.
 
 ## Pathfinding
 
