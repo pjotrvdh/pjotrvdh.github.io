@@ -43,6 +43,12 @@ body {
 }
 
 a { color: var(--cyan); }
+
+/* Lucide icons (src/main.js): they take the text colour and size. */
+.icon { width: 1.1em; height: 1.1em; flex-shrink: 0; vertical-align: -0.18em; }
+.genres button, .tags li, .play, .added, .count, footer a { display: inline-flex; align-items: center; gap: 6px; }
+.play { gap: 8px; }
+.play .icon:last-child { width: .9em; height: .9em; opacity: .8; }
 a:focus-visible, button:focus-visible, input:focus-visible { outline: 3px solid var(--yellow); outline-offset: 3px; }
 
 /* ---------- header ---------- */
@@ -123,7 +129,7 @@ main {
   clip-path: polygon(0 0, calc(100% - 12px) 0, 100% 12px, 100% 100%, 12px 100%, 0 calc(100% - 12px));
 }
 .search span { color: var(--cyan); font-size: 13px; font-weight: 700; text-transform: uppercase; }
-.search span::after { content: " >"; }
+.search span { display: inline-flex; align-items: center; gap: 6px; }
 .search input {
   flex: 1;
   width: 100%;
@@ -214,7 +220,6 @@ main {
   clip-path: polygon(0 0, calc(100% - 12px) 0, 100% 50%, calc(100% - 12px) 100%, 0 100%);
 }
 .play:hover { background: var(--cyan); }
-.play::after { content: " \2197"; }
 
 .empty { color: var(--muted); text-align: center; }
 

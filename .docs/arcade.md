@@ -21,6 +21,7 @@ description: How the Arcade repository is laid out and how a game is added to th
 - `src/main.js` renders the list without `innerHTML` (game data is never parsed as HTML), with a search box and a genre filter; covers come from `<slug>/cover.svg` through `import.meta.glob`.
 - Every game link opens in a new tab (`target="_blank" rel="noopener"`), with "(opens in a new tab)" in its accessible name.
 - Look: cyberpunk (`src/styles/arcade.css`), the graffiti logo `src/logo.svg` (letters as paths, from Sedgwick Ave Display, SIL OFL), system fonts only (DIN-like HUD stack).
+- Icons are [Lucide](https://lucide.dev) (`lucide` package, ISC), imported one by one in `src/main.js` and made with `createElement()`; they are decorative (`aria-hidden`), the text next to them carries the meaning. Genre icons come from `GENRE_ICONS`: give a new genre an icon there (unknown genres get a tag).
 
 ## Adding a game
 

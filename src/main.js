@@ -1,5 +1,13 @@
 import './styles/arcade.css';
+import { createElement, CalendarPlus, Code, Cpu, ExternalLink, Gamepad2, LayoutGrid, Play, Search, Swords, Tag, Trophy } from 'lucide';
 import games from './games.js';
+
+/** A Lucide icon as an inline SVG. Decorative: the text next to it says the same. */
+const icon = (node) => createElement(node, { class: 'icon', 'aria-hidden': 'true', focusable: 'false' });
+
+/** The icon for a genre; unknown genres get a tag. */
+const GENRE_ICONS = { Arcade: Gamepad2, Sports: Trophy, Strategy: Swords, Simulation: Cpu };
+const genreIcon = (genre) => icon(GENRE_ICONS[genre] ?? Tag);
 
 /** Each game's 16:9 cover, <slug>/cover.svg (a data URI in the build). */
 const covers = import.meta.glob('../*/cover.svg', { eager: true, query: '?url', import: 'default' });
@@ -34,10 +42,10 @@ function card(game) {
             cover ? el('img', { src: cover, alt: '', width: '480', height: '270' }) : ''),
         el('div', { class: 'body' },
             el('h2', {}, el('a', { ...link, 'aria-label': `${game.title} (opens in a new tab)` }, game.title)),
-            el('p', { class: 'added' }, `Added ${dateFormat.format(new Date(game.added))}`),
+            el('p', { class: 'added' }, icon(CalendarPlus), `Added ${dateFormat.format(new Date(game.added))}`),
             el('p', { class: 'description' }, game.description),
-            el('ul', { class: 'tags', 'aria-label': 'Genres' }, ...game.tags.map((tag) => el('li', {}, tag))),
-            el('a', { class: 'play', ...link, 'aria-label': `Play ${game.title} (opens in a new tab)` }, 'Play'))));
+            el('ul', { class: 'tags', 'aria-label': 'Genres' }, ...game.tags.map((tag) => el('li', {}, genreIcon(tag), tag))),
+            el('a', { class: 'play', ...link, 'aria-label': `Play ${game.title} (opens in a new tab)` }, icon(Play), 'Play', icon(ExternalLink)))));
 }
 
 function matches(game) {
@@ -51,14 +59,14 @@ function render() {
     const shown = games.filter(matches);
     list.replaceChildren(...shown.map(card));
     empty.hidden = shown.length > 0;
-    count.textContent = `${shown.length} of ${games.length} ${games.length === 1 ? 'game' : 'games'}`;
+    count.replaceChildren(icon(Gamepad2), `${shown.length} of ${games.length} ${games.length === 1 ? 'game' : 'games'}`);
     for (const button of genres.children) {
         button.setAttribute('aria-pressed', String(button.dataset.genre === (genre ?? '')));
     }
 }
 
 function genreButton(label, value) {
-    const button = el('button', { type: 'button', 'data-genre': value }, label);
+    const button = el('button', { type: 'button', 'data-genre': value }, value ? genreIcon(value) : icon(LayoutGrid), label);
     button.addEventListener('click', () => {
         genre = value || null;
         render();
@@ -66,6 +74,10 @@ function genreButton(label, value) {
 
     return button;
 }
+
+// Icons in the static parts of the page.
+document.querySelector('.search span').prepend(icon(Search));
+document.querySelector('footer a').prepend(icon(Code));
 
 const allGenres = [...new Set(games.flatMap((game) => game.tags))].sort();
 genres.append(genreButton('All', ''), ...allGenres.map((tag) => genreButton(tag, tag)));
