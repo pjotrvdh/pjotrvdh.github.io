@@ -20,11 +20,11 @@ description: Underlord's rules as the player experiences them (goal, gold, rooms
 
 - Start gold: `settings/economy.js` `startGold` (1500).
 - Capacity `cap() = heartCap + treasCap * Treasury tiles` (`economy.js`: 1500 + 500 per tile).
-- All income goes through `addGold(n)`, which only adds what fits under `cap()`; the rest is lost or stays where it was:
+- All income except room refunds goes through `addGold(n)`, which only adds what fits under `cap()`; the rest is lost or stays where it was:
   - imps keep carried gold they could not deposit ("Your treasuries are full")
   - chests keep the gold that did not fit (`G.loot[i]` is reduced by what was taken)
   - hero bounties above the cap are lost
-- Sources: digging gold seams (`economy.js` `seamGold` 300 per tile), gem tiles (20 per hit, never run out), chests in caverns, hero bounties (`heroes/*.js` `bounty` x `economy.js` `bountyMul`), selling rooms (half the tile cost).
+- Sources: digging gold seams (`economy.js` `seamGold` 300 per tile), gem tiles (20 per hit, never run out), chests in caverns, hero bounties (`heroes/*.js` `bounty` x `economy.js` `bountyMul`), selling rooms (half the tile cost, added directly; the end of the drag cuts off what is above `cap()`).
 - Gold is deposited on a Treasury tile or any walkable tile next to the Heart (`depositGoal`).
 - Spending: rooms (per tile), spells, Training (per second), wages.
 - Treasuries only raise capacity; the pile drawn on them shows `(money - heartCap) / (treasCap * tiles)`.
@@ -40,7 +40,7 @@ description: Underlord's rules as the player experiences them (goal, gold, rooms
 - Mark blocks with the Hand tool: click or drag a rectangle. Seen tiles: only diggable ones (earth, gold, gem, reinforced wall). Unseen tiles: anything but rock can be in the rectangle, but only diggable tiles get marked.
 - Click a marked block (or start a drag on one) to unmark.
 - Imps dig marked blocks, haul gold, then claim dug floor next to your territory (red `CLAIM` tiles). Claiming only spreads from tiles adjacent to existing territory.
-- Idle imps reinforce unmarked earth next to your territory into walls (`WALL`): `settings/walls.js` `hp` (8) hits to dig, vs 3 for earth and 5 for gold. Heroes path around walls when cheaper. Details: [imps](imps.md).
+- Idle imps reinforce unmarked earth next to your territory into walls (`WALL`): `settings/walls.js` `hp` (8) hits to dig, vs 3 for earth (heroes also need 5 for gold; imps empty a seam 20 gold per hit). Heroes path around walls when cheaper. Details: [imps](imps.md).
 - Rock (map border) and lava cannot be dug or crossed.
 
 ## Rooms
@@ -83,7 +83,7 @@ Mechanics of eating, sleeping, training, studying: [creatures](creatures.md).
 
 ## Gotchas
 
-- Capacity is enforced at income time, not continuously: cheats and room refunds can push `G.money` above `cap()` until the next room/sell drag clamps it.
+- Capacity is enforced at income time and at the end of every map click or drag (`applyRect()`), not continuously: the gold cheats can push `G.money` above `cap()` until the next click or drag on the map clamps it.
 - Selling Treasury tiles lowers `cap()`; the clamp after the drag destroys the excess gold.
 
 ## See also

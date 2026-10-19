@@ -12,7 +12,7 @@ description: The Underlord Computer Assistant: its four modes and what cpuBuild,
 
 - `G.cpu = { on, mode, t }`; default off, mode `defensive`. Kept across New game (copied in `newGame()`) and saved ([saving](saving.md)).
 - `#bCpu` ("C" on the minimap) toggles `on` (`aria-pressed`), resets `t` to 0 and logs it. `#cpuModes` (shown only when on) has one button per mode (`data-mode`, `aria-pressed`).
-- `cpuTick(dt)` runs at the end of each `update()`: every `settings/assistant.js` `interval` (1.5 s) it runs the parts its mode enables.
+- `cpuTick(dt)` runs in every `update()`, after `vision()` and before the effects and the win/loss check: every `settings/assistant.js` `interval` (1.5 s) it runs the parts its mode enables.
 
 ## Modes (`CPU_DOES`)
 

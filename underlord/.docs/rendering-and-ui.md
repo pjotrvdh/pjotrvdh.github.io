@@ -28,7 +28,7 @@ description: Underlord drawing (caches, fog, minimap, sprites) and UI (tabs, HUD
 
 - `terr` holds the static tiles of the visible area. `terrKey` = hash `sig` of type, room, mark, seen, chest flag and damaged-wall flag for the visible tiles (+1 margin), plus camera, `TS`, canvas width, treasury fill (tenths), loaded image count and the bed map. Any change redraws the cache with `now = 0`.
 - `drawTile()`: sprite from `TILE_SPR` (`GATE`/`PORTAL` use floor, `HEART` uses claimed; lava always procedural); earth, rock, floor, gold, gem mirrored by `hash(x,y,77)`. Procedural fallback per type when the sprite is missing. Then wall/floor edge shadows, chest, dig mark, room overlay.
-- `drawRoom()`: tint + prop per room: Treasury pile scaled by fill; Lair nest only on owned beds plus a dot in the owner's colour (`beds` map, rebuilt each frame); Hatchery straw (chickens drawn live); Training dummy on a checkerboard; Library shelf on every tile; coloured border where the neighbour is another room.
+- `drawRoom()`: tint + prop per room: Treasury pile scaled by fill; Lair nest only on owned beds plus a dot in the owner's colour (`beds` map, rebuilt each frame); Hatchery straw (chickens drawn live); Training dummy on a checkerboard; Library shelf on every tile; coloured border on every side where the neighbour is not the same room (another room or plain ground).
 
 ## Fog of war
 
@@ -77,7 +77,7 @@ description: Underlord drawing (caches, fog, minimap, sprites) and UI (tabs, HUD
 ## Cheats
 
 - Typing `iliketocheat` (any single-character keys, case-insensitive, rolling buffer) sets `cheatsOn`, shows `#bCheat` and opens `#cheats`. Not stored: a reload locks it again.
-- `CHEATS`: +500 / +5000 gold, Reveal map, Finish research, Restore Heart, Free imp, + Orc / Warlock / Troll / Dark Mistress (at an owned portal, ignoring pool and limit), Level up all, Next wave now, Defeat heroes. Buttons work only while running and not over.
+- `CHEATS`: +500 / +5000 gold, Reveal map, Finish research, Restore Heart, Free imp, + Orc / Warlock / Troll / Dark Mistress (at an owned portal, or next to the Heart without one; ignoring pool and limit), Level up all, Next wave now, Defeat heroes. Buttons work only while running and not over.
 
 ## Gotchas
 

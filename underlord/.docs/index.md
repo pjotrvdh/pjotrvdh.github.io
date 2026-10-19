@@ -71,7 +71,7 @@ Section markers inside `underlord.js` (search for `/* ---------- name ----------
 ## Conventions for changes
 
 - Tunable numbers belong in `underlord/src/config/`, documented in their file. Config keys are fixed: logic, waves and assets refer to them.
-- Room codes are positional: `ROOM_IDS=['treasury','lair','hatchery','training','library']` maps to codes 1..5 (`TREAS`..`LIB`). Reordering `rooms/index.js` changes the Rooms tab order only; `ROOM_IDS` is hard-coded.
+- Room codes are positional: `ROOM_IDS=['treasury','lair','hatchery','training','library']` maps to codes 1..5 (`TREAS`..`LIB`). `ROOMS` and the Rooms tab follow this hard-coded order; the order of `rooms/index.js` is not used.
 - The global game state is the object `G`, created in `newGame()`.
 - `npm run build` must succeed; check changes in the browser (`npm run dev`, `/underlord/`).
 

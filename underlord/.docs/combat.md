@@ -17,14 +17,14 @@ description: Underlord combat: enemy scanning, line of sight (clearShot), fight/
 
 ## Scanning (`tick()`)
 
-- Non-imp units not in `fight` or `leave`: every 0.5 s (`e.scan`), if `G.time >= e.ignoreT`, look for the nearest enemy within 8 tiles (own creatures) or 5 (heroes). Found: `release(e)`, state `fight`, `target` set.
-- The scan runs in every other state, so it interrupts sleeping, eating, training, studying, Call to Arms, stun and hero `march` / `guard`.
+- Non-imp units not in `fight` or `stun` and not leaving (`e.leaving`): every 0.5 s (`e.scan`), if `G.time >= e.ignoreT`, look for the nearest enemy within 8 tiles (own creatures) or 5 (heroes). Found: `release(e)`, state `fight`, `target` set.
+- The scan runs in every other state, so it interrupts sleeping, eating, training, studying, Call to Arms and hero `march` / `guard`. A dazed unit scans right after the daze ([hand](hand.md)).
 
 ## fight(e, dt)
 
 - Target invalid (dead, held, switched side): back to `think`.
 - Distance > 13: give up, `think`.
-- In range (`dist <= range + 0.35`) with a clear shot: stand still, face the target, attack when `e.cd <= 0`, then `cd = rate`.
+- In range (`dist <= range + 0.35`) with a clear shot: stand still, face the target, attack when `e.cd <= 0`, then `cd = rate / joy(e)` (faster for a slapped Dark Mistress, see [hand](hand.md)).
 - Otherwise chase: every 0.6 s BFS over walkable tiles to the target's tile, max 22 steps. No path: `think` and `ignoreT = G.time + 3` (no new fights for 3 s).
 - Heroes return to `march` (or `guard`) through `think` after a fight; guards do not walk back to their post.
 

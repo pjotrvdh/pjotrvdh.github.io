@@ -76,7 +76,7 @@ After the loop: `G.hp` and `G.gold` per tile, then the caverns are populated.
 
 ## Pathfinding
 
-- `bfs(start, goal, k, pass=walk, maxLen)`: 4-neighbour BFS; collects up to `k` goal tiles and returns the path to a random one of them (`[]` if the start is a goal, `null` if none). Used by imps, creatures, the Hand checks and the assistant.
+- `bfs(start, goal, k, pass=walk, maxLen)`: 4-neighbour BFS; collects up to `k` goal tiles and returns the path to a random one of them (`[]` if the chosen goal is the start, `null` if none). Used by imps, creatures, heroes chasing in `fight()` and the assistant.
 - `dijkstra(start, goal)`: hero tunnelling cost `hcost()`: walkable 1, earth 4, gold 6, wall 12; rock, gem, lava, Heart impassable.
 
 ## Gotchas

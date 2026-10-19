@@ -74,7 +74,7 @@ src/
 ## Game data
 
 - Every creature, hero, room and spell has its own file, and every value is documented in it.
-- The `index.js` in each folder sets the order the game uses. To add something, add a file and list it there.
+- The `index.js` in each folder lists the files; for creatures, heroes and spells it also sets the order the game uses (rooms follow a fixed order in the game). To add something, add a file and list it there.
 - Keys are fixed: the game logic, the waves and the assets refer to them.
 - Only creatures and heroes from the original Dungeon Keeper (1997) belong in the game.
 - See [`src/assets/README.md`](src/assets/README.md) for the size and orientation of the SVGs.

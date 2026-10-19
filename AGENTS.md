@@ -31,7 +31,7 @@ Arcade is the owner's collection of browser games, published at https://pjotrvdh
 A Dungeon Keeper-style game. `underlord/index.html` is the page; `underlord/src/main.js` loads the styles and `underlord/src/game/underlord.js`.
 
 - All game data lives in `underlord/src/config`: one file per settings group, creature, hero, room and spell, plus `waves.js` and `assets.js`. Document every value in its file.
-- The `index.js` in each config folder sets the order the game uses. `underlord/src/config/index.js` combines everything into the object `applyConfig()` in the game reads.
+- The `index.js` in each config folder lists its files; for creatures, heroes and spells it also sets the order the game uses (rooms follow `ROOM_IDS` in the game). `underlord/src/config/index.js` combines everything into the object `applyConfig()` in the game reads.
 - Keys are fixed: the game logic, the waves and the assets refer to them.
 - **Only creatures and heroes from the original Dungeon Keeper (1997)** are in the game; don't introduce others.
 - Assets are SVGs in `underlord/src/assets`, in a Plants vs. Zombies style (thin dark-brown outlines `#2b1b12`, muted airbrushed gradients). See `underlord/src/assets/README.md`. The logo is an SVG (`underlord/src/assets/brand/logo.svg`), not a font.

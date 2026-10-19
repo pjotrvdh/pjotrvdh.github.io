@@ -1,5 +1,5 @@
 /**
- * Rooms, in the order of the Rooms tab. The keys are fixed: the game logic depends on them.
+ * Rooms. The keys are fixed: the game logic depends on them, and ROOM_IDS in the game sets their codes and the Rooms tab order.
  */
 import treasury from './treasury.js';
 import lair from './lair.js';

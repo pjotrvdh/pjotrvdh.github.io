@@ -38,7 +38,7 @@ Runs from state `think`. First `release(e)` drops any reservation. `full = G.mon
   - `GEM`: `carry += 20`, never opens.
   - Stops to `think` at `carry >= 100` unless full and digging earth (then it keeps digging earth).
 - `doClaim()` — after 1.2 s on the tile, if a neighbour is `CLAIM`: `PORTAL` -> `G.pown[i]=1` and the "portal is yours" message; `FLOOR` -> `CLAIM`.
-- `doReinforce()` — must stand on `CLAIM` next to the earth; a step every 0.5 s; after 5 steps the earth becomes `WALL` with `G.hp = WALL_HP`. Aborts if the tile gets marked or changes.
+- `doReinforce()` — must stand on `CLAIM` next to the earth; a step every 0.5 s; after 5 steps the earth becomes `WALL` with `G.hp = WALL_HP`. Aborts (and resets the step count) if the tile gets marked or changes.
 - `arrive()` with `deposit`: `addGold(carry)`; leftover stays in `carry` with "Your treasuries are full. Build more."
 
 ## Fleeing and defending the Heart
@@ -52,7 +52,7 @@ Runs from state `think`. First `release(e)` drops any reservation. `full = G.mon
 ## Reservations
 
 - `G.res: Map<tile, count>`; `reserve(e,i)` stores `e.resv`. Claim and reinforce targets must be unreserved; dig targets allow 2.
-- Released on every think, on pick-up, when a fight starts, on leave and on death. Not saved; rebuilt from scratch on load.
+- Released on every think, on pick-up, when a fight or a flight starts, on leave and on death (and for creatures on a slap or Call to Arms). Not saved; rebuilt from scratch on load.
 
 ## Slap boost
 

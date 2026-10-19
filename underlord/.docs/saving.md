@@ -43,7 +43,7 @@ ents: [{ SAVE_KEYS..., held }]
 2. Every saved entity is created with `spawn()` defaults, then `Object.assign`-ed with the saved fields. State becomes `neutral` (side 2), `guard` (guards), `march` (heroes) or `think` (own units); path empty.
 3. `held` entities go back into both `G.ents` and `G.held`. Older saves listed held units twice; only the first entity per `id` is loaded.
 4. `pool` is merged over the `newGame()` pool, so a creature kind added later gets its config value.
-5. `recount()`, fog rebuilt, Chronicle cleared with "Saved game loaded.", `syncCpu()`; overlay hidden, `running`, unpaused.
+5. `recount()`, fog rebuilt, Chronicle cleared with "Saved game loaded.", `syncCpu()`. `loadGame()` then hides the overlay and sets `running` and unpaused.
 
 ## Compatibility rules
 

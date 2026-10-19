@@ -257,7 +257,7 @@ function doDig(e,dt){
 function reinforceTarget(i){return nb(i,j=>G.t[j]===EARTH&&!G.mark[j]&&!G.res.has(j));}
 function doReinforce(e,dt){
   const j=e.task;
-  if(j<0||G.t[j]!==EARTH||G.mark[j]||G.t[ti(e)]!==CLAIM||nb(ti(e),k=>k===j)<0){e.state='think';return;}
+  if(j<0||G.t[j]!==EARTH||G.mark[j]||G.t[ti(e)]!==CLAIM||nb(ti(e),k=>k===j)<0){e.work=0;e.state='think';return;}
   e.face=Math.sign(tx(j)-tx(ti(e)))||e.face;
   e.timer-=dt*(e.slap>0?CFG.hand.slapBoost:1);if(e.timer>0)return;e.timer=.5;
   e.work=(e.work||0)+1;fx({type:'dust',x:(e.x+tx(j)+.5)/2,y:(e.y+ty(j)+.5)/2,dur:.3,col:'#b8a89a'});

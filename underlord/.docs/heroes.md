@@ -17,7 +17,7 @@ description: Underlord hero waves, marching/tunnelling, the Heart zap, the hero 
 
 - `waves.js`: an array of `{ heroKey: count }`. Its length is the number of waves and decides the win.
 - `G.nextWave` starts at `settings/waves.js` `first` (300 s); each launch resets it to `interval` (165 s). No more launches after the last.
-- `launchWave()`: `G.wave++`; queues the heroes in the object's key order, 1.2 s apart (`G.spawnQ`); Chronicle "Wave N"; banner "Heroes approach" or, for the last wave, "The Lord of the Land approaches".
+- `launchWave()`: `G.wave++`; queues the heroes in the object's key order, 1.2 s apart (`G.spawnQ`); Chronicle "Wave N"; banner "Heroes approach" or, for a wave that contains a `lord`, "The Lord of the Land approaches" (with the current `waves.js` only the last).
 - `update()` spawns due entries at the gate with `mult = 1 + heroScalePerWave * (G.wave - 1)` (`settings/waves.js`, 0.12): wave 1 x1.00, wave 6 x1.60 on `hp`, `maxhp`, `atk`. Bounty, speed and dig time are not scaled.
 - HUD "Heroes": `wave N in m:ss`, then `final wave`.
 
@@ -38,7 +38,7 @@ description: Underlord hero waves, marching/tunnelling, the Heart zap, the hero 
 
 ## The hero camp (guards)
 
-- Placed by `genMap()` in the cavern farthest from the Heart: a Knight and an Archer at strength x1, `guard = true`, state `guard`, plus a 600 chest ([map](map.md)).
+- Placed by `genMap()` in the cavern farthest from the Heart, only if it has at least 3 floor tiles more than 4 tiles from the gate (otherwise there is no camp; no other cavern is used): a Knight and an Archer at strength x1, `guard = true`, state `guard`, plus a 600 chest ([map](map.md)).
 - `guard` does nothing; `think` sends guards back to `guard` instead of `march`. They still scan for enemies (5 tiles) and fight, then stay where the fight ended.
 - Drawn with a pale "z" while guarding. Excluded from white dots, from the win check, from the assistant's Move targets and from its aggressive spell targets; the Heart, Lightning and own creatures do hit them.
 
