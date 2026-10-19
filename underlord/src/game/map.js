@@ -2,7 +2,7 @@
  * A new dungeon: genMap() digs the random map (Heart, gold, lava, gems, caverns, portal, Hero Gate),
  * newGame() creates the game state around it, and vision() reveals what your units can see.
  */
-import { CLAIM, EARTH, FLOOR, GATE, GEM, GOLD, H, HEART, LAVA, N, N4, PORTAL, ROCK, W, inb, ix, rand, tx, ty } from './constants.js';
+import { CLAIM, EARTH, FLOOR, GATE, GEM, GOLD, H, HEART, N, N4, PORTAL, ROCK, W, inb, ix, rand, tx, ty } from './constants.js';
 import { ATTRACT, CFG, ECON, HEART_CAP, KINDS } from './config.js';
 import { spawn } from './entities.js';
 import { dijkstra } from './path.js';
@@ -40,7 +40,6 @@ function genMap() {
             }
         };
         blob(GOLD, ECON.goldVeins, 7);
-        blob(LAVA, 2, 5);
         for (let k = 0; k < 2; k++) {
             t[ix(16 + rand(18), 3 + rand(H - 6))] = GEM;
         }

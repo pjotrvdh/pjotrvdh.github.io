@@ -41,7 +41,7 @@ description: Underlord's rules as the player experiences them (goal, gold, rooms
 - Click a marked block (or start a drag on one) to unmark.
 - Imps dig marked blocks, haul gold, then claim dug floor next to your territory (red `CLAIM` tiles). Claiming only spreads from tiles adjacent to existing territory.
 - Idle imps reinforce unmarked earth next to your territory into walls (`WALL`): `settings/walls.js` `hp` (8) hits to dig, vs 3 for earth (heroes also need 5 for gold; imps empty a seam 20 gold per hit). Heroes path around walls when cheaper. Details: [imps](imps.md).
-- Rock (map border) and lava cannot be dug or crossed.
+- Rock (map border) cannot be dug or crossed. New maps have no lava (older saves may: it cannot be dug or crossed either).
 
 ## Rooms
 

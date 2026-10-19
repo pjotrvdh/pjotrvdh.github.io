@@ -34,7 +34,7 @@ description: Underlord map generation (genMap), tile types, caverns, portal, gat
 Up to 40 attempts; an attempt is kept as soon as a hero path exists (`dijkstra(G.gate, adjHeart)`); after 40 failures the last attempt is kept anyway. Steps per attempt, in order (later steps overwrite earlier ones):
 
 1. Fill with earth; border ring of rock.
-2. `blob(GOLD, economy.goldVeins, 7)`: 13 random walks of 7 steps (`economy.js` `goldVeins`). `blob(LAVA, 2, 5)`: 2 lava walks of 5.
+2. `blob(GOLD, economy.goldVeins, 7)`: 13 random walks of 7 steps (`economy.js` `goldVeins`). No lava for now: `LAVA` still exists (older saves have it, and it is drawn and blocks everyone), but `genMap()` places none.
 3. 2 single gem tiles at x 16-33, y 3-22.
 4. 5 hidden caverns: centre x 13-32, y 3-22, up to 30 tries to keep > 7 tiles from earlier centres; each a 14-step random walk stamping 2 x 2 `FLOOR` squares (kept inside x/y 2..W-3/H-3).
 5. Heart area at `hx=5`, `hy=H>>1` (13): a 9 x 9 earth square (clears anything there), then a 7 x 7 `CLAIM` square with the 3 x 3 `HEART` in the middle. That is the starting territory (40 claimed tiles).
