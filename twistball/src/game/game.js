@@ -27,7 +27,7 @@ const clamp = (value, limit) => Math.max(-limit, Math.min(limit, value));
 
 /** A paddle: where it is, how fast it moves (that becomes spin), who controls it, and its lives. */
 function paddle(name, z) {
-    return { name, z, x: 0, y: 0, vx: 0, vy: 0, target: { x: 0, y: 0 }, human: false, lives: 0, serveTimer: 0 };
+    return { name, z, x: 0, y: 0, vx: 0, vy: 0, target: { x: 0, y: 0 }, human: false, lives: 0 };
 }
 
 const near = paddle('You', 0);
@@ -49,8 +49,9 @@ const state = {
     startLevel: 0,
     levelBonus: S.levelBonus,
     rallySpeed: 1,
-    /** The paddle that serves next. */
+    /** The paddle that serves next, and the seconds left until it serves by itself. */
     server: near,
+    serveTimer: 0,
     player: near,
     opponent: far,
     ball: { x: 0, y: 0, z: 0, vx: 0, vy: 0, vz: 0, sx: 0, sy: 0 },
@@ -86,6 +87,7 @@ function sendState() {
         t: 'state',
         mode: state.mode,
         server: state.server === near ? 'near' : 'far',
+        serveIn: state.mode === 'serve' ? state.serveTimer : null,
         ball: state.ballVisible ? [ball.x, ball.y, ball.z] : null,
         near: [near.x, near.y, near.lives],
         far: [far.x, far.y, far.lives],
@@ -118,6 +120,11 @@ function applyState(message) {
     for (const event of message.events) {
         playEvent(event, true);
     }
+    showServeCountdown(message.serveIn);
+    if (message.mode === 'serve') {
+        // A new point: a paddle that broke apart is whole again.
+        renderer.restore();
+    }
     setHint();
 }
 
@@ -137,7 +144,6 @@ function playEvent(event, mirrored) {
                 sounds.point();
                 call('Point!', 'good');
             } else {
-                sounds.miss();
                 call('Missed!', 'bad');
             }
             break;
@@ -181,8 +187,6 @@ function sessionHandlers() {
                 if (message.t === 'input') {
                     far.target.x = clamp(mirror(message.x), limitX);
                     far.target.y = clamp(message.y, limitY);
-                } else if (message.t === 'serve') {
-                    serve(far);
                 }
             }
             if (message.t === 'ready') {
@@ -461,12 +465,8 @@ function renderHighScores() {
 
 function setHint() {
     let hint = '';
-    if (state.mode === 'serve') {
-        if (state.server === near && near.human) {
-            hint = 'Click, tap or press Space to serve';
-        } else if (state.server === far && far.human) {
-            hint = 'Waiting for your opponent to serve';
-        }
+    if (state.mode === 'serve' && state.kind !== 'demo') {
+        hint = state.server === near ? 'Your serve' : 'Opponent serves';
     } else if (state.kind === 'demo' && state.mode !== 'over') {
         hint = 'Press Esc to stop watching';
     }
@@ -526,11 +526,13 @@ function startMatch() {
     toServe(Math.random() < 0.5 ? near : far);
 }
 
-/** The ball waits on the serving paddle until it serves. */
+/** The ball waits on the serving paddle for a 3-2-1 countdown, then serves by itself. */
 function toServe(server) {
     state.mode = 'serve';
     state.server = server;
-    server.serveTimer = R.cpuServeDelay;
+    state.serveTimer = R.serveCountdown;
+    shownCount = 0;
+    renderer.restore();
     state.rallySpeed = 1;
     state.ballVisible = true;
     Object.assign(state.ball, { vx: 0, vy: 0, vz: 0, sx: 0, sy: 0 });
@@ -545,19 +547,28 @@ function stickBallToServer() {
     Object.assign(state.ball, { x: server.x, y: server.y, z: server.z + offset });
 }
 
-/** A human serve. Online, the guest's serve arrives as a message and is played on the host. */
-function serve(side) {
-    if (isGuest()) {
-        if (side === near && state.mode === 'serve' && state.server === near) {
-            session.send({ t: 'serve' });
+let shownCount = 0;
+/** Shows the serve countdown (3, 2, 1) with a blip on every new number; nothing when no serve is due. */
+function showServeCountdown(seconds) {
+    if (state.countingDown) {
+        return;
+    }
+    const element = $('countdown');
+    const count = seconds === null ? 0 : Math.ceil(seconds);
+    if (count <= 0) {
+        if (shownCount) {
+            element.hidden = true;
         }
+        shownCount = 0;
 
         return;
     }
-    if (state.mode !== 'serve' || state.paused || state.server !== side || !side.human) {
-        return;
+    if (count !== shownCount) {
+        shownCount = count;
+        element.textContent = String(count);
+        element.hidden = false;
+        sounds.tick(false);
     }
-    launch(side, false);
 }
 
 function levelData() {
@@ -633,21 +644,19 @@ function missed(side) {
     side.lives--;
     state.ballVisible = false;
 
+    // Every miss breaks the paddle that missed; it is whole again at the next serve.
+    explodePaddle(side);
+    emit({ e: 'explode', side: side === near ? 'near' : 'far' });
     if (state.kind === 'online') {
         playEvent({ e: 'point', side: side === near ? 'near' : 'far' }, false);
         emit({ e: 'point', side: side === near ? 'near' : 'far' });
     } else if (side === far) {
         state.backFlash = 1;
         sounds.point();
-    } else {
-        sounds.miss();
-        spark(state.ball, '255, 138, 106');
     }
 
     if (side.lives <= 0) {
-        // Out of lives: the losing paddle blows up, then the level or match ends.
-        explodePaddle(side);
-        emit({ e: 'explode', side: side === near ? 'near' : 'far' });
+        // Out of lives: after the paddle has broken apart, the level or match ends.
         if (isSolo()) {
             pauseThen(R.explosionTime, side === far ? levelCleared : () => endSolo(false));
         } else if (state.kind === 'demo') {
@@ -756,7 +765,6 @@ function showMatchEnd(winner) {
 function explodePaddle(side) {
     renderer.explode(side === near ? 'near' : 'far', side);
     sounds.explosion();
-    call(side === near ? 'Boom!' : 'Smashed!', side === near ? 'bad' : 'good');
 }
 
 function playAgain() {
@@ -882,13 +890,6 @@ function moveCpu(side, dt) {
     side.y = clamp(side.y + clamp(aimY - side.y, step), limitY);
     side.vx = (side.x - oldX) / dt;
     side.vy = (side.y - oldY) / dt;
-
-    if (state.mode === 'serve' && state.server === side) {
-        side.serveTimer -= dt;
-        if (side.serveTimer <= 0) {
-            launch(side, false);
-        }
-    }
 }
 
 function movePaddles(dt) {
@@ -966,6 +967,12 @@ function update(dt) {
         movePaddles(dt);
         if (state.mode === 'serve') {
             stickBallToServer();
+            state.serveTimer -= dt;
+            showServeCountdown(state.serveTimer);
+            if (state.serveTimer <= 0) {
+                showServeCountdown(null);
+                launch(state.server, false);
+            }
         }
         if (state.mode === 'play') {
             // Small steps, so a fast ball never skips past a paddle or a wall.
@@ -1075,7 +1082,6 @@ canvas.addEventListener('pointermove', pointerToTarget);
 canvas.addEventListener('pointerdown', (event) => {
     pointerToTarget(event);
     sounds.unlock();
-    serve(near);
 });
 
 const ALL_MOVE_KEYS = Object.values(MOVE_KEYS).flat();
@@ -1088,10 +1094,6 @@ addEventListener('keydown', (event) => {
     if (ALL_MOVE_KEYS.includes(key) && playing) {
         keys.add(key);
         event.preventDefault();
-    } else if (key === ' ' && playing) {
-        event.preventDefault();
-        sounds.unlock();
-        serve(near);
     } else if (key === 'Escape' && state.kind === 'demo' && state.mode !== 'title') {
         toMenu();
     } else if (key === 'p' || key === 'Escape') {

@@ -1,6 +1,6 @@
 # Twistball
 
-Pong down a neon tunnel. Your see-through paddle is at the front, the opponent guards the far end. Move your paddle as you hit the ball to put spin on it: the ball curves on its way down the tunnel. Play it at [pjotrvdh.github.io/twistball](https://pjotrvdh.github.io/twistball/). It is one of the games in the [Arcade](../README.md).
+Pong, but with a twist: down a neon tunnel. Your see-through paddle is at the front, the opponent guards the far end. Move your paddle as you hit the ball to put spin on it: the ball curves on its way down the tunnel. Play it at [pjotrvdh.github.io/twistball](https://pjotrvdh.github.io/twistball/). It is one of the games in the [Arcade](../README.md).
 
 ## How to play
 

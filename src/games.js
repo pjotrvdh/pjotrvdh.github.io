@@ -9,7 +9,7 @@ export default [
     {
         slug: 'twistball',
         title: 'Twistball',
-        description: 'Pong down a neon tunnel. Move your paddle as you hit the ball to curve it past the opponent, through ten levels that get faster and wilder.',
+        description: 'Pong, but with a twist: down a neon tunnel. Move your paddle as you hit the ball to curve it past the opponent, through ten levels that get faster and wilder.',
         tags: ['Arcade', 'Sports'],
         added: '2026-10-19',
     },

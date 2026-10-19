@@ -4,14 +4,14 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <title>Twistball</title>
-  <meta name="description" content="3D pong down a neon tunnel: put spin on the ball and curve it past the opponent.">
+  <meta name="description" content="Pong, but with a twist: 3D pong down a neon tunnel. Put spin on the ball and curve it past the opponent.">
   <link rel="icon" type="image/svg+xml" href="./src/favicon.svg">
   <script type="module" src="./src/main.js"></script>
 </head>
 <body>
   <div class="app">
     <header class="hud">
-      <h1>Twistball</h1>
+      <h1><img src="./src/logo.svg" alt="Twistball" width="688" height="150"></h1>
       <dl>
         <div class="solo-only"><dt>Score</dt><dd id="score">000000</dd></div>
         <div><dt id="levelLabel">Level</dt><dd id="level">1 / 10</dd></div>
@@ -26,18 +26,18 @@
     </header>
 
     <main class="arena">
-      <canvas id="stage" aria-label="The tunnel. Move the mouse or drag to move your paddle; click to serve."></canvas>
+      <canvas id="stage" aria-label="The tunnel. Move the mouse or drag to move your paddle. The ball serves itself after a countdown."></canvas>
       <p class="call" id="call" role="status" aria-live="polite"></p>
       <p class="hint" id="hint"></p>
       <p class="countdown" id="countdown" role="timer" aria-live="assertive" hidden></p>
 
       <div class="overlay" id="overlay">
         <section class="screen" id="screenTitle" aria-labelledby="titleHeading">
-          <h2 id="titleHeading">Twistball</h2>
-          <p>Pong, but down a tunnel. Your see-through paddle is at the front; the opponent guards the far end.</p>
+          <h2 id="titleHeading" class="logo"><img src="./src/logo.svg" alt="Twistball" width="688" height="150"></h2>
+          <p>Pong, but with a twist. Your see-through paddle is at the front; the opponent guards the far end.</p>
           <ul>
             <li><strong>Move</strong> with the mouse, by dragging on a touch screen, or with the arrow keys or WASD.</li>
-            <li><strong>Serve</strong> with a click, a tap or Space.</li>
+            <li>Before every serve the game counts down from <strong>3</strong>, then the ball serves itself. Move as it leaves to curve your serve.</li>
             <li><strong>Curve the ball:</strong> move your paddle as you hit it. The faster you move, the more it bends.</li>
             <li>Hit the ball in the <strong>centre</strong> of your paddle for a bonus. Clear a level fast for the level bonus.</li>
             <li>Take the opponent's 3 lives to clear a level. You have 5 lives for all ten levels.</li>

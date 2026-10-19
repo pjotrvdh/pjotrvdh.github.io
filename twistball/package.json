@@ -2,7 +2,7 @@
     "$schema": "https://www.schemastore.org/package.json",
     "name": "twistball",
     "version": "1.0.0",
-    "description": "3D pong down a neon tunnel: put spin on the ball and curve it past the opponent.",
+    "description": "Pong, but with a twist: 3D pong down a neon tunnel. Put spin on the ball and curve it past the opponent.",
     "private": true,
     "type": "module",
     "scripts": {

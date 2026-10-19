@@ -18,8 +18,8 @@ export default {
     matchLevel: 4,
     /** Seconds the exploding paddle gets before the end screen. */
     explosionTime: 1.6,
-    /** Seconds a computer player waits before it serves. */
-    cpuServeDelay: 0.8,
+    /** Seconds of countdown (3, 2, 1) before every serve; then the ball serves itself. */
+    serveCountdown: 3,
     /** Seconds before the next CPU vs CPU match starts on its own. */
     demoRestartDelay: 3,
     /** Online: seconds without a message from the other player before the match counts as abandoned. */

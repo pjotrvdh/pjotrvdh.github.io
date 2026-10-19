@@ -6,11 +6,11 @@
  * The camera sits behind your paddle at the distance where the near end of the tunnel fills the view
  * and the far end looks 1 / (1 + perspective) as big. The ball carries a light, so it lights up the
  * walls as it flies. No shadow maps or post-processing: it stays smooth on slow devices.
+ *
+ * Neon edges (paddles, depth marker, rings) are flat bands: one shape with a hole, not line
+ * segments. Segments overlap at every corner, which shows as bright dots on see-through lines.
  */
 import * as THREE from 'three';
-import { Line2 } from 'three/addons/lines/Line2.js';
-import { LineGeometry } from 'three/addons/lines/LineGeometry.js';
-import { LineMaterial } from 'three/addons/lines/LineMaterial.js';
 
 /** "rgba(r, g, b, a)", "#rrggbb" or "r, g, b" → a colour and an opacity. */
 function parseColor(text) {
@@ -38,6 +38,17 @@ function glowTexture() {
     context.fillRect(0, 0, size, size);
 
     return new THREE.CanvasTexture(canvas);
+}
+
+function rect(halfWidth, halfHeight) {
+    const shape = new THREE.Shape();
+    shape.moveTo(-halfWidth, -halfHeight);
+    shape.lineTo(halfWidth, -halfHeight);
+    shape.lineTo(halfWidth, halfHeight);
+    shape.lineTo(-halfWidth, halfHeight);
+    shape.lineTo(-halfWidth, -halfHeight);
+
+    return shape;
 }
 
 function roundedRect(halfWidth, halfHeight, radius) {
@@ -73,20 +84,22 @@ export function createRenderer(canvas, tunnel) {
     camera.position.set(0, 0, distance);
     camera.lookAt(0, 0, 0);
 
-    const lineMaterials = [];
-    function line(points, width, opacity = 1, additive = false) {
-        const geometry = new LineGeometry();
-        geometry.setPositions(points.flat());
-        const material = new LineMaterial({ linewidth: width, transparent: true, opacity, depthWrite: !additive });
-        if (additive) {
-            material.blending = THREE.AdditiveBlending;
-        }
-        lineMaterials.push(material);
-
-        return new Line2(geometry, material);
+    /** A see-through material for edges and glows; additive for glows. */
+    function edgeMaterial(opacity = 1, additive = false) {
+        return new THREE.MeshBasicMaterial({ transparent: true, opacity, depthWrite: false, side: THREE.DoubleSide, blending: additive ? THREE.AdditiveBlending : THREE.NormalBlending });
     }
-    /** A rectangle outline at depth z (game units), as points for a Line2. */
-    const rectPoints = (halfW, halfH, z) => [[-halfW, -halfH, -z], [halfW, -halfH, -z], [halfW, halfH, -z], [-halfW, halfH, -z], [-halfW, -halfH, -z]];
+
+    /**
+     * A flat neon band `width` wide around a rectangle (rounded when `radius` > 0), in the plane z = 0:
+     * the outer shape with the inner one cut out, as a single mesh.
+     */
+    function band(halfW, halfH, radius, width, material) {
+        const grow = width / 2;
+        const outer = radius > 0 ? roundedRect(halfW + grow, halfH + grow, radius + grow) : rect(halfW + grow, halfH + grow);
+        outer.holes.push(radius > grow ? roundedRect(halfW - grow, halfH - grow, radius - grow) : rect(halfW - grow, halfH - grow));
+
+        return new THREE.Mesh(new THREE.ShapeGeometry(outer, 8), material);
+    }
 
     /* ---------- the tunnel ---------- */
 
@@ -129,19 +142,67 @@ export function createRenderer(canvas, tunnel) {
     // Rings, fading into the distance.
     const rings = [];
     for (let ring = 1; ring <= tunnel.rings; ring++) {
-        const ringLine = line(rectPoints(W, H, (D * ring) / tunnel.rings), 1.2, 0.45 - (ring / tunnel.rings) * 0.3);
-        rings.push(ringLine);
-        scene.add(ringLine);
+        const ringBand = band(W - 0.003, H - 0.003, 0, 0.006, edgeMaterial(0.45 - (ring / tunnel.rings) * 0.3));
+        ringBand.position.z = -(D * ring) / tunnel.rings;
+        rings.push(ringBand);
+        scene.add(ringBand);
     }
 
     // The depth marker: a bright frame that travels with the ball, with a soft glow around it.
     const marker = new THREE.Group();
-    const markerLine = line(rectPoints(W - 0.005, H - 0.005, 0), 2.5);
-    const markerGlow = line(rectPoints(W - 0.005, H - 0.005, 0), 9, 0.25, true);
+    const markerLine = band(W - 0.012, H - 0.012, 0, 0.011, edgeMaterial());
+    const markerGlow = band(W - 0.024, H - 0.024, 0, 0.04, edgeMaterial(0.22, true));
     marker.add(markerGlow, markerLine);
     scene.add(marker);
 
     /* ---------- paddles ---------- */
+
+    /**
+     * The four corners of a paddle drawn thicker: each piece follows the rounded corner exactly and
+     * then runs a short way straight along both edges, so the edges stay straight. One ribbon mesh
+     * per corner (offset along the outline's normal), so nothing overlaps.
+     */
+    function corners(pw, ph, radius, width, material) {
+        const group = new THREE.Group();
+        const reach = radius * 0.9;
+        const steps = 12;
+        [[pw - radius, ph - radius, 0], [-(pw - radius), ph - radius, Math.PI / 2], [-(pw - radius), -(ph - radius), Math.PI], [pw - radius, -(ph - radius), Math.PI * 1.5]]
+            .forEach(([cx, cy, start]) => {
+                // Points along the outline with their outward normal: straight run, arc, straight run.
+                const points = [];
+                const at = (angle) => [cx + Math.cos(angle) * radius, cy + Math.sin(angle) * radius];
+                const normal = (angle) => [Math.cos(angle), Math.sin(angle)];
+                const tangent = (angle) => [-Math.sin(angle), Math.cos(angle)];
+                const [sx, sy] = at(start);
+                const [tx, ty] = tangent(start);
+                points.push([sx - tx * reach, sy - ty * reach, ...normal(start)]);
+                for (let step = 0; step <= steps; step++) {
+                    const angle = start + (step / steps) * (Math.PI / 2);
+                    points.push([...at(angle), ...normal(angle)]);
+                }
+                const end = start + Math.PI / 2;
+                const [ex, ey] = at(end);
+                const [ux, uy] = tangent(end);
+                points.push([ex + ux * reach, ey + uy * reach, ...normal(end)]);
+
+                const positions = [];
+                for (let index = 0; index < points.length - 1; index++) {
+                    const [ax, ay, anx, any] = points[index];
+                    const [bx, by, bnx, bny] = points[index + 1];
+                    const h = width / 2;
+                    const a1 = [ax + anx * h, ay + any * h, 0];
+                    const a2 = [ax - anx * h, ay - any * h, 0];
+                    const b1 = [bx + bnx * h, by + bny * h, 0];
+                    const b2 = [bx - bnx * h, by - bny * h, 0];
+                    positions.push(...a1, ...a2, ...b1, ...b1, ...a2, ...b2);
+                }
+                const geometry = new THREE.BufferGeometry();
+                geometry.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
+                group.add(new THREE.Mesh(geometry, material));
+            });
+
+        return group;
+    }
 
     function makePaddle() {
         const group = new THREE.Group();
@@ -150,18 +211,19 @@ export function createRenderer(canvas, tunnel) {
         const radius = Math.min(pw, ph) * 0.35;
         const shape = roundedRect(pw, ph, radius);
         const fill = new THREE.Mesh(new THREE.ShapeGeometry(shape, 8), new THREE.MeshBasicMaterial({ transparent: true, depthWrite: false, side: THREE.DoubleSide }));
-        const outline = shape.getPoints(8).map((point) => [point.x, point.y, 0]);
-        outline.push(outline[0]);
-        const edge = line(outline, 3);
-        const glow = line(outline, 10, 0.3, true);
+        const edge = band(pw, ph, radius, 0.013, edgeMaterial());
+        const glow = band(pw, ph, radius, 0.045, edgeMaterial(0.28, true));
+        // Thicker, brighter corners: they share the edge and glow materials, so palettes colour them too.
+        const cornerEdges = corners(pw, ph, radius, 0.026, edge.material);
+        const cornerGlows = corners(pw, ph, radius, 0.075, glow.material);
         const arm = Math.min(pw, ph) * 0.3;
         const cross = new THREE.LineSegments(
             new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(-arm, 0, 0), new THREE.Vector3(arm, 0, 0), new THREE.Vector3(0, -arm, 0), new THREE.Vector3(0, arm, 0)]),
             new THREE.LineBasicMaterial({ transparent: true }),
         );
-        group.add(fill, glow, edge, cross);
+        group.add(fill, glow, cornerGlows, edge, cornerEdges, cross);
 
-        return { group, fill, edge, glow, cross, outline };
+        return { group, fill, edge, glow, cross };
     }
     const nearPaddle = makePaddle();
     const farPaddle = makePaddle();
@@ -236,15 +298,10 @@ export function createRenderer(canvas, tunnel) {
         flashAge = 0;
     }
 
-    /** Brings exploded paddles back, for a new level or match. */
+    /** Brings broken paddles back for the next serve; shards still in the air fly on and fade. */
     function restore() {
         hidden.near = false;
         hidden.far = false;
-        for (const shard of shards) {
-            scene.remove(shard.mesh);
-            shard.mesh.material.dispose();
-        }
-        shards.length = 0;
     }
 
     function updateShards(dt) {
@@ -315,9 +372,6 @@ export function createRenderer(canvas, tunnel) {
         const fitHeight = Math.max(H, W / camera.aspect) / margin;
         camera.fov = THREE.MathUtils.radToDeg(2 * Math.atan(fitHeight / distance));
         camera.updateProjectionMatrix();
-        for (const material of lineMaterials) {
-            material.resolution.set(width, height);
-        }
     }
 
     /** The screen position of a point on the near plane (z = 0) back in tunnel units. */

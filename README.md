@@ -4,7 +4,7 @@ Browser games by pjotrvdh, at [pjotrvdh.github.io](https://pjotrvdh.github.io/).
 
 | Game | Play | Source |
 |---|---|---|
-| Twistball: pong down a neon tunnel; curve the ball past the computer or a friend online | [pjotrvdh.github.io/twistball](https://pjotrvdh.github.io/twistball/) | [`twistball/`](twistball) |
+| Twistball: pong, but with a twist; curve the ball down a neon tunnel past the computer or a friend online | [pjotrvdh.github.io/twistball](https://pjotrvdh.github.io/twistball/) | [`twistball/`](twistball) |
 | Underlord: dig a dungeon, attract creatures and defend your Dungeon Heart, in the spirit of Dungeon Keeper | [pjotrvdh.github.io/underlord](https://pjotrvdh.github.io/underlord/) | [`underlord/`](underlord) |
 
 ## Getting started
