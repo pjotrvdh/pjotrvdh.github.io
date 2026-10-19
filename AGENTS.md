@@ -2,6 +2,11 @@
 
 Arcade is the owner's collection of browser games, published at https://pjotrvdh.github.io/ (this repository is `pjotrvdh/pjotrvdh.github.io`). The owner talks to you in **Dutch**, so reply in Dutch; code, UI text and docs are in English.
 
+## Docs first
+
+- Before changing anything, read the wiki for that area: [.docs/index.md](.docs/index.md) for the Arcade (layout, build, DDEV, adding a game), and `<game>/.docs/index.md` for a game's rules and mechanics: [underlord/.docs/index.md](underlord/.docs/index.md), [twistball/.docs/index.md](twistball/.docs/index.md).
+- Update the matching doc in the same change as the code; a doc that disagrees with the code is a bug. Read [.docs/writing-docs.md](.docs/writing-docs.md) before adding or editing a doc.
+
 ## Structure
 
 - The root is the Arcade index: `index.html`, `src/` (`games.js` lists the games, `main.js` renders the index) and `vite.config.js`.
