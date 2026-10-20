@@ -10,7 +10,7 @@ import { ASSETS, KINDS } from '../game/config.js';
 import { CLIPS, Figure } from './units.js';
 import { parts } from './models.js';
 
-const ACTS = ['idle', 'walk', 'run', 'attack', 'dig', 'train', 'study', 'eat', 'sleep', 'stun', 'hurt', 'held', 'guard', 'die'];
+const ACTS = ['idle', 'walk', 'run', 'attack', 'dig', 'claim', 'reinforce', 'train', 'study', 'eat', 'sleep', 'stun', 'hurt', 'held', 'guard', 'cheer', 'die'];
 const SPACING = 1.3;
 
 export function showGallery() {
@@ -76,7 +76,7 @@ export function showGallery() {
 
     const describe = (f) => {
         const cfg = ASSETS.units[f.kind] || {};
-        const clip = cfg.rig ? (CLIPS[cfg.rig] || {})[act] : '(built-in)';
+        const clip = cfg.rig ? { ...CLIPS[cfg.rig], ...cfg.clips }[act] : '(built-in)';
         const held = [cfg.right, cfg.left].filter(Boolean).join(' + ');
 
         return KINDS[f.kind].n + ': ' + (cfg.model || 'built-in') + ', height ' + (cfg.height || 0.6) + (cfg.width ? ', width ×' + cfg.width : '') + (held ? ', holds ' + held : '') + ', ' + act + ' = ' + (clip || 'missing, falls back to idle');

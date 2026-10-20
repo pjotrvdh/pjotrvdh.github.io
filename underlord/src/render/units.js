@@ -13,10 +13,90 @@ import { animations, clone, modelHeight, ownAnimations } from './models.js';
 
 /** Which clip plays for which activity, per rig. */
 export const CLIPS = {
-    kaykit: { idle: 'Idle_A', guard: 'Idle_B', walk: 'Walking_A', run: 'Running_A', attack: 'Throw', dig: 'Interact', train: 'Throw', study: 'Use_Item', eat: 'PickUp', sleep: 'Death_A_Pose', stun: 'Hit_B', hurt: 'Hit_A', held: 'Jump_Idle', die: 'Death_A' },
-    kenney: { idle: 'idle', guard: 'idle', walk: 'walk', run: 'sprint', attack: 'attack-melee-right', dig: 'interact-right', train: 'attack-melee-left', study: 'interact-left', eat: 'pick-up', sleep: 'sit', stun: 'crouch', hurt: 'crouch', held: 'fall', die: 'die' },
+    kaykit: { idle: 'Idle_A', guard: 'Idle_B', walk: 'Walking_A', run: 'Running_A', attack: 'Melee_Unarmed_Attack_Punch_A', dig: 'Pickaxing', claim: 'Working_A', reinforce: 'Hammering', train: 'Melee_1H_Attack_Chop', study: 'Use_Item', eat: 'PickUp', sleep: 'Lie_Idle', stun: 'Hit_B', hurt: 'Hit_A', held: 'Jump_Idle', cheer: 'Cheering', die: 'Death_A' },
+    kenney: { idle: 'idle', guard: 'idle', walk: 'walk', run: 'sprint', attack: 'attack-melee-right', dig: 'interact-right', claim: 'interact-right', reinforce: 'interact-right', train: 'attack-melee-left', study: 'interact-left', eat: 'pick-up', sleep: 'sit', stun: 'crouch', hurt: 'crouch', held: 'fall', cheer: 'emote-yes', die: 'die' },
 };
 const ONCE = new Set(['die']);
+const mirrors = new Map();
+/**
+ * A clip mirrored left to right, for a model: played on a spare copy, sampled 30 times a second. Every
+ * bone's pose in model space is reflected (x flips) and given to its twin (.l <-> .r), corrected by the
+ * two bones' rest poses, then turned back into local rotations and positions. Swapping the local values
+ * directly does not work: the bones' own axes are not mirror images of each other.
+ */
+function mirrored(clip, file) {
+    const key = clip.name + '|' + file;
+    if (mirrors.has(key)) {
+        return mirrors.get(key);
+    }
+    const root = clone(file);
+    if (!root) {
+        return clip;
+    }
+    const bones = [];
+    root.traverse((o) => o.isBone && bones.push(o));
+    const byBone = new Map(bones.map((b) => [b.name, b]));
+    // three.js drops the dot from bone names ('upperarm.l' is 'upperarml'): a twin is the same name
+    // with the last letter l <-> r, when that bone exists
+    const twin = (b) => (/[lr]$/.test(b.name) && byBone.get(b.name.slice(0, -1) + (b.name.endsWith('l') ? 'r' : 'l'))) || b;
+    const reflect = (q) => new THREE.Quaternion(q.x, -q.y, -q.z, q.w);
+    const modelSpace = (o) => {
+        root.updateMatrixWorld(true);
+        const m = new THREE.Matrix4().copy(root.matrixWorld).invert().multiply(o.matrixWorld);
+        const p = new THREE.Vector3();
+        const q = new THREE.Quaternion();
+        const s = new THREE.Vector3();
+        m.decompose(p, q, s);
+
+        return { p, q, s };
+    };
+    // the rest pose, and per bone the turn that maps its reflected rest pose onto its twin's
+    const rest = new Map(bones.map((b) => [b, modelSpace(b)]));
+    const fix = new Map(bones.map((b) => [b, reflect(rest.get(b).q).invert().multiply(rest.get(twin(b)).q)]));
+    const mixer = new THREE.AnimationMixer(root);
+    mixer.clipAction(clip).play();
+    const times = [];
+    const values = new Map(bones.map((b) => [b, { q: [], p: [] }]));
+    const steps = Math.max(2, Math.ceil(clip.duration * 30) + 1);
+    for (let k = 0; k < steps; k++) {
+        const t = Math.min(clip.duration, k / 30);
+        times.push(t);
+        mixer.setTime(t);
+        const pose = new Map(bones.map((b) => [b, modelSpace(b)]));
+        // the mirrored pose of each bone, in model space
+        const mirror = new Map();
+        for (const b of bones) {
+            const from = pose.get(twin(b));
+            const q = reflect(from.q).multiply(fix.get(twin(b)));
+            mirror.set(b, new THREE.Matrix4().compose(new THREE.Vector3(-from.p.x, from.p.y, from.p.z), q, from.s));
+        }
+        for (const b of bones) {
+            const parent = b.parent?.isBone ? mirror.get(b.parent) : (() => {
+                const r = modelSpace(b.parent);
+
+                return new THREE.Matrix4().compose(r.p, r.q, r.s);
+            })();
+            const local = parent.clone().invert().multiply(mirror.get(b));
+            const p = new THREE.Vector3();
+            const q = new THREE.Quaternion();
+            local.decompose(p, q, new THREE.Vector3());
+            values.get(b).q.push(q.x, q.y, q.z, q.w);
+            values.get(b).p.push(p.x, p.y, p.z);
+        }
+    }
+    const tracks = [];
+    for (const b of bones) {
+        tracks.push(new THREE.QuaternionKeyframeTrack(b.name + '.quaternion', times, values.get(b).q));
+        tracks.push(new THREE.VectorKeyframeTrack(b.name + '.position', times, values.get(b).p));
+    }
+    const out = new THREE.AnimationClip(clip.name + '_mirrored', clip.duration, tracks);
+    mirrors.set(key, out);
+
+    return out;
+}
+
+/** Attack clips play this much faster than modelled: a swing takes about half a second. */
+const ATTACK_SPEED = 1.8;
 /** Ring colour per side: yours (the keeper colour in assets.js), heroes, wanderers. */
 const ringColor = (side) => (side === 0 ? ASSETS.keeper : side === 1 ? '#bcd2f0' : '#8a8178');
 
@@ -297,6 +377,8 @@ export class Figure {
         this.root.add(this.body);
         this.mixer = null;
         this.actions = {};
+        /** What the hands hold, each shown only while it is in use (see `itemShown()`). */
+        this.items = [];
         this.current = null;
         this.materials = [];
         let model = cfg.model ? clone(cfg.model) : null;
@@ -327,10 +409,11 @@ export class Figure {
             this.attach(model, cfg.left, 'handslot.l');
             this.mixer = new THREE.AnimationMixer(model);
             const clips = cfg.rig === 'kaykit' ? animations('Rig_Medium') : ownAnimations(cfg.model);
-            const names = CLIPS[cfg.rig] || CLIPS.kenney;
+            // a unit's own `clips` (assets.js) replace the defaults: an archer shoots, a warlock casts
+            const names = { ...(CLIPS[cfg.rig] || CLIPS.kenney), ...cfg.clips };
             for (const [what, name] of Object.entries(names)) {
                 if (clips[name]) {
-                    const a = this.mixer.clipAction(clips[name]);
+                    const a = this.mixer.clipAction(cfg.mirror?.includes(what) ? mirrored(clips[name], cfg.model) : clips[name]);
                     if (ONCE.has(what)) {
                         a.setLoop(THREE.LoopOnce, 1);
                         a.clampWhenFinished = true;
@@ -379,11 +462,17 @@ export class Figure {
             if (bone === 'handslot.r') {
                 w.rotation.y = Math.PI;
             }
+            w.rotation.y += THREE.MathUtils.degToRad(this.cfg.turn?.[bone === 'handslot.r' ? 'right' : 'left'] ?? 0);
             slot.add(w);
+            const use = file === 'pickaxe' || file === 'mattock' ? 'tool' : file.includes('spellbook') ? 'book' : 'weapon';
+            this.items.push({ object: w, use });
         }
     }
 
     play(what, timeScale = 1) {
+        for (const item of this.items) {
+            item.object.visible = itemShown(item.use, what);
+        }
         const a = this.actions[what] || this.actions.idle;
         if (!a || a === this.current) {
             if (a) {
@@ -443,6 +532,22 @@ export class Figure {
     }
 }
 
+/**
+ * Is a held item in view during this activity? Weapons only while fighting (and training, which is mock
+ * fighting), the pick or mattock while digging or reinforcing, a book while studying. Otherwise the
+ * hands are empty.
+ */
+function itemShown(use, what) {
+    if (use === 'tool') {
+        return ['dig', 'reinforce', 'attack', 'train'].includes(what);
+    }
+    if (use === 'book') {
+        return what === 'study';
+    }
+
+    return what === 'attack' || what === 'train';
+}
+
 /** What a unit is doing, as an animation name. */
 function activityOf(e, moving) {
     if (e.hitT > 0) {
@@ -458,7 +563,7 @@ function activityOf(e, moving) {
         case 'dig':
         case 'claim':
         case 'reinforce':
-            return 'dig';
+            return e.state;
         case 'sleep':
             return 'sleep';
         case 'eat':
@@ -548,9 +653,15 @@ export class Units {
             d = Math.atan2(Math.sin(d), Math.cos(d));
             r += d * Math.min(1, dt * 12);
             f.body.rotation.y = r;
-            const what = activityOf(e, moving);
+            let what = activityOf(e, moving);
+            // an attack plays to the end of its swing, however short the hit is in the game
+            if (what === 'attack' && f.current !== f.actions.attack) {
+                f.swingUntil = time + (f.actions.attack?.getClip().duration ?? 0.4) / ATTACK_SPEED;
+            } else if (time < (f.swingUntil ?? 0) && what !== 'walk') {
+                what = 'attack';
+            }
             const base = KINDS[e.kind].spd || 2;
-            f.play(what, what === 'walk' ? Math.max(0.6, Math.min(2.2, f.speed / base * 1.4)) : what === 'attack' ? 1.6 : 1);
+            f.play(what, what === 'walk' ? Math.max(0.6, Math.min(2.2, f.speed / base * 1.4)) : what === 'attack' ? ATTACK_SPEED : 1);
             f.mixer?.update(dt);
             f.animateBuiltIn(what, time);
             f.gold.visible = e.carry > 0;
