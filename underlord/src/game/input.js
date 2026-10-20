@@ -5,8 +5,9 @@
  *   tagged block to untag); with a room or Sell, hold and sweep to build or sell; with a spell, cast.
  * - Right button: drop the creature picked up last on your territory (or dismiss it on your portal);
  *   with an empty hand, slap your creature; with a room, Sell or a spell selected, go back to the hand.
+ *   These happen on release; holding the right button and moving drags the map instead.
  * - Camera: arrow keys / WASD (Shift: faster), the pointer at the edge of the view, Ctrl + arrows to turn
- *   and zoom. Extras: the mouse wheel zooms, the middle button drags the map, Q / E turn.
+ *   and zoom. Extras: right- or middle-drag moves the map, the mouse wheel zooms, Q / E turn.
  * - Keys: P pause, + / - game speed, 1-4 panels, H / T / L ... jump to the Heart or a room, F to a fight,
  *   M the whole map, Esc the hand.
  *
@@ -122,10 +123,13 @@ function onDown(ev, cv) {
 
         return;
     }
-    if (ev.button === 1 || (ev.button === 0 && app.tool === 'look')) {
-        pan = { sx: p.sx, sy: p.sy };
+    // the middle button and the Look tool drag the map; so does the right button once it moves (see onUp())
+    if (ev.button === 1 || ev.button === 2 || (ev.button === 0 && app.tool === 'look')) {
+        pan = { sx: p.sx, sy: p.sy, moved: ev.button !== 2, right: ev.button === 2 ? p : null };
         view.panStart(p.sx, p.sy);
-        cv.classList.add('grab');
+        if (pan.moved) {
+            cv.classList.add('grab');
+        }
 
         return;
     }
@@ -133,11 +137,6 @@ function onDown(ev, cv) {
         return;
     }
     const i = ix(p.x, p.y);
-    if (ev.button === 2) {
-        rightClick(p, i);
-
-        return;
-    }
     if (ev.button !== 0) {
         return;
     }
@@ -199,7 +198,14 @@ function onMove(ev, cv) {
         return;
     }
     if (pan) {
-        view.panTo(p.sx, p.sy);
+        // a right click becomes a drag once the pointer moves a few pixels
+        if (!pan.moved && Math.hypot(p.sx - pan.sx, p.sy - pan.sy) > 5) {
+            pan.moved = true;
+            cv.classList.add('grab');
+        }
+        if (pan.moved) {
+            view.panTo(p.sx, p.sy);
+        }
 
         return;
     }
@@ -214,6 +220,11 @@ function onUp(ev, cv) {
         pinch = null;
     }
     if (pan && ptrs.size === 0) {
+        // a right click that did not move: drop, slap or put the tool away
+        const r = pan.right;
+        if (r && !pan.moved && ev.type === 'pointerup' && app.running && !G.over && inb(r.x, r.y)) {
+            rightClick(r, ix(r.x, r.y));
+        }
         pan = null;
         cv.classList.toggle('grab', app.tool === 'look');
     }

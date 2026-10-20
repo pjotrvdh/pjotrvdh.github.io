@@ -37,7 +37,7 @@ The controls follow the original Dungeon Keeper.
 | Drop the creature picked up last | right-click your territory (on your portal: dismiss it); on a touch screen, tap | |
 | Slap | right-click a creature with an empty hand, or the **Slap** tool | |
 | Put a room, spell or Sell away | right-click | `Esc` |
-| Scroll the map | pointer at the edge of the view, middle-drag, the **Look** tool, two-finger drag | arrow keys / WASD (`Shift`: faster) |
+| Scroll the map | hold the right (or middle) button and move, the pointer at the edge of the view, the **Look** tool, two-finger drag | arrow keys / WASD (`Shift`: faster) |
 | Turn the view | **⟲ / ⟳** buttons | `Ctrl` + `←` / `→`, `Q` / `E` |
 | Zoom | mouse wheel, pinch, **+ / − / Fit** buttons | `Ctrl` + `↑` / `↓`; `M` shows the whole map |
 | Jump to | | `H` Heart, `T` Treasury, `Shift`+`T` Training Room, `Shift`+`H` Hatchery, `Shift`+`L` Lair, `L` Library, `Ctrl`+`P` portal, `F` a fight (again: next room of that kind) |
