@@ -468,7 +468,7 @@ function setHint() {
     if (state.mode === 'serve' && state.kind !== 'demo') {
         hint = state.server === near ? 'Your serve' : 'Opponent serves';
     } else if (state.kind === 'demo' && state.mode !== 'over') {
-        hint = 'Press Esc to stop watching';
+        hint = matchMedia('(pointer: coarse)').matches ? 'Tap to stop watching' : 'Press Esc to stop watching';
     }
     $('hint').textContent = hint;
 }
@@ -1068,18 +1068,51 @@ function initPalettes() {
 
 /* ---------- input ---------- */
 
+// A mouse puts the paddle where the pointer is. A finger drags it instead (it moves as far as the
+// finger does, from wherever the finger lands), so the finger never covers the paddle and the whole
+// screen, also around the tunnel, works as a touch pad.
+let drag = null;
+
 function pointerToTarget(event) {
     if (!near.human) {
         return;
     }
     const rect = canvas.getBoundingClientRect();
     const point = renderer.toTunnel(event.clientX - rect.left, event.clientY - rect.top);
-    near.target.x = clamp(point.x, limitX);
-    near.target.y = clamp(point.y, limitY);
+    if (event.pointerType === 'mouse') {
+        near.target.x = clamp(point.x, limitX);
+        near.target.y = clamp(point.y, limitY);
+    } else if (drag && drag.id === event.pointerId) {
+        near.target.x = clamp(drag.x + point.x - drag.px, limitX);
+        near.target.y = clamp(drag.y + point.y - drag.py, limitY);
+    }
+}
+
+function startDrag(event) {
+    if (event.pointerType === 'mouse' || !near.human) {
+        return;
+    }
+    const rect = canvas.getBoundingClientRect();
+    const point = renderer.toTunnel(event.clientX - rect.left, event.clientY - rect.top);
+    drag = { id: event.pointerId, x: near.target.x, y: near.target.y, px: point.x, py: point.y };
 }
 
 canvas.addEventListener('pointermove', pointerToTarget);
+for (const type of ['pointerup', 'pointercancel']) {
+    canvas.addEventListener(type, (event) => {
+        if (drag?.id === event.pointerId) {
+            drag = null;
+        }
+    });
+}
 canvas.addEventListener('pointerdown', (event) => {
+    // No Esc on a phone: a tap on the tunnel stops CPU vs CPU.
+    if (state.kind === 'demo' && state.mode !== 'title' && event.pointerType !== 'mouse') {
+        toMenu();
+
+        return;
+    }
+    startDrag(event);
     pointerToTarget(event);
     sounds.unlock();
 });
@@ -1153,6 +1186,44 @@ $('copyLink').addEventListener('click', async () => {
         $('onlineStatus').textContent = 'Link copied. Waiting for the other player…';
     } catch {
         $('roomLink').select();
+    }
+});
+// The share sheet: the room link prefilled for WhatsApp, Telegram, a text message or an e-mail, a
+// copy button, and "More…" for the device's own share menu where the browser has one.
+function openShare() {
+    const link = $('roomLink').value;
+    const text = `Play Twistball with me! Room ${$('roomCode').textContent}: ${link}`;
+    $('shareWhatsApp').href = `https://wa.me/?text=${encodeURIComponent(text)}`;
+    $('shareTelegram').href = `https://t.me/share/url?url=${encodeURIComponent(link)}&text=${encodeURIComponent('Play Twistball with me!')}`;
+    $('shareSms').href = `sms:?&body=${encodeURIComponent(text)}`;
+    $('shareMail').href = `mailto:?subject=${encodeURIComponent('Play Twistball with me')}&body=${encodeURIComponent(text)}`;
+    $('shareMoreItem').hidden = !navigator.share;
+    $('shareStatus').textContent = '';
+    $('shareSheet').showModal();
+}
+
+$('shareLink').addEventListener('click', openShare);
+$('shareCopy').addEventListener('click', async () => {
+    try {
+        await navigator.clipboard.writeText($('roomLink').value);
+        $('shareStatus').textContent = 'Link copied.';
+    } catch {
+        $('shareStatus').textContent = $('roomLink').value;
+    }
+});
+$('shareMore').addEventListener('click', async () => {
+    try {
+        await navigator.share({ title: 'Twistball', text: 'Play Twistball with me!', url: $('roomLink').value });
+        $('shareSheet').close();
+    } catch {
+        // Cancelled: keep the sheet open.
+    }
+});
+$('shareClose').addEventListener('click', () => $('shareSheet').close());
+// A tap on the dimmed backdrop (outside the sheet) closes it.
+$('shareSheet').addEventListener('click', (event) => {
+    if (event.target === $('shareSheet')) {
+        $('shareSheet').close();
     }
 });
 $('onlineBack').addEventListener('click', toMenu);

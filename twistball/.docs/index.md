@@ -25,7 +25,7 @@ description: Hub of the Twistball wiki (3D tunnel pong). Read first when working
 | `twistball/src/game/audio.js` | laser sounds (Web Audio, no files) |
 | `twistball/src/game/highscores.js` | local high score list |
 | `twistball/src/config/*.js` | all tuning: `tunnel.js`, `rules.js`, `scoring.js`, `levels.js`, `palettes.js` |
-| `twistball/src/styles/game.css` | layout, HUD, screens; colours come from the palette as CSS variables |
+| `twistball/src/styles/game.css` | layout, HUD, screens, share sheet; colours come from the palette as CSS variables. On a phone (≤ 640 px wide, or landscape under 500 px high) every screen fills the whole screen, and in portrait the canvas takes all the height left (the camera fits the tunnel's width) |
 
 ## Docs in this wiki
 

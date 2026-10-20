@@ -13,6 +13,7 @@ description: Twistball online play over PeerJS: host/guest roles, message protoc
 - PeerJS (WebRTC). The free PeerJS cloud server introduces the players; then messages go peer to peer. PeerJS's default ICE config includes STUN and TURN.
 - The host creates a peer with ID `twistball-arcade-<CODE>`; the guest connects to it with `serialization: 'json', reliable: true`. One guest per room; extra connections are closed.
 - Codes are 5 characters from an alphabet without look-alikes (no 0/O, 1/I). A link `?room=CODE` joins at once.
+- The host gets the link with **Copy link** and **Share**. Share opens a sheet (`#shareSheet`, `openShare()`) with the link prefilled for WhatsApp (`wa.me`), Telegram (`t.me/share`), Messages (`sms:`), E-mail (`mailto:`), a copy button and, where the browser has the Web Share API, **More…** for the device's own share menu. On a phone the sheet slides up from the bottom.
 - `net.js` only moves messages; every game rule lives in `game.js`.
 
 ## Who runs what

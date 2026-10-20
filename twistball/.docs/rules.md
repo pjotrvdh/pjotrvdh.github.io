@@ -13,7 +13,7 @@ description: Twistball's rules: modes, lives, levels, auto-serve countdown, scor
 
 - **`solo`**: you (near) against the CPU (far). Ten levels from `levels.js`; the start level is picked on the title screen (remembered as `twistball-start-level`). You have `playerLives` (5) for the whole game; the CPU has `opponentLives` (3) per level.
 - **`online`**: two people, see [online.md](online.md). Both have `matchLives` (5); the speed (a level from `levels.js`) is the host's choice on the title screen. No scores.
-- **`demo`**: CPU vs CPU at the chosen speed, `matchLives` each; after a match the next one starts by itself after `demoRestartDelay` (3 s). Esc goes back to the menu.
+- **`demo`**: CPU vs CPU at the chosen speed, `matchLives` each; after a match the next one starts by itself after `demoRestartDelay` (3 s). Esc goes back to the menu; on a touch screen a tap on the tunnel does.
 
 ## Flow
 

@@ -3,8 +3,8 @@
  * `halfWidth` wide and twice `halfHeight` high; your paddle is at depth 0, the opponent's at `depth`.
  */
 export default {
-    /** Half the tunnel's width. */
-    halfWidth: 1.4,
+    /** Half the tunnel's width: 4 / 3 of its height, so the field is 4 : 3. */
+    halfWidth: 4 / 3,
     /** Half the tunnel's height. */
     halfHeight: 1,
     /** Distance from your paddle to the opponent's. */

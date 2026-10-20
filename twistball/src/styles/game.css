@@ -1,4 +1,4 @@
-/* Twistball: one screen. The HUD on top, the tunnel below it at the tunnel's own 1.4 : 1 ratio. */
+/* Twistball: one screen. The HUD on top, the tunnel below it at the tunnel's own 4 : 3 ratio. */
 :root {
   --bg: #05040b;
   --panel: #110e22;
@@ -68,8 +68,9 @@ a { color: var(--near); }
   position: relative;
   justify-self: center;
   align-self: center;
-  width: min(100%, (100vh - 120px) * 1.4);
-  aspect-ratio: 1.4;
+  width: min(100%, (100vh - 120px) * 4 / 3);
+  width: min(100%, (100dvh - 120px) * 4 / 3);
+  aspect-ratio: 4 / 3;
   max-height: 100%;
   border: 2px solid var(--line);
   border-radius: 6px;
@@ -187,7 +188,9 @@ a { color: var(--near); }
 
 .room { margin: 12px 0; }
 .room .code { font-size: 26px; letter-spacing: .18em; color: var(--accent); }
-.room input { width: 18em; max-width: 60vw; }
+.room .row { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; }
+.room input { width: 18em; max-width: 100%; min-width: 0; padding: 6px 10px; border: 2px solid var(--line); border-radius: 6px; color: var(--ink); background: var(--bg); }
+.room .main { margin-top: 0; }
 .status { min-height: 1.4em; color: var(--near); }
 #joinCode { width: 7em; text-transform: uppercase; letter-spacing: .15em; text-align: center; }
 .visually-hidden { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
@@ -200,10 +203,93 @@ form .main { margin-top: 0; }
 
 footer { display: flex; justify-content: space-between; gap: 12px; color: var(--muted); font-size: 12px; }
 
+/* ---------- share sheet ---------- */
+.share {
+  width: min(100% - 32px, 420px);
+  padding: 22px 22px 18px;
+  border: 2px solid var(--line);
+  border-radius: 12px;
+  color: var(--ink);
+  background: var(--panel);
+  text-align: center;
+}
+.share::backdrop { background: rgba(5, 4, 11, .8); }
+.share h2 { margin: 0 0 6px; font-size: 22px; color: var(--accent); }
+.share p { margin: 0 0 14px; color: var(--muted); }
+.share-list { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin: 0 0 6px; padding: 0; list-style: none; }
+.share-list a, .share-list button {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  width: 100%;
+  padding: 12px 4px 10px;
+  border: 2px solid var(--line);
+  border-radius: 10px;
+  color: var(--ink);
+  background: var(--bg);
+  text-decoration: none;
+  font-size: 13px;
+  cursor: pointer;
+}
+.share-list a:hover, .share-list button:hover { border-color: var(--near); }
+.share-list svg { width: 40px; height: 40px; }
+.share .status { margin: 4px 0 10px; overflow-wrap: anywhere; }
+
+/* ---------- phones ---------- */
 @media (max-width: 640px) {
-  .app { padding: 8px; }
-  .hud .buttons { margin-left: 0; }
-  .arena { width: 100%; }
+  .app { gap: 6px; padding: max(8px, env(safe-area-inset-top)) 8px max(8px, env(safe-area-inset-bottom)); }
+  .hud { gap: 6px 12px; }
+  .hud h1 img { height: 26px; }
+  .hud .buttons { margin-left: auto; }
+  .hud .buttons button { padding: 5px 10px; }
+  .hud dl { order: 3; width: 100%; justify-content: space-between; gap: 4px 10px; }
+  .hud dt { font-size: 10px; }
+  .hud dd { font-size: 14px; }
+  /* The tunnel takes all the room left; the camera fits its width (render.js resize()). */
+  .arena { width: 100%; height: 100%; aspect-ratio: auto; }
+  .call { font-size: 22px; }
+  .countdown { font-size: 110px; }
+  /* Every screen (title and settings, online, ready, pause, end) fills the whole phone screen. */
+  .overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 10;
+    display: block;
+    padding: 0;
+    background: var(--bg);
+  }
+  .screen {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    width: 100%;
+    min-height: 100%;
+    padding: max(20px, env(safe-area-inset-top)) 18px max(24px, env(safe-area-inset-bottom));
+    border: 0;
+    border-radius: 0;
+  }
+  .modes button, .room .row button, form .row button { min-height: 44px; }
+  .modes button { flex: 1 1 40%; }
+  .speed select { min-height: 40px; }
+  /* The share sheet slides up from the bottom, like a phone's own share menu. */
+  .share {
+    width: 100%;
+    max-width: none;
+    margin: auto 0 0;
+    padding-bottom: max(18px, env(safe-area-inset-bottom));
+    border-width: 2px 0 0;
+    border-radius: 16px 16px 0 0;
+  }
+  .share #shareClose { width: 100%; min-height: 44px; }
+}
+
+/* A phone on its side: little height, so the screens fill it too. */
+@media (max-height: 500px) and (orientation: landscape) {
+  .overlay { position: fixed; inset: 0; z-index: 10; display: block; padding: 0; background: var(--bg); }
+  .screen { width: 100%; max-width: none; min-height: 100%; border: 0; border-radius: 0; padding: 16px max(18px, env(safe-area-inset-left)); }
+  .app { gap: 4px; padding-top: 6px; padding-bottom: 6px; }
+  .arena { width: min(100%, (100dvh - 80px) * 4 / 3); }
 }
 
 @media (prefers-reduced-motion: reduce) {

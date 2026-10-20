@@ -11,7 +11,7 @@ description: Twistball's coordinates, ball movement, spin, wall bounces, paddle 
 
 ## Coordinates (`tunnel.js`)
 
-- Game units: x to the right, y down, z into the tunnel. The tunnel is `2 × halfWidth` (2.8) by `2 × halfHeight` (2) and `depth` (10) deep.
+- Game units: x to the right, y down, z into the tunnel. The tunnel is `2 × halfWidth` (8/3 ≈ 2.67) by `2 × halfHeight` (2), so 4 : 3, and `depth` (10) deep.
 - The near paddle is at z = 0, the far paddle at z = `depth`. Paddles are `2 × paddleHalfWidth` by `2 × paddleHalfHeight`; they can move until they touch a wall (`limitX`, `limitY`).
 - The renderer converts to its own axes; see [rendering.md](rendering.md).
 
@@ -31,7 +31,7 @@ description: Twistball's coordinates, ball movement, spin, wall bounces, paddle 
 
 ## Paddle input (`moveHuman()`)
 
-- A human paddle follows a target: the pointer (`pointerToTarget()` via `renderer.toTunnel()`), or WASD / arrow keys at 2.6 units per second. Online, the far paddle's target comes from the guest's `input` messages.
+- A human paddle follows a target: the mouse pointer (`pointerToTarget()` via `renderer.toTunnel()`), a finger dragging it (touch and pen are relative: `startDrag()` remembers where the finger landed and the paddle moves as far as the finger does, so the finger never covers it and the whole canvas, also around the tunnel, works as a touch pad), or WASD / arrow keys at 2.6 units per second. Online, the far paddle's target comes from the guest's `input` messages.
 - The paddle eases towards the target (fast follow), and its velocity is smoothed; that smoothed velocity is what turns into spin.
 
 ## Gotchas
