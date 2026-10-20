@@ -77,6 +77,7 @@ After the loop: `G.hp` and `G.gold` per tile, then the caverns are populated.
 ## Pathfinding
 
 - `bfs(start, goal, k, pass=walk, maxLen)`: 4-neighbour BFS; collects up to `k` goal tiles and returns the path to a random one of them (`[]` if the chosen goal is the start, `null` if none). Used by imps, creatures, heroes chasing in `fight()` and the assistant.
+- Walking (`step()` in `underlord/src/game/entities.js`): units follow these tile paths but are not bound to the grid. Each unit aims for its own spot in a tile (`spot()`: the centre plus a fixed offset of up to 0.22 tiles from its `id`), and skips to the next path point whenever a straight line there stays on walkable tiles with room for its body (`lineWalk()`, 0.18 tiles on every side). So units cut corners, walk diagonally and do not stack on tile centres. Rules still go by the tile a unit stands on (`ti()`).
 - `dijkstra(start, goal)`: hero tunnelling cost `hcost()`: walkable 1, earth 4, gold 6, wall 12; rock, gem, lava, Heart impassable.
 
 ## Gotchas

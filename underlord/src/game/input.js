@@ -36,6 +36,12 @@ function at(ev, cv) {
     return p ? { sx, sy, ...p } : { sx, sy, fx: -1, fy: -1, x: -1, y: -1 };
 }
 
+/** The claw pointer: open over one of your units, a fist while the hand holds units (see the CSS). */
+function cursor(cv, overUnit) {
+    cv.classList.toggle('over-unit', overUnit);
+    cv.classList.toggle('holding', !!G && G.held.length > 0);
+}
+
 function onDown(ev, cv) {
     const p = at(ev, cv);
     cv.setPointerCapture(ev.pointerId);
@@ -108,7 +114,7 @@ function onDown(ev, cv) {
 function onMove(ev, cv) {
     const p = at(ev, cv);
     if (!pan && !pinch) {
-        cv.style.cursor = app.tool === 'hand' && G && ownUnitAt(p.sx, p.sy) ? 'grab' : '';
+        cursor(cv, (app.tool === 'hand' || app.tool === 'slap') && G && !!ownUnitAt(p.sx, p.sy));
     }
     if (ptrs.has(ev.pointerId)) {
         ptrs.set(ev.pointerId, p);
@@ -220,7 +226,10 @@ export function keyPan(dt) {
 export function initInput() {
     const cv = document.getElementById('cv');
     cv.addEventListener('contextmenu', (e) => e.preventDefault());
-    cv.addEventListener('pointerdown', (ev) => onDown(ev, cv));
+    cv.addEventListener('pointerdown', (ev) => {
+        onDown(ev, cv);
+        cursor(cv, false);
+    });
     cv.addEventListener('pointermove', (ev) => onMove(ev, cv));
     cv.addEventListener('pointerup', (ev) => onUp(ev, cv));
     cv.addEventListener('pointercancel', (ev) => onUp(ev, cv));

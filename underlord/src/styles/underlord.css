@@ -38,7 +38,11 @@ button:focus-visible{outline:2px solid var(--gold);outline-offset:1px}
 button:disabled{color:var(--muted);background:var(--panel);border-style:dashed;cursor:not-allowed}
 .stage{position:relative;min-height:0;min-width:0;background:#050404;border:1px solid var(--line);border-radius:4px;overflow:hidden}
 canvas{display:block;touch-action:none;cursor:crosshair;position:absolute;inset:0}
-canvas.grab{cursor:grab}
+/* the Hand of Evil as the mouse pointer (src/assets/cursors): pointing, open over your units, a fist while holding units or dragging */
+#cv{cursor:url('../assets/cursors/claw.svg') 2 1,crosshair}
+#cv.holding{cursor:url('../assets/cursors/claw-fist.svg') 14 14,grabbing}
+#cv.over-unit{cursor:url('../assets/cursors/claw-open.svg') 15 14,grab}
+#cv.grab{cursor:url('../assets/cursors/claw-fist.svg') 14 14,grabbing}
 .labels{position:absolute;inset:0;pointer-events:none;overflow:hidden}
 .ulabel{position:absolute;left:0;top:0;display:flex;flex-direction:column;align-items:center;gap:2px;margin:-26px 0 0 -18px;width:36px;transform-origin:50% 100%;font:700 12px/1 var(--f-body);text-shadow:0 1px 2px #000,0 0 3px #000}
 .ulabel .lv{color:#e3b23c;min-height:12px}

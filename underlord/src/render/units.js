@@ -67,6 +67,35 @@ function makeImp() {
 }
 
 /**
+ * The Dark Mistress's whip in the KayKit style: a leather grip with a pommel, and a lash that leaves the
+ * grip ahead (+Y) and curls down to the ground (+Z once the right hand turns the weapon over, see attach()).
+ */
+function makeWhip() {
+    const g = new THREE.Group();
+    const leather = new THREE.MeshStandardMaterial({ color: '#2a1a24', roughness: 0.6, flatShading: true });
+    const metal = new THREE.MeshStandardMaterial({ color: '#b8b0a8', metalness: 0.6, roughness: 0.35, flatShading: true });
+    g.add(new THREE.Mesh(new THREE.CylinderGeometry(0.05, 0.06, 0.42, 6).translate(0, 0.08, 0), leather));
+    g.add(new THREE.Mesh(new THREE.SphereGeometry(0.075, 6, 4).translate(0, -0.15, 0), metal));
+    g.add(new THREE.Mesh(new THREE.CylinderGeometry(0.065, 0.065, 0.05, 6).translate(0, 0.3, 0), metal));
+    const lash = new THREE.CatmullRomCurve3([
+        new THREE.Vector3(0, 0.3, 0),
+        new THREE.Vector3(0.02, 0.6, 0.06),
+        new THREE.Vector3(0.1, 0.88, 0.3),
+        new THREE.Vector3(0.05, 0.98, 0.62),
+        new THREE.Vector3(-0.12, 0.86, 0.9),
+        new THREE.Vector3(-0.2, 0.62, 1.02),
+    ]);
+    g.add(new THREE.Mesh(new THREE.TubeGeometry(lash, 24, 0.028, 5, false), leather));
+    const tip = new THREE.Mesh(new THREE.ConeGeometry(0.035, 0.12, 4), leather);
+    tip.position.copy(lash.getPoint(1));
+    tip.lookAt(lash.getPoint(1).add(lash.getTangent(1)));
+    tip.rotateX(Math.PI / 2);
+    g.add(tip);
+
+    return g;
+}
+
+/**
  * A digging tool in the KayKit style (the Adventurers pack has none), held like KayKit weapons: grip at
  * the origin, along +Y. 'pickaxe': a point on both sides; 'mattock': an axe blade on one side.
  */
@@ -102,6 +131,9 @@ function makeTool(kind) {
     return g;
 }
 
+/** A mesh's part name: its own name and its parent's (a multi-material part is a group of meshes). */
+const partName = (o) => o.name + ' ' + (o.parent?.name || '');
+
 /** A node by name; GLTFLoader drops '.' from names ('handslot.r' becomes 'handslotr'). */
 const byName = (root, name) => root.getObjectByName(name) || root.getObjectByName(name.replace(/\./g, ''));
 
@@ -136,6 +168,22 @@ function dress(model, cfg) {
             parent.add(sm);
             sm.bind(new THREE.Skeleton(bones, sm.skeleton.boneInverses), sm.bindMatrix);
         }
+    }
+    if (cfg.shape === 'hourglass') {
+        hourglass(model);
+    }
+    if (cfg.headSize) {
+        resizeHead(model, cfg.headSize);
+    }
+    if (cfg.gloss) {
+        // tight, shiny leather on the named parts
+        model.traverse((o) => {
+            if (o.isMesh && cfg.gloss.some((part) => partName(o).includes(part))) {
+                o.material = o.material.clone();
+                o.material.roughness = 0.32;
+                o.material.metalness = 0.15;
+            }
+        });
     }
     const head = byName(model, 'head');
     if (!head || !cfg.extras?.length) {
@@ -173,6 +221,57 @@ function dress(model, cfg) {
             head.add(h);
         }
     }
+}
+
+/**
+ * A more feminine silhouette for a KayKit figure: the torso (the mesh named "...Body") gets a narrower
+ * waist, wider hips and a fuller chest. Works on a copy of the geometry, so other figures built on the
+ * same model keep theirs. Positions are in the rest pose, so the skinning still fits.
+ */
+function hourglass(model) {
+    const bell = (t, at, width) => Math.exp(-(((t - at) / width) ** 2));
+    model.traverse((o) => {
+        if (!o.isSkinnedMesh || !partName(o).includes('Body')) {
+            return;
+        }
+        o.geometry = o.geometry.clone();
+        const pos = o.geometry.attributes.position;
+        o.geometry.computeBoundingBox();
+        const { min, max } = o.geometry.boundingBox;
+        const cx = (min.x + max.x) / 2;
+        const cz = (min.z + max.z) / 2;
+        for (let i = 0; i < pos.count; i++) {
+            const t = (pos.getY(i) - min.y) / (max.y - min.y || 1);
+            const side = (1 - 0.22 * bell(t, 0.45, 0.14)) * (1 + 0.18 * bell(t, 0.06, 0.15));
+            const front = pos.getZ(i) > cz ? 1 + 0.24 * bell(t, 0.74, 0.11) : 1 - 0.1 * bell(t, 0.45, 0.14);
+            pos.setX(i, cx + (pos.getX(i) - cx) * side);
+            pos.setZ(i, cz + (pos.getZ(i) - cz) * front);
+        }
+        pos.needsUpdate = true;
+        o.geometry.computeVertexNormals();
+    });
+}
+
+/**
+ * Makes a KayKit figure's head (the mesh named "...Head", hair included) `size` times as big, around the
+ * bottom of the head, so the figure looks less like a child. Works on a copy of the geometry.
+ */
+function resizeHead(model, size) {
+    model.traverse((o) => {
+        if (!o.isSkinnedMesh || !partName(o).includes('Head')) {
+            return;
+        }
+        o.geometry = o.geometry.clone();
+        o.geometry.computeBoundingBox();
+        const { min, max } = o.geometry.boundingBox;
+        const pivot = new THREE.Vector3((min.x + max.x) / 2, min.y + (max.y - min.y) * 0.08, (min.z + max.z) / 2);
+        const pos = o.geometry.attributes.position;
+        for (let i = 0; i < pos.count; i++) {
+            pos.setXYZ(i, pivot.x + (pos.getX(i) - pivot.x) * size, pivot.y + (pos.getY(i) - pivot.y) * size, pivot.z + (pos.getZ(i) - pivot.z) * size);
+        }
+        pos.needsUpdate = true;
+        o.geometry.computeVertexNormals();
+    });
 }
 
 /** The name of the first node whose name contains `part`. */
@@ -213,7 +312,7 @@ export class Figure {
                         o.material.color.multiply(tint);
                     }
                     // a tint per part, matched on the mesh name ('Helmet' tints 'Knight_Helmet')
-                    const own = tints.find(([part]) => (o.name + ' ' + (o.parent?.name || '')).includes(part));
+                    const own = tints.find(([part]) => partName(o).includes(part));
                     if (own) {
                         o.material.color.multiply(own[1]);
                     }
@@ -266,7 +365,7 @@ export class Figure {
             return;
         }
         const slot = byName(model, bone);
-        const w = file === 'pickaxe' || file === 'mattock' ? makeTool(file) : clone(file);
+        const w = file === 'whip' ? makeWhip() : file === 'pickaxe' || file === 'mattock' ? makeTool(file) : clone(file);
         if (slot && w) {
             w.traverse((o) => {
                 if (o.isMesh) {

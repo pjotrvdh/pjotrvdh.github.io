@@ -57,7 +57,7 @@ description: Underlord's 3D view (three.js: camera, picking, terrain, rooms, uni
 - Drawn: your units always; heroes and wanderers only on seen tiles; units in the hand (up to 4) float at the pointer. Wanderers are see-through; hit units glow red, slapped ones flicker.
 - Animation by activity (`activityOf()` + `CLIPS`): walk (speed-matched), attack (`hitT`), dig (imp jobs, hero tunnelling), train, study, eat, sleep, stun, hurt, guard, held, die. Facing follows movement, else the fight target, the dug block or `aim`.
 - Deaths: fx `death` spawns a copy that plays its death and fades out.
-- Parts: `dress()` hides parts by name, rebinds borrowed KayKit parts to the figure's skeleton (same rig), and adds `extras` on the head bone (`crown`, `horns`). `makeTool()` builds the pickaxe and mattock.
+- Parts: `dress()` hides parts by name, rebinds borrowed KayKit parts to the figure's skeleton (same rig), and adds `extras` on the head bone (`crown`, `horns`). `makeTool()` builds the pickaxe and mattock, `makeWhip()` the Dark Mistress's whip. Optional reshaping, on copies of the geometry (the rest pose, so skinning still fits): `shape: 'hourglass'` (`hourglass()`: narrower waist, wider hips, fuller chest on the "Body" mesh), `headSize` (`resizeHead()`: a smaller head, less chibi), `gloss` (shiny leather on named parts). Part names match a mesh's own name or its parent's (`partName()`).
 
 ## Clouds, overlay, cursor, effects
 
@@ -82,6 +82,7 @@ description: Underlord's 3D view (three.js: camera, picking, terrain, rooms, uni
 
 ## Input (`game/input.js`)
 
+- Pointer: the Hand of Evil (`underlord/src/assets/cursors`, set in the CSS on `#cv`): a pointing claw, an open claw over your units with the Hand or Slap tool (class `over-unit`), a fist while the hand holds units (`holding`) or while dragging the map (`grab`). `cursor()` in `input.js` sets the classes.
 - Canvas: left = current tool (Hand: pick up / dismiss / drop / mark-drag; room or Sell: drag; spell: cast at the picked point); right-drag or middle-drag pans, right-click without moving slaps; Look tool left-drag pans; two pointers pinch-zoom and pan; wheel zooms at the pointer (x1.15).
 - Keys: `Space`/`P` pause, `1`-`3` speed, `+`/`-` zoom, `Q`/`E` turn, arrows/WASD scroll, `Esc` hand tool + cancel drag + close cheats, `` ` `` or Ctrl+C toggles the Cheats panel once unlocked. Keys with Ctrl, Cmd or Alt are left to the browser.
 - Buttons ⟲ ⟳ + − Fit on the map.

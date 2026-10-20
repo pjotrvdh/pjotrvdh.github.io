@@ -25,7 +25,6 @@ let scene;
 let parts = null;
 const rig = new CameraRig();
 const tmp = new THREE.Vector3();
-
 /** Every model file the assets config names. */
 function modelFiles() {
     const files = [...Object.values(ASSETS.tiles), ...Object.values(ASSETS.props), ...ASSETS.rigs];

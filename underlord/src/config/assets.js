@@ -27,8 +27,8 @@ export default {
      * Unit figures, all KayKit Adventurers (they share one skeleton, animated with the Rig_Medium clips
      * in `rigs`). `model`: a .glb under models/; `height`: in tiles; `width`: extra breadth (1 = as
      * modelled); `tint`: multiplied into every colour; `tints`: per part, matched on the mesh name (a colour, or [colour, brightness]);
-     * `hide`: parts left out; `borrow`: parts taken from another KayKit model; `extras`: built-in
-     * pieces on the head ('crown', 'horns'); `right` / `left`: a model held in that hand ('pickaxe' and 'mattock' are built in). Check them all
+     * `hide`: parts left out; `shape`: 'hourglass' (a feminine torso); `headSize`: head scale (less chibi); `gloss`: shiny parts (leather); `borrow`: parts taken from another KayKit model; `extras`: built-in
+     * pieces on the head ('crown', 'horns'); `right` / `left`: a model held in that hand ('pickaxe', 'mattock' and 'whip' are built in). Check them all
      * in the character viewer: the game with ?characters.
      */
     units: {
@@ -36,7 +36,7 @@ export default {
         orc: { model: 'kaykit/Knight.glb', rig: 'kaykit', height: 0.84, width: 1.1, hide: ['Visor'], tints: { Head: '#8fcf6a', Helmet: '#7d8272', Body: '#7d8272', Arm: '#7d8272', Leg: '#7d8272', Cape: '#5a3a2a' }, right: 'kaykit/axe_1handed.glb' },
         warlock: { model: 'kaykit/Rogue_Hooded.glb', rig: 'kaykit', height: 0.74, tint: '#b796e6', right: 'kaykit/staff.glb', left: 'kaykit/spellbook_open.glb' },
         troll: { model: 'kaykit/Barbarian.glb', rig: 'kaykit', height: 0.7, width: 1.2, hide: ['BearHat'], tints: { Head: '#8fbf6a', Arm: '#8fbf6a', Body: '#a0b07a' }, right: 'kaykit/axe_1handed.glb' },
-        mistress: { model: 'kaykit/Rogue.glb', rig: 'kaykit', height: 0.78, tint: '#f0a0cc', right: 'kaykit/dagger.glb' },
+        mistress: { model: 'kaykit/Rogue.glb', rig: 'kaykit', height: 0.92, shape: 'hourglass', headSize: 0.78, hide: ['Cape'], gloss: ['Body', 'Leg', 'Arm'], tints: { Body: ['#3a2236', 0.9], Leg: ['#2c1a2a', 0.9], Arm: ['#3a2236', 0.9], Head: '#ffd6dc' }, right: 'whip' },
         tunneller: { model: 'kaykit/Barbarian.glb', rig: 'kaykit', height: 0.6, width: 1.25, hide: ['BearHat'], borrow: [{ from: 'kaykit/Knight.glb', part: 'Knight_Helmet' }], tints: { Helmet: ['#e8a85a', 1.6] }, right: 'mattock' },
         archer: { model: 'kaykit/Ranger.glb', rig: 'kaykit', height: 0.76, left: 'kaykit/bow_withString.glb' },
         wizard: { model: 'kaykit/Mage.glb', rig: 'kaykit', height: 0.82, right: 'kaykit/staff.glb' },

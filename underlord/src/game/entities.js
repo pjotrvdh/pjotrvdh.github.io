@@ -3,11 +3,11 @@
  * experience, research, gold and leaving. The per-kind behaviour lives in imps.js, creatures.js and
  * combat.js; the state machine that drives them is tick() in world.js.
  */
-import { FLOOR, LAIR, tx, ty } from './constants.js';
+import { FLOOR, LAIR, hash, inb, ix, tx, ty } from './constants.js';
 import { CFG, KINDS, SPELLS } from './config.js';
 import { bfs } from './path.js';
 import { G } from './state.js';
-import { cap, ownPortal, ti } from './tiles.js';
+import { cap, ownPortal, ti, walk } from './tiles.js';
 import { msg } from './ui.js';
 import { fx } from './world.js';
 
@@ -51,14 +51,46 @@ export function go(e, path, next, t = 0) {
     e.state = 'walk';
 }
 
-/** Moves e along its path; true when it has arrived. */
+/** Where unit e walks to in tile i: the centre plus a small offset of its own, so units do not file over tile centres or stack up. */
+function spot(e, i) {
+    return { x: tx(i) + 0.5 + (hash(e.id, 7) - 0.5) * 0.44, y: ty(i) + 0.5 + (hash(e.id, 11) - 0.5) * 0.44 };
+}
+
+/** A straight walk from (ax, ay) to (bx, by) stays on walkable tiles, with room for a unit's body (`pad` tiles) on every side. */
+export function lineWalk(ax, ay, bx, by, pad = 0.18) {
+    const n = Math.max(1, Math.ceil(Math.hypot(bx - ax, by - ay) * 6));
+    for (let k = 0; k <= n; k++) {
+        const x = ax + (bx - ax) * k / n;
+        const y = ay + (by - ay) * k / n;
+        for (const [ox, oy] of [[-pad, -pad], [pad, -pad], [-pad, pad], [pad, pad]]) {
+            const a = Math.floor(x + ox);
+            const b = Math.floor(y + oy);
+            if (!inb(a, b) || !walk(ix(a, b))) {
+                return false;
+            }
+        }
+    }
+
+    return true;
+}
+
+/**
+ * Moves e along its path; true when it has arrived. Units are not bound to the grid: each walks to its
+ * own spot in a tile (spot()), and heads straight for the next path point when nothing is in the way, so
+ * it cuts corners and walks diagonally instead of from tile centre to tile centre.
+ */
 export function step(e, dt) {
     if (!e.path.length) {
         return true;
     }
+    if (e.path.length > 1 && walk(e.path[0]) && walk(e.path[1])) {
+        const s = spot(e, e.path[1]);
+        if (lineWalk(e.x, e.y, s.x, s.y)) {
+            e.path.shift();
+        }
+    }
     const n = e.path[0];
-    const cx = tx(n) + 0.5;
-    const cy = ty(n) + 0.5;
+    const { x: cx, y: cy } = spot(e, n);
     const dx = cx - e.x;
     const dy = cy - e.y;
     const d = Math.hypot(dx, dy);
