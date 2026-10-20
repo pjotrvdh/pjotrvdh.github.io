@@ -128,17 +128,23 @@ a { color: var(--near); }
 }
 
 /* ---------- screens ---------- */
+/* Every screen is a modal over the whole page (not inside the tunnel), centred, scrolling when it is taller. */
 .overlay {
-  position: absolute;
+  position: fixed;
   inset: 0;
-  display: grid;
-  place-items: center;
-  padding: 16px;
+  z-index: 10;
+  display: flex;
+  padding: 24px 16px;
   overflow: auto;
-  background: rgba(5, 4, 11, .82);
+  overscroll-behavior: contain;
+  background: rgba(5, 4, 11, .78);
+  backdrop-filter: blur(3px);
 }
 .screen {
-  width: min(100%, 540px);
+  /* margin: auto centres it, and keeps the top reachable when it is taller than the window. */
+  margin: auto;
+  width: min(100%, 560px);
+  box-shadow: 0 20px 60px rgba(0, 0, 0, .6);
   padding: 22px 26px;
   border: 2px solid var(--line);
   border-radius: 10px;
@@ -246,14 +252,14 @@ footer { display: flex; justify-content: space-between; gap: 12px; color: var(--
   .countdown { font-size: 110px; }
   /* Every screen (title and settings, online, ready, pause, end) fills the whole phone screen. */
   .overlay {
-    position: fixed;
-    inset: 0;
-    z-index: 10;
     display: block;
     padding: 0;
     background: var(--bg);
+    backdrop-filter: none;
   }
   .screen {
+    margin: 0;
+    box-shadow: none;
     display: flex;
     flex-direction: column;
     justify-content: center;
@@ -270,8 +276,8 @@ footer { display: flex; justify-content: space-between; gap: 12px; color: var(--
 
 /* A phone on its side: little height, so the screens fill it too. */
 @media (max-height: 500px) and (orientation: landscape) {
-  .overlay { position: fixed; inset: 0; z-index: 10; display: block; padding: 0; background: var(--bg); }
-  .screen { width: 100%; max-width: none; min-height: 100%; border: 0; border-radius: 0; padding: 16px max(18px, env(safe-area-inset-left)); }
+  .overlay { display: block; padding: 0; background: var(--bg); backdrop-filter: none; }
+  .screen { margin: 0; box-shadow: none; width: 100%; max-width: none; min-height: 100%; border: 0; border-radius: 0; padding: 16px max(18px, env(safe-area-inset-left)); }
   .app { gap: 4px; padding-top: 6px; padding-bottom: 6px; }
   .arena { width: min(100%, (100dvh - 80px) * 4 / 3); }
 }
