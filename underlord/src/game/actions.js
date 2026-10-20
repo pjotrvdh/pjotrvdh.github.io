@@ -2,7 +2,7 @@
  * What the player (and the Computer Assistant) can do: build and sell rooms, mark blocks, cast spells,
  * pick up, drop, dismiss and slap units. Input handling is in input.js; this is the game side.
  */
-import { CLAIM, HATCH, LAIR, LIB, N, ROCK, TRAIN, ix, rand, tx, ty } from './constants.js';
+import { CLAIM, HATCH, LAIR, LIB, N, ROCK, TRAIN, rand, tx, ty } from './constants.js';
 import { CFG, KINDS, ROOMS, SPELLS } from './config.js';
 import { bedOwner, creatures, release, spawn, toPool } from './entities.js';
 import { kill } from './combat.js';
@@ -67,28 +67,32 @@ export function affects(mode, i) {
     return false;
 }
 
-/** Applies a finished drag (or click) over rectangle R; then cuts gold above the capacity. */
-export function applyRect(mode, R) {
-    for (let y = R.y0; y <= R.y1; y++) {
-        for (let x = R.x0; x <= R.x1; x++) {
-            const i = ix(x, y);
-            if (!affects(mode, i)) {
-                continue;
-            }
-            if (mode === 'mark') {
-                if (diggable(i)) {
-                    G.mark[i] = 1;
-                }
-            } else if (mode === 'unmark') {
-                G.mark[i] = 0;
-            } else if (mode === 'sell') {
-                sell(i);
-            } else if (!build(i, +mode)) {
-                y = R.y1;
-                break;
-            }
-        }
+/**
+ * One tile of a paint stroke (Dungeon Keeper style: hold the button and sweep over tiles): `mode` is
+ * 'mark', 'unmark', 'sell' or a room code. False when a room cannot be paid for, which ends the stroke.
+ */
+export function paintTile(mode, i) {
+    if (!affects(mode, i)) {
+        return true;
     }
+    if (mode === 'mark') {
+        if (diggable(i)) {
+            G.mark[i] = 1;
+        }
+    } else if (mode === 'unmark') {
+        G.mark[i] = 0;
+    } else if (mode === 'sell') {
+        sell(i);
+    } else if (!build(i, +mode)) {
+        return false;
+    }
+    recount();
+
+    return true;
+}
+
+/** Ends a paint stroke: gold above the capacity (from selling a Treasury) is lost. */
+export function endPaint() {
     recount();
     if (G.money > cap()) {
         msg('Not all the gold fit in your treasuries.', 'lost', 'bad');
@@ -280,22 +284,4 @@ export function activity(e) {
     }
 
     return ['dig', 'claim', 'reinforce', 'deposit', 'train', 'study', 'eat', 'sleep'].includes(st) ? 'working' : 'idle';
-}
-
-/** Your unit nearest to point (px, py) in tile coordinates, within 0.42 tiles. */
-export function entAt(px, py) {
-    let best = null;
-    let bd = 0.42;
-    for (const e of G.ents) {
-        if (e.dead || e.held || e.side !== 0) {
-            continue;
-        }
-        const d = Math.hypot(e.x - px, e.y - py);
-        if (d < bd) {
-            bd = d;
-            best = e;
-        }
-    }
-
-    return best;
 }

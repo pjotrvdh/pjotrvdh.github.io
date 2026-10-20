@@ -14,7 +14,7 @@ description: Underlord's Hand: pick up, drop (stun, room bonus, bed move), dismi
 
 ## Picking up
 
-- Hand tool, left-click within 0.42 tiles of an own, living, not-held unit (`entAt()`; imps and creatures, any state, also fighting or leaving).
+- Hand tool, left-click on an own, living, not-held unit (`view.pickUnit()`; imps and creatures, any state, also fighting or leaving).
 - `pickUp(e)`: refused with "Your hand is full" at `capacity`. Otherwise `release(e)`, `held=true`, path/target cleared, `boost=1`, pushed onto `G.held` (a stack).
 - Held units stay in `G.ents` (so `creatures()`, the HUD, wages, the portal's creature count, the assistant and saves count them once) but do not `tick()`, are not drawn on the map, are not targeted, do not reveal fog and do not get hungry. They keep their bed.
 - Also from the Creatures tab: number buttons pick up the next unit with that activity (cycling via `G.crCycle`), the portrait picks up the highest level; right-click centres the view instead ([rendering-and-ui](rendering-and-ui.md)).
@@ -23,13 +23,13 @@ description: Underlord's Hand: pick up, drop (stun, room bonus, bed move), dismi
 
 ## Dropping
 
-Left-click with something in hand (checked in this order in `onDown()`):
+As in Dungeon Keeper, **right-click** with something in hand drops the unit picked up last (`drop()` in `underlord/src/game/input.js`, any tool):
 
-1. An own unit under the cursor (`view.pickUnit()`, see [rendering-and-ui](rendering-and-ui.md)): picks it up instead.
-2. Own portal and the top unit is not an imp: dismiss (see below).
-3. `CLAIM` tile or own portal: `dropHeld(i)` for the top unit.
-4. Any other seen tile: "You can only drop creatures on your own territory."
-5. Unseen tile: starts a dig-mark drag as usual.
+1. Own portal and the top unit is not an imp: dismiss (see below).
+2. `CLAIM` tile or own portal: `dropHeld(i)` for the top unit.
+3. Anything else: "You can only drop creatures on your own territory."
+
+A left-click with something in hand still picks up another unit or marks blocks. On a touch screen (`pointerType` not `mouse`, no right button) a tap on a seen tile with the Hand drops instead.
 
 `dropHeld(i)`:
 
@@ -54,7 +54,7 @@ Left-click with something in hand (checked in this order in `onDown()`):
 
 ## Slapping
 
-- Right-click without dragging (or the Slap tool, left-click) on an own unit (`view.pickUnit()`): `slap(e)`.
+- Right-click on an own unit with an empty hand and the Hand tool (or the Slap tool, left-click): `slap(e)`. With a room, Sell or a spell selected, right-click puts it away instead.
 - Effect: `e.slap = slapTime`, `hp -= slapDamage` (can kill; counts as "slain"), "Slap!" text.
 - While `slap > 0`: `slapBoost` on imp work timers and on walking speed for any unit; the figure flickers.
 - A slapped creature (not imp) that is not fighting is interrupted: reservation released, back to `think` (wakes sleepers, ends training).

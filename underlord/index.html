@@ -35,7 +35,6 @@
     <canvas id="cv" aria-label="Dungeon map. Click to dig, build or cast; drag to mark an area; right-click to slap."></canvas>
     <div class="labels" id="labels" aria-hidden="true"></div>
     <div class="banner" id="banner" aria-hidden="true"></div>
-    <div class="tip" id="tip" hidden></div>
     <div class="cheats" id="cheats" hidden>
       <h2>Cheats</h2>
       <div class="cgrid" id="cheatList"></div>
@@ -46,12 +45,12 @@
         <h2><img src="./src/assets/brand/logo.svg" alt="Underlord"></h2>
         <p>The heroes of the surface world are coming for your Dungeon Heart. Dig into the dark, build rooms, attract creatures and survive <span id="waveCount">six</span> invasions.</p>
         <ul>
-          <li>Click a block to mark it for digging. Drag to mark a whole area at once. Your imps dig, haul gold and claim new ground.</li>
+          <li>Click a block to mark it for digging, or hold the button and sweep over blocks. Your imps dig, haul gold and claim new ground.</li>
           <li>The map is hidden in clouds, but gold seams and portals shine through. Mark blocks anywhere, even in the clouds, and dig to find treasure and wandering creatures.</li>
           <li>A portal near your Dungeon Heart is always visible. Claim it to attract creatures. Each creature needs a free bed in your Lair; stronger creatures also need bigger rooms. Each map has a limited pool of creatures.</li>
           <li>Invading heroes show as white dots until they reach ground you have discovered.</li>
-          <li>Pick creatures up with the hand and drop them where the fighting is. Right-click slaps: slapped imps work faster.</li>
-          <li>Scroll or pinch to zoom. Drag with the right or middle mouse button, or use the arrow keys or WASD, to look around. Q and E turn the view.</li>
+          <li>Click a creature to pick it up and right-click your territory to drop it where the fighting is. With an empty hand, right-click a creature to slap it: slapped imps work faster.</li>
+          <li>Scroll the map with the arrow keys or WASD, or move the pointer to the edge of the view. Ctrl + arrows (or Q and E) turn and zoom the view, as do the mouse wheel and pinching. Right-click puts a room or spell away.</li>
         </ul>
         <div class="row">
           <button id="bStart" class="main" type="button">New game</button>

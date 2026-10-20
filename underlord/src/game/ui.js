@@ -4,7 +4,7 @@
  */
 import { CLAIM, GEM, GOLD, H, LAIR, PORTAL, STATE_EN, TILE_EN, W, inb, ix, rand, tx, ty, words } from './constants.js';
 import { ASSETS, ATTRACT, CFG, ECON, KINDS, PORTAL_LIMIT, ROOMS, SPELLS, WAVES, wage } from './config.js';
-import { activity, affects, pickUp, spellCost } from './actions.js';
+import { activity, pickUp, spellCost } from './actions.js';
 import { kill } from './combat.js';
 import { creatures, gainXP, need, research, spawn } from './entities.js';
 import { newGame } from './map.js';
@@ -53,7 +53,7 @@ const btns = {};
 
 export function buildTools() {
     const defs = {
-        hand: { el: 'tHand', n: 'Hand', sub: 'dig · pick up · drop' },
+        hand: { el: 'tHand', n: 'Hand', sub: 'dig · pick up' },
         slap: { el: 'tHand', n: 'Slap', sub: 'or right-click' },
         look: { el: 'tHand', n: 'Look', sub: 'drag to scroll' },
     };
@@ -140,19 +140,19 @@ function hoverInfo() {
         return h;
     }
     if (ROOMS[tool]) {
-        return '<b>' + ROOMS[tool].n + '</b><br>' + ROOMS[tool].tip + '. Click a tile, or drag a rectangle over your territory.';
+        return '<b>' + ROOMS[tool].n + '</b><br>' + ROOMS[tool].tip + '. Click or sweep over your territory. Right-click: done.';
     }
     if (tool === 'hand') {
-        return G.held.length ? '<b>In hand: ' + G.held.length + '</b><br>Click your territory to drop.' : '<b>Hand</b><br>Click a block to dig it, or drag to mark an area. Click a creature to pick it up.';
+        return G.held.length ? '<b>In hand: ' + G.held.length + '</b><br>Right-click your territory to drop one (on your portal: dismiss it).' : '<b>Hand</b><br>Click or sweep over blocks to dig them. Click a creature to pick it up, right-click to slap it.';
     }
     if (SPELLS[tool]) {
         return '<b>' + SPELLS[tool].n + '</b><br>' + ({ imp: 'Click your territory to summon a new imp.', bolt: 'Strikes heroes around the clicked spot.', heal: 'Heals your creatures around the clicked spot.', rally: 'All creatures gather at this spot for ' + SPELLS.rally.duration + ' seconds. Free on your own territory.' })[tool];
     }
     if (tool === 'sell') {
-        return '<b>Sell</b><br>Click or drag over rooms to tear them down.';
+        return '<b>Sell</b><br>Click or sweep over rooms to tear them down. Right-click: done.';
     }
     if (tool === 'look') {
-        return '<b>Look</b><br>Drag to scroll the map. Q and E turn it; scroll or pinch to zoom.';
+        return '<b>Look</b><br>Drag to scroll (or arrows, or the pointer at the edge). Q / E turn, scroll zooms.';
     }
 
     return '<b>Slap</b><br>A slapped imp works faster for ' + CFG.hand.slapTime + ' seconds.';
@@ -302,40 +302,6 @@ export function setSpeed(n) {
     b.setAttribute('aria-label', 'Game speed: ' + n + '×');
 }
 
-export function dragRect() {
-    const d = app.drag;
-    if (!d) {
-        return null;
-    }
-
-    return { x0: Math.min(d.x0, d.x1), y0: Math.min(d.y0, d.y1), x1: Math.max(d.x0, d.x1), y1: Math.max(d.y0, d.y1) };
-}
-
-/** The tip next to the pointer while dragging: "Dig 6 blocks", "Lair × 9 · 900 gold". */
-export function updateTip() {
-    const tip = $('tip');
-    const R = dragRect();
-    const { drag, hover } = app;
-    if (!R || (R.x0 === R.x1 && R.y0 === R.y1)) {
-        tip.hidden = true;
-
-        return;
-    }
-    let n = 0;
-    for (let y = R.y0; y <= R.y1; y++) {
-        for (let x = R.x0; x <= R.x1; x++) {
-            if (affects(drag.mode, ix(x, y))) {
-                n++;
-            }
-        }
-    }
-    tip.textContent = drag.mode === 'mark' ? 'Dig ' + n + ' block' + (n === 1 ? '' : 's') : drag.mode === 'unmark' ? 'Cancel ' + n + ' block' + (n === 1 ? '' : 's') : drag.mode === 'sell' ? 'Sell ' + n + ' tile' + (n === 1 ? '' : 's') : ROOMS[drag.mode].n + ' × ' + n + ' · ' + n * ROOMS[drag.mode].cost + ' gold';
-    tip.hidden = false;
-    const stage = $('stage').getBoundingClientRect();
-    tip.style.left = Math.min(hover.sx + 14, stage.width - 170) + 'px';
-    tip.style.top = (hover.sy + 16) + 'px';
-}
-
 /* ---------- cheats ---------- */
 // Built in initUi(), after the config is read (the summon buttons use the creature names).
 const cheatList = () => [
@@ -429,8 +395,8 @@ export function toggleCheats(open) {
 }
 
 /**
- * Feeds a typed character to the cheat code. True when the key belongs to the code being typed (three
- * or more letters in, so Q, E, A, ... in it do not also turn or scroll the view) or just unlocked it.
+ * Feeds a typed character to the cheat code. True when the key belongs to the code being typed (two
+ * or more letters in, so its L, T, H, E, A, ... do not also jump, turn or scroll the view) or just unlocked it.
  */
 export function cheatKey(key) {
     if (cheatsOn || key.length !== 1) {
@@ -438,7 +404,7 @@ export function cheatKey(key) {
     }
     typed = (typed + key.toLowerCase()).slice(-CHEAT_CODE.length);
     if (typed !== CHEAT_CODE) {
-        for (let k = CHEAT_CODE.length - 1; k >= 3; k--) {
+        for (let k = CHEAT_CODE.length - 1; k >= 2; k--) {
             if (typed.endsWith(CHEAT_CODE.slice(0, k))) {
                 return true;
             }

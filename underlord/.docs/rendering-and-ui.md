@@ -63,7 +63,7 @@ description: Underlord's 3D view (three.js: camera, picking, terrain, rooms, uni
 
 - `fog.js`: one plane at `FOG_Y` with a shader: a `W x H` mask texture (unseen = opaque, linear filtering for soft edges) and drifting fbm clouds. Glints (points) for unseen gold and gems; pulsing white dots for `unknownHeroes()`.
 - `overlay.js`: HTML labels in `#labels` over the canvas: per unit a health bar (when hurt), level above 1, "z" when sleeping or guarding, "?" on wanderers; and the floating texts (fx `text`).
-- `cursor.js`: the hover outline on the visible surface (light = `toolValid()`, red = not), the drag rectangle and a tint on every tile `affects()` would change.
+- `cursor.js`: the hover outline on the visible surface (light = `toolValid()`, red = not). Painting changes tiles as you sweep, so there is no drag preview.
 - `effects.js`: fx `proj` (glowing shot; from the Heart's core for the zap), `dust`, `ring`, `heal`, `bolt` (jagged line, glow and a flash light).
 
 ## Character viewer (`gallery.js`)
@@ -76,15 +76,18 @@ description: Underlord's 3D view (three.js: camera, picking, terrain, rooms, uni
 - Tools (`buildTools()`): Hand / Slap / Look; Rooms tab: each room + Sell; Spells tab: every spell (cost or "research N", disabled while locked).
 - Tabs (`showTab()`, remembered in `localStorage['underlord-tab']`): Info (payday and research gauges, portal pool list), Rooms, Spells, Creatures (idle/working/fighting per kind with SVG portraits from `assets.js` `icons`, list by kind and level).
 - `#info`: hover details for the unit (`app.hover.unit`) or tile under the pointer, or help for the current tool.
-- Chronicle `#log`: `msg(text, key, cls)` prepends, keeps 7; the same `key` is muted for 20 s of game time. Banner for waves; overlay card for intro and end; drag tip `#tip`.
+- Chronicle `#log`: `msg(text, key, cls)` prepends, keeps 7; the same `key` is muted for 20 s of game time. Banner for waves; overlay card for intro and end.
 - Minimap (`drawMini()`): one cell per tile (unseen = cloud colour, or dark gold for unseen gold/gem; rooms in their colour), portals, white dots, units, and the camera's view trapezoid. Click or drag it to look there.
 - Version label `#version` (`src/main.js`, `__BUILD_VERSION__`).
 
 ## Input (`game/input.js`)
 
 - Pointer: the Hand of Evil (`underlord/src/assets/cursors`, set in the CSS on `#cv`): a pointing claw, an open claw over your units with the Hand or Slap tool (class `over-unit`), a fist while the hand holds units (`holding`) or while dragging the map (`grab`). `cursor()` in `input.js` sets the classes.
-- Canvas: left = current tool (Hand: pick up / dismiss / drop / mark-drag; room or Sell: drag; spell: cast at the picked point); right-drag or middle-drag pans, right-click without moving slaps; Look tool left-drag pans; two pointers pinch-zoom and pan; wheel zooms at the pointer (x1.15).
-- Keys: `Space`/`P` pause, `1`-`3` speed, `+`/`-` zoom, `Q`/`E` turn, arrows/WASD scroll, `Esc` hand tool + cancel drag + close cheats, `` ` `` or Ctrl+C toggles the Cheats panel once unlocked. Keys with Ctrl, Cmd or Alt are left to the browser.
+- The controls follow Dungeon Keeper (1997); the header of `game/input.js` sums them up.
+- Left button: Hand: pick up your unit, else start a paint stroke (`mark`, or `unmark` when it starts on a marked block); room or Sell: paint stroke; spell: cast at the picked point; Slap tool: slap; Look tool: drag the map. A stroke paints every tile the pointer passes (`paintTo()`, a 4-connected line between samples) through `paintTile()`, and `endPaint()` ends it.
+- Right button: with units in hand, drop the last one picked up (`drop()`); otherwise with a room, Sell or spell selected, back to the Hand; otherwise slap your unit under the pointer. On a touch screen a Hand tap with units in hand drops.
+- Camera: arrows/WASD (Shift ×2.5), the pointer within `EDGE` (16 px) of the view's edge (`keyPan()`), middle-drag, Look-tool drag, two-pointer pinch and pan, wheel zoom at the pointer (×1.15).
+- Keys: `P`/`Space` pause, `+`/`-` speed, `1`-`5` panels (Info, Rooms, Spells, Creatures), `Ctrl`+`←`/`→` and `Q`/`E` turn, `Ctrl`+`↑`/`↓` zoom, `M` whole map, `H` Heart, `T` Treasury, `Shift`+`T` Training Room, `Shift`+`H` Hatchery, `Shift`+`L` Lair, `L` Library (`jumpToRoom()` cycles through separate rooms), `Ctrl`+`P` portal, `F` a fight, `Esc` hand tool + end stroke + close cheats, `` ` `` or `Ctrl`+`C` the Cheats panel once unlocked. Other keys with Ctrl, Cmd or Alt are left to the browser. Cheat-code letters from the second on are swallowed (`cheatKey()`), so typing it does not jump or turn the view.
 - Buttons ⟲ ⟳ + − Fit on the map.
 
 ## Fonts and accessibility
@@ -105,7 +108,6 @@ description: Underlord's 3D view (three.js: camera, picking, terrain, rooms, uni
 - GLTFLoader drops `.` from node names (`handslot.r` becomes `handslotr`); look bones up with `byName()`.
 - KayKit's right hand slot points a weapon straight ahead with its blade up; `attach()` turns right-hand items half a turn around their length so blades face down. Left-hand items (shields, bows, books) are not turned. Pointing weapons straight down makes long ones go through the floor.
 - Instanced meshes are not frustum-culled (the whole map is small); terrain and rooms only rebuild on a signature change, so anything they draw must be part of that signature.
-- The drag tip counts unseen non-diggable tiles (floor, lava) as "blocks"; only diggable ones get marked.
 
 ## See also
 

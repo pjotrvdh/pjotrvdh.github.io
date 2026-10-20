@@ -1,19 +1,34 @@
 /**
- * Mouse, touch and keyboard on the map. The renderer turns screen points into tiles and units
- * (view.pick(), view.pickUnit()) and moves the camera; this file decides what a click does.
+ * Mouse, touch and keyboard, after Dungeon Keeper (1997):
+ *
+ * - Left button: pick up your creature; on blocks, hold and sweep to tag them for digging (start on a
+ *   tagged block to untag); with a room or Sell, hold and sweep to build or sell; with a spell, cast.
+ * - Right button: drop the creature picked up last on your territory (or dismiss it on your portal);
+ *   with an empty hand, slap your creature; with a room, Sell or a spell selected, go back to the hand.
+ * - Camera: arrow keys / WASD (Shift: faster), the pointer at the edge of the view, Ctrl + arrows to turn
+ *   and zoom. Extras: the mouse wheel zooms, the middle button drags the map, Q / E turn.
+ * - Keys: P pause, + / - game speed, 1-4 panels, H / T / L ... jump to the Heart or a room, F to a fight,
+ *   M the whole map, Esc the hand.
+ *
+ * On a touch screen (no right button) a tap with creatures in hand drops them, and the Slap and Look
+ * tools stand in for the right button and for dragging the map.
  */
-import { CLAIM, H, W, inb, ix } from './constants.js';
+import { CLAIM, H, HATCH, LAIR, LIB, N, N4, TRAIN, TREAS, W, inb, ix, tx, ty } from './constants.js';
 import { ROOMS, SPELLS } from './config.js';
-import { applyRect, cast, dismissHeld, dropHeld, pickUp, slap } from './actions.js';
+import { cast, dismissHeld, dropHeld, endPaint, paintTile, pickUp, slap } from './actions.js';
 import { G, app } from './state.js';
 import { diggable, ownPortal } from './tiles.js';
-import { cheatKey, cheatsUnlocked, dragRect, msg, setSpeed, setTool, syncPause, toggleCheats, updateTip } from './ui.js';
+import { cheatKey, cheatsUnlocked, msg, setSpeed, setTool, showTab, syncPause, toggleCheats } from './ui.js';
 import { view } from '../render/view.js';
 
 const keys = new Set();
 const ptrs = new Map();
 let pinch = null;
 let pan = null;
+/** A paint stroke in progress: { mode, x, y } (the last tile painted). */
+let stroke = null;
+/** Map scrolling speed for the edge of the view, in screen widths per second (Dungeon Keeper style). */
+const EDGE = 16;
 
 /** Your unit under screen point (sx, sy), or null. */
 const ownUnitAt = (sx, sy) => view.pickUnit(sx, sy, (e) => e.side === 0);
@@ -42,13 +57,64 @@ function cursor(cv, overUnit) {
     cv.classList.toggle('holding', !!G && G.held.length > 0);
 }
 
+/** Drops (or, on your own portal, dismisses) the creature picked up last onto tile i. */
+function drop(i) {
+    if (ownPortal(i) && G.held[G.held.length - 1].kind !== 'imp') {
+        dismissHeld(i);
+    } else if (G.t[i] === CLAIM || ownPortal(i)) {
+        dropHeld(i);
+    } else {
+        msg('You can only drop creatures on your own territory.', 'dropbad', 'bad');
+    }
+}
+
+/** Paints every tile on the straight line from the stroke's last tile to (x, y). */
+function paintTo(x, y) {
+    let { x: cx, y: cy } = stroke;
+    for (;;) {
+        if (inb(cx, cy) && !paintTile(stroke.mode, ix(cx, cy))) {
+            stroke.out = true;
+
+            return;
+        }
+        if (cx === x && cy === y) {
+            break;
+        }
+        // one step towards the target, the longer axis first (a 4-connected line)
+        if (Math.abs(x - cx) >= Math.abs(y - cy)) {
+            cx += Math.sign(x - cx);
+        } else {
+            cy += Math.sign(y - cy);
+        }
+    }
+    stroke.x = x;
+    stroke.y = y;
+}
+
+function rightClick(p, i) {
+    if (G.held.length) {
+        drop(i);
+    } else if (app.tool !== 'hand') {
+        // right click cancels a room, Sell or spell, as in Dungeon Keeper
+        setTool('hand');
+    } else {
+        const e = ownUnitAt(p.sx, p.sy);
+        if (e) {
+            slap(e);
+        }
+    }
+}
+
 function onDown(ev, cv) {
     const p = at(ev, cv);
     cv.setPointerCapture(ev.pointerId);
     ptrs.set(ev.pointerId, p);
     setHover(p);
     if (ptrs.size === 2) {
-        app.drag = null;
+        if (stroke) {
+            endPaint();
+        }
+        stroke = null;
         pan = null;
         const [a, b] = [...ptrs.values()];
         pinch = { d: Math.hypot(a.sx - b.sx, a.sy - b.sy) || 1, mx: (a.sx + b.sx) / 2, my: (a.sy + b.sy) / 2 };
@@ -56,8 +122,8 @@ function onDown(ev, cv) {
 
         return;
     }
-    if (ev.button === 1 || ev.button === 2 || app.tool === 'look') {
-        pan = { sx: p.sx, sy: p.sy, moved: false, slap: ev.button === 2 };
+    if (ev.button === 1 || (ev.button === 0 && app.tool === 'look')) {
+        pan = { sx: p.sx, sy: p.sy };
         view.panStart(p.sx, p.sy);
         cv.classList.add('grab');
 
@@ -67,6 +133,14 @@ function onDown(ev, cv) {
         return;
     }
     const i = ix(p.x, p.y);
+    if (ev.button === 2) {
+        rightClick(p, i);
+
+        return;
+    }
+    if (ev.button !== 0) {
+        return;
+    }
     if (app.tool === 'slap') {
         const e = ownUnitAt(p.sx, p.sy);
         if (e) {
@@ -82,27 +156,20 @@ function onDown(ev, cv) {
 
             return;
         }
-        if (G.held.length && ownPortal(i) && G.held[G.held.length - 1].kind !== 'imp') {
-            dismissHeld(i);
+        // no right button on a touch screen: a tap with creatures in hand drops one
+        if (G.held.length && ev.pointerType !== 'mouse' && G.seen[i]) {
+            drop(i);
 
             return;
         }
-        if (G.held.length && (G.t[i] === CLAIM || ownPortal(i))) {
-            dropHeld(i);
-
-            return;
-        }
-        if (G.held.length && G.seen[i]) {
-            msg('You can only drop creatures on your own territory.', 'dropbad', 'bad');
-
-            return;
-        }
-        app.drag = { mode: G.mark[i] && diggable(i) ? 'unmark' : 'mark', x0: p.x, y0: p.y, x1: p.x, y1: p.y };
+        stroke = { mode: G.mark[i] && diggable(i) ? 'unmark' : 'mark', x: p.x, y: p.y };
+        paintTo(p.x, p.y);
 
         return;
     }
     if (ROOMS[app.tool] || app.tool === 'sell') {
-        app.drag = { mode: String(app.tool), x0: p.x, y0: p.y, x1: p.x, y1: p.y };
+        stroke = { mode: String(app.tool), x: p.x, y: p.y };
+        paintTo(p.x, p.y);
 
         return;
     }
@@ -132,20 +199,13 @@ function onMove(ev, cv) {
         return;
     }
     if (pan) {
-        if (Math.hypot(p.sx - pan.sx, p.sy - pan.sy) > 4) {
-            pan.moved = true;
-        }
-        if (pan.moved) {
-            view.panTo(p.sx, p.sy);
-        }
+        view.panTo(p.sx, p.sy);
 
         return;
     }
-    if (app.drag && p.x >= 0) {
-        app.drag.x1 = Math.max(0, Math.min(W - 1, p.x));
-        app.drag.y1 = Math.max(0, Math.min(H - 1, p.y));
+    if (stroke && !stroke.out && p.x >= 0 && (p.x !== stroke.x || p.y !== stroke.y)) {
+        paintTo(Math.max(0, Math.min(W - 1, p.x)), Math.max(0, Math.min(H - 1, p.y)));
     }
-    updateTip();
 }
 
 function onUp(ev, cv) {
@@ -154,21 +214,59 @@ function onUp(ev, cv) {
         pinch = null;
     }
     if (pan && ptrs.size === 0) {
-        if (!pan.moved && pan.slap && app.running && !G.over) {
-            const e = ownUnitAt(pan.sx, pan.sy);
-            if (e) {
-                slap(e);
-            }
-        }
         pan = null;
         cv.classList.toggle('grab', app.tool === 'look');
     }
-    if (app.drag && ev.type === 'pointerup' && G && !G.over) {
-        applyRect(app.drag.mode, dragRect());
+    if (stroke) {
+        endPaint();
+        stroke = null;
     }
-    app.drag = null;
-    updateTip();
 }
+
+/** The rooms of code `code` you own, one tile per room (connected tiles count as one room). */
+function roomSpots(code) {
+    const seen = new Uint8Array(N);
+    const spots = [];
+    for (let i = 0; i < N; i++) {
+        if (G.room[i] !== code || seen[i]) {
+            continue;
+        }
+        const q = [i];
+        seen[i] = 1;
+        for (let h = 0; h < q.length; h++) {
+            for (const [dx, dy] of N4) {
+                const a = tx(q[h]) + dx;
+                const b = ty(q[h]) + dy;
+                const j = ix(a, b);
+                if (inb(a, b) && !seen[j] && G.room[j] === code) {
+                    seen[j] = 1;
+                    q.push(j);
+                }
+            }
+        }
+        spots.push(q[Math.floor(q.length / 2)]);
+    }
+
+    return spots;
+}
+
+const cycle = {};
+
+/** Moves the camera to the next room of `code` (pressing again cycles through them). */
+function jumpToRoom(code, name) {
+    const spots = roomSpots(code);
+    if (!spots.length) {
+        msg('You have no ' + name + ' yet.', 'noroom' + code);
+
+        return;
+    }
+    cycle[code] = ((cycle[code] ?? -1) + 1) % spots.length;
+    const i = spots[cycle[code]];
+    view.centerOn(tx(i), ty(i));
+}
+
+/** Room jumps as in Dungeon Keeper: key (with Shift?) -> room code. */
+const ROOM_KEYS = { t: [TREAS, false], T: [TRAIN, true], L: [LAIR, true], l: [LIB, false], H: [HATCH, true] };
 
 function onKey(e) {
     if (cheatKey(e.key)) {
@@ -177,50 +275,83 @@ function onKey(e) {
     if (e.target.tagName === 'BUTTON' && (e.key === ' ' || e.key === 'Enter')) {
         return;
     }
-    // Ctrl+C opens the cheats only once they are unlocked and nothing is selected; other modified keys (copy, print, ...) stay the browser's.
-    if (e.ctrlKey || e.metaKey || e.altKey) {
-        if (cheatsUnlocked() && e.ctrlKey && e.key === 'c' && getSelection().isCollapsed) {
+    const k = e.key.toLowerCase();
+    if (e.ctrlKey && !e.metaKey && !e.altKey) {
+        // Ctrl + arrows turn and zoom the view; Ctrl+P goes to your portal; Ctrl+C opens the cheats once unlocked
+        if (k === 'arrowleft' || k === 'arrowright') {
+            e.preventDefault();
+            view.rotate(k === 'arrowleft' ? -1 : 1);
+        } else if (k === 'arrowup' || k === 'arrowdown') {
+            e.preventDefault();
+            view.zoomBy(k === 'arrowup' ? 1.25 : 1 / 1.25);
+        } else if (k === 'p' && G) {
+            e.preventDefault();
+            const p = G.portals.find((q) => G.pown[q]) ?? G.portal;
+            view.centerOn(tx(p), ty(p));
+        } else if (cheatsUnlocked() && k === 'c' && getSelection().isCollapsed) {
             e.preventDefault();
             toggleCheats();
         }
 
         return;
     }
-    const k = e.key.toLowerCase();
+    // other modified keys (copy, print, ...) stay the browser's
+    if (e.metaKey || e.altKey) {
+        return;
+    }
     if (e.key === ' ' || k === 'p') {
         e.preventDefault();
         app.paused = !app.paused;
         syncPause();
     } else if (e.key === 'Escape') {
         setTool('hand');
-        app.drag = null;
-        updateTip();
+        if (stroke) {
+            endPaint();
+            stroke = null;
+        }
         toggleCheats(false);
     } else if (e.key === '`' && cheatsUnlocked()) {
         e.preventDefault();
         toggleCheats();
-    } else if (e.key >= '1' && e.key <= '3') {
-        setSpeed(+e.key);
     } else if (e.key === '+' || e.key === '=') {
-        view.zoomBy(1.25);
+        setSpeed(Math.min(3, app.speed + 1));
     } else if (e.key === '-' || e.key === '_') {
-        view.zoomBy(1 / 1.25);
+        setSpeed(Math.max(1, app.speed - 1));
+    } else if (e.key >= '1' && e.key <= '5') {
+        showTab(['info', 'rooms', 'spells', 'creatures', 'creatures'][+e.key - 1]);
     } else if (k === 'q' || k === 'e') {
         view.rotate(k === 'q' ? -1 : 1);
+    } else if (k === 'm') {
+        view.fit();
+    } else if (G && e.key === 'h') {
+        view.centerOn(G.hx, G.hy);
+    } else if (G && ROOM_KEYS[e.key] && ROOM_KEYS[e.key][1] === e.shiftKey) {
+        const [code] = ROOM_KEYS[e.key];
+        jumpToRoom(code, ROOMS[code].n);
+    } else if (G && k === 'f') {
+        const f = G.ents.find((u) => !u.dead && !u.held && u.state === 'fight' && (u.side === 0 || G.seen[ix(Math.floor(u.x), Math.floor(u.y))]));
+        if (f) {
+            view.centerOn(f.x - 0.5, f.y - 0.5);
+        }
     } else if (['arrowleft', 'arrowright', 'arrowup', 'arrowdown', 'w', 'a', 's', 'd'].includes(k)) {
         e.preventDefault();
         keys.add(k);
     }
 }
 
-/** Scrolls the view with the held arrow / WASD keys. */
+/** Scrolls the view with the held arrow / WASD keys (Shift: faster) or the pointer at the edge of the view. */
 export function keyPan(dt) {
-    if (!keys.size) {
-        return;
+    let right = (keys.has('arrowright') || keys.has('d') ? 1 : 0) - (keys.has('arrowleft') || keys.has('a') ? 1 : 0);
+    let down = (keys.has('arrowdown') || keys.has('s') ? 1 : 0) - (keys.has('arrowup') || keys.has('w') ? 1 : 0);
+    const h = app.hover;
+    if (!right && !down && h.in && !ptrs.size) {
+        const r = document.getElementById('cv').getBoundingClientRect();
+        right = h.sx < EDGE ? -1 : h.sx > r.width - EDGE ? 1 : 0;
+        down = h.sy < EDGE ? -1 : h.sy > r.height - EDGE ? 1 : 0;
     }
-    const right = (keys.has('arrowright') || keys.has('d') ? 1 : 0) - (keys.has('arrowleft') || keys.has('a') ? 1 : 0);
-    const down = (keys.has('arrowdown') || keys.has('s') ? 1 : 0) - (keys.has('arrowup') || keys.has('w') ? 1 : 0);
-    view.panKeys(right, down, dt);
+    if (right || down) {
+        view.panKeys(right, down, dt * (keys.has('shift') ? 2.5 : 1));
+    }
 }
 
 export function initInput() {
@@ -241,7 +372,12 @@ export function initInput() {
         const { sx, sy } = screen(ev, cv);
         view.zoomAt(ev.deltaY < 0 ? 1.15 : 1 / 1.15, sx, sy);
     }, { passive: false });
-    addEventListener('keydown', onKey);
+    addEventListener('keydown', (e) => {
+        if (e.key === 'Shift') {
+            keys.add('shift');
+        }
+        onKey(e);
+    });
     addEventListener('keyup', (e) => keys.delete(e.key.toLowerCase()));
     addEventListener('blur', () => keys.clear());
     document.getElementById('zin').onclick = () => view.zoomBy(1.25);
