@@ -13,7 +13,7 @@ import { animations, clone, modelHeight, ownAnimations } from './models.js';
 
 /** Which clip plays for which activity, per rig. */
 export const CLIPS = {
-    kaykit: { idle: 'Idle_A', guard: 'Idle_B', walk: 'Walking_A', run: 'Running_A', attack: 'Melee_Unarmed_Attack_Punch_A', dig: 'Pickaxing', claim: 'Working_A', reinforce: 'Hammering', train: 'Melee_1H_Attack_Chop', study: 'Use_Item', eat: 'PickUp', sleep: 'Lie_Idle', stun: 'Hit_B', hurt: 'Hit_A', held: 'Jump_Idle', cheer: 'Cheering', die: 'Death_A' },
+    kaykit: { idle: 'Idle_A', guard: 'Idle_B', walk: 'Walking_A', run: 'Running_A', attack: 'Melee_Unarmed_Attack_Punch_A', dig: 'Pickaxing', claim: 'Working_A', reinforce: 'Hammering', train: 'Melee_1H_Attack_Chop', study: 'Use_Item', eat: 'Use_Item', sleep: 'Lie_Idle', stun: 'Hit_B', hurt: 'Hit_A', held: 'Jump_Idle', cheer: 'Cheering', die: 'Death_A' },
     kenney: { idle: 'idle', guard: 'idle', walk: 'walk', run: 'sprint', attack: 'attack-melee-right', dig: 'interact-right', claim: 'interact-right', reinforce: 'interact-right', train: 'attack-melee-left', study: 'interact-left', eat: 'pick-up', sleep: 'sit', stun: 'crouch', hurt: 'crouch', held: 'fall', cheer: 'emote-yes', die: 'die' },
 };
 const ONCE = new Set(['die']);
@@ -95,6 +95,8 @@ function mirrored(clip, file) {
     return out;
 }
 
+/** Seconds a dropped weapon lies on the floor before it fades. */
+const DROP_LIE = 3;
 /** Attack clips play this much faster than modelled: a swing takes about half a second. */
 const ATTACK_SPEED = 1.8;
 /** Ring colour per side: yours (the keeper colour in assets.js), heroes, wanderers. */
@@ -407,6 +409,12 @@ export class Figure {
             model.scale.set(s * w, s, s * w);
             this.attach(model, cfg.right, 'handslot.r');
             this.attach(model, cfg.left, 'handslot.l');
+            // what any unit holds while studying, eating or digging (a pick only when it has no tool of its own)
+            this.attach(model, 'kaykit/spellbook_open.glb', 'handslot.l', 'book');
+            this.attach(model, ASSETS.props.steak, 'handslot.r', 'steak');
+            if (!this.items.some((item) => item.use === 'tool')) {
+                this.attach(model, 'pickaxe', 'handslot.r', 'pickaxe');
+            }
             this.mixer = new THREE.AnimationMixer(model);
             const clips = cfg.rig === 'kaykit' ? animations('Rig_Medium') : ownAnimations(cfg.model);
             // a unit's own `clips` (assets.js) replace the defaults: an archer shoots, a warlock casts
@@ -443,16 +451,19 @@ export class Figure {
         this.opacity = 1;
     }
 
-    attach(model, file, bone) {
+    /** Puts a model in a hand: the unit's own weapon or tool, or (`prop`) something it only holds for one activity. */
+    attach(model, file, bone, prop = null) {
         if (!file) {
             return;
         }
         const slot = byName(model, bone);
         const w = file === 'whip' ? makeWhip() : file === 'pickaxe' || file === 'mattock' ? makeTool(file) : clone(file);
         if (slot && w) {
+            const materials = [];
             w.traverse((o) => {
                 if (o.isMesh) {
                     o.material = o.material.clone();
+                    materials.push(o.material);
                     this.materials.push(o.material);
                 }
             });
@@ -462,16 +473,47 @@ export class Figure {
             if (bone === 'handslot.r') {
                 w.rotation.y = Math.PI;
             }
-            w.rotation.y += THREE.MathUtils.degToRad(this.cfg.turn?.[bone === 'handslot.r' ? 'right' : 'left'] ?? 0);
+            const hand = bone === 'handslot.r' ? 'right' : 'left';
+            if (prop) {
+                const how = PROPS[prop];
+                w.rotation.set(...how.turn);
+                w.scale.setScalar(how.scale);
+            } else {
+                w.rotation.y += THREE.MathUtils.degToRad(this.cfg.turn?.[hand] ?? 0);
+            }
             slot.add(w);
-            const use = file === 'pickaxe' || file === 'mattock' ? 'tool' : file.includes('spellbook') ? 'book' : 'weapon';
-            this.items.push({ object: w, use });
+            const use = prop ?? (file === 'pickaxe' || file === 'mattock' ? 'tool' : 'weapon');
+            this.items.push({ object: w, use, hand, prop, materials });
         }
+    }
+
+    /**
+     * Death: the unit lets go of what it holds (not the props). Each item keeps its place in the world,
+     * falls beside the body and lies flat; `Units.updateDrops()` moves it and fades it out.
+     */
+    dropItems(scene) {
+        const out = [];
+        for (const item of this.items) {
+            if (item.prop) {
+                continue;
+            }
+            item.object.visible = true;
+            for (const m of item.materials) {
+                this.materials.splice(this.materials.indexOf(m), 1);
+            }
+            scene.attach(item.object);
+            const yaw = Math.random() * Math.PI * 2;
+            const flat = new THREE.Quaternion().setFromEuler(new THREE.Euler(Math.PI / 2, yaw, 0, 'YXZ'));
+            out.push({ object: item.object, materials: item.materials, vy: 0.6, vx: Math.sin(yaw) * 0.5, vz: Math.cos(yaw) * 0.5, flat, t: 0 });
+        }
+        this.items = this.items.filter((item) => item.prop);
+
+        return out;
     }
 
     play(what, timeScale = 1) {
         for (const item of this.items) {
-            item.object.visible = itemShown(item.use, what);
+            item.object.visible = itemShown(item, what);
         }
         const a = this.actions[what] || this.actions.idle;
         if (!a || a === this.current) {
@@ -533,19 +575,33 @@ export class Figure {
 }
 
 /**
- * Is a held item in view during this activity? Weapons only while fighting (and training, which is mock
- * fighting), the pick or mattock while digging or reinforcing, a book while studying. Otherwise the
- * hands are empty.
+ * The props a unit holds for one activity, in place of its own things: an open book to study, a steak
+ * to eat, a pick to dig (units with a tool of their own dig with that). `turn` (radians) and `scale` fit
+ * the model in the hand.
  */
-function itemShown(use, what) {
-    if (use === 'tool') {
-        return ['dig', 'reinforce', 'attack', 'train'].includes(what);
+const PROPS = {
+    book: { during: 'study', turn: [0, 0, 0], scale: 1 },
+    steak: { during: 'eat', turn: [Math.PI / 2, 0, 0], scale: 0.45 },
+    pickaxe: { during: 'dig', turn: [0, Math.PI, 0], scale: 1 },
+};
+
+/**
+ * Is a held item in view during this activity? A unit always holds its own weapon, shield or tool,
+ * except asleep (a death drops it, see `dropItems()`) and while it studies, eats or digs:
+ * then it holds that activity's prop instead (a unit's own tool stays in hand for digging).
+ */
+function itemShown(item, what) {
+    if (item.prop) {
+        return PROPS[item.prop].during === what;
     }
-    if (use === 'book') {
-        return what === 'study';
+    if (what === 'sleep' || what === 'study' || what === 'eat') {
+        return false;
+    }
+    if (what === 'dig') {
+        return item.use === 'tool';
     }
 
-    return what === 'attack' || what === 'train';
+    return true;
 }
 
 /** What a unit is doing, as an animation name. */
@@ -586,6 +642,8 @@ export class Units {
         this.scene = scene;
         this.figures = new Map();
         this.dying = [];
+        /** Weapons dropped by the dead, lying on the floor until they fade. */
+        this.drops = [];
         this.seenFx = new WeakSet();
     }
 
@@ -715,7 +773,41 @@ export class Units {
             }
             f.mixer?.update(dt);
             f.animateBuiltIn('die', fx.t);
+            // let go of the weapon once the fall has begun (the hand is then where the death put it)
+            if (!f.dropped && fx.t > 0.15) {
+                f.dropped = true;
+                this.drops.push(...f.dropItems(this.scene));
+            }
             f.setOpacity(Math.max(0, 1 - Math.max(0, fx.t / fx.dur - 0.5) * 2));
+
+            return true;
+        });
+        this.updateDrops(dt);
+    }
+
+    /** Dropped weapons fall beside the body, lie flat for DROP_LIE seconds, then fade out. */
+    updateDrops(dt) {
+        this.drops = this.drops.filter((d) => {
+            d.t += dt;
+            const o = d.object;
+            if (o.position.y > 0.03 || d.vy > 0) {
+                d.vy -= 9 * dt;
+                o.position.x += d.vx * dt;
+                o.position.z += d.vz * dt;
+                o.position.y = Math.max(0.03, o.position.y + d.vy * dt);
+            }
+            o.quaternion.slerp(d.flat, Math.min(1, dt * 8));
+            const fade = Math.max(0, Math.min(1, (d.t - DROP_LIE) / 0.5));
+            for (const m of d.materials) {
+                m.transparent = fade > 0;
+                m.opacity = 1 - fade;
+                m.depthWrite = fade === 0;
+            }
+            if (fade >= 1) {
+                this.scene.remove(o);
+
+                return false;
+            }
 
             return true;
         });
@@ -738,6 +830,10 @@ export class Units {
             f.dispose(this.scene);
         }
         this.figures.clear();
+        for (const d of this.drops) {
+            this.scene.remove(d.object);
+        }
+        this.drops = [];
         app.hover.unit = null;
     }
 }

@@ -6,7 +6,7 @@
  *     node underlord/tools/import-models.mjs
  *
  * The packs (all CC0): Kenney Mini Dungeon, Modular Dungeon Kit and Modular Cave Kit (kenney.nl),
- * KayKit Adventurers 2.0, Block Bits 1.0 and Character Animations 1.1 (kaylousberg.itch.io). See
+ * KayKit Adventurers 2.0, Block Bits 1.0, Restaurant Bits 1.0 and Character Animations 1.1 (kaylousberg.itch.io). See
  * underlord/src/assets/README.md.
  *
  * Animation files keep only the clips listed in ANIMATIONS, and no mesh: the game plays them on its own
@@ -23,6 +23,7 @@ const DUNGEON = 'Kenney/kenney_modular-dungeon-kit_1.0/Models/GLB format';
 const CAVE = 'Kenney/kenney_modular-cave-kit_1.0/Models/GLB format';
 const KAYKIT = 'KayKit/KayKit_Adventurers_2.0_FREE';
 const BLOCKS = 'KayKit/KayKit_BlockBits_1.0_FREE/Assets/gltf';
+const RESTAURANT = 'KayKit/KayKit_Restaurant_Bits_1.0_FREE/Assets/gltf';
 const ANIMS = 'KayKit/KayKit_Character_Animations_1.1/Animations/gltf/Rig_Medium';
 
 /** The Rig_Medium clips the game plays (see CLIPS in src/render/units.js and `clips` in src/config/assets.js), per file. */
@@ -47,6 +48,7 @@ const MODELS = [
         .map((name) => [`blocks/${name}.glb`, `${BLOCKS}/${name}.gltf`]),
     ...['Barbarian', 'Knight', 'Mage', 'Ranger', 'Rogue', 'Rogue_Hooded']
         .map((name) => [`kaykit/${name}.glb`, `${KAYKIT}/Characters/gltf/${name}.glb`]),
+    ['kaykit/steak.glb', `${RESTAURANT}/food_ingredient_steak.gltf`],
     ...['sword_1handed', 'sword_2handed_color', 'shield_badge_color', 'bow_withString', 'staff', 'axe_1handed', 'dagger', 'spellbook_open']
         .map((name) => [`kaykit/${name}.glb`, `${KAYKIT}/Assets/gltf/${name}.gltf`]),
 ];

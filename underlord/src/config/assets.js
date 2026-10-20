@@ -246,6 +246,8 @@ export default {
         table: 'mini/table.glb',
         chair: 'mini/chair.glb',
         potion: 'mini/potion.glb',
+        /** Held while eating (KayKit Restaurant Bits). */
+        steak: 'kaykit/steak.glb',
         banner: 'mini/banner.glb',
         heartColumn: 'dungeon/template-detail.glb',
         portalArch: 'cave/gate.glb',
