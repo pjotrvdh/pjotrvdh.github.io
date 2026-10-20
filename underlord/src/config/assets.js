@@ -73,7 +73,6 @@ export default {
         warlock: {
             clips: {
                 attack: 'Ranged_Magic_Shoot',
-                study: 'Ranged_Magic_Spellcasting',
             },
             model: 'kaykit/Rogue_Hooded.glb',
             rig: 'kaykit',

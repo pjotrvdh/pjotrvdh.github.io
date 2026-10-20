@@ -13,7 +13,7 @@ import { animations, clone, modelHeight, ownAnimations } from './models.js';
 
 /** Which clip plays for which activity, per rig. */
 export const CLIPS = {
-    kaykit: { idle: 'Idle_A', guard: 'Idle_B', walk: 'Walking_A', run: 'Running_A', attack: 'Melee_Unarmed_Attack_Punch_A', dig: 'Pickaxing', claim: 'Working_A', reinforce: 'Hammering', train: 'Melee_1H_Attack_Chop', study: 'Use_Item', eat: 'Use_Item', sleep: 'Lie_Idle', stun: 'Hit_B', hurt: 'Hit_A', held: 'Jump_Idle', cheer: 'Cheering', die: 'Death_A' },
+    kaykit: { idle: 'Idle_A', guard: 'Idle_B', walk: 'Walking_A', run: 'Running_A', attack: 'Melee_Unarmed_Attack_Punch_A', dig: 'Pickaxing', claim: 'Working_A', reinforce: 'Hammering', train: 'Melee_1H_Attack_Chop', study: 'Holding_A', eat: 'Use_Item', sleep: 'Lie_Idle', stun: 'Hit_B', hurt: 'Hit_A', held: 'Jump_Idle', cheer: 'Cheering', die: 'Death_A' },
     kenney: { idle: 'idle', guard: 'idle', walk: 'walk', run: 'sprint', attack: 'attack-melee-right', dig: 'interact-right', claim: 'interact-right', reinforce: 'interact-right', train: 'attack-melee-left', study: 'interact-left', eat: 'pick-up', sleep: 'sit', stun: 'crouch', hurt: 'crouch', held: 'fall', cheer: 'emote-yes', die: 'die' },
 };
 const ONCE = new Set(['die']);
@@ -580,7 +580,7 @@ export class Figure {
  * the model in the hand.
  */
 const PROPS = {
-    book: { during: 'study', turn: [0, Math.PI, 0], scale: 1 },
+    book: { during: 'study', turn: [0, 0, 0], scale: 1 },
     steak: { during: 'eat', turn: [Math.PI / 2, 0, 0], scale: 0.45 },
     pickaxe: { during: 'dig', turn: [0, Math.PI, 0], scale: 1 },
 };
