@@ -4,11 +4,11 @@
  */
 import { HATCH, LIB, TRAIN, tx, ty, words } from './constants.js';
 import { CFG, ECON, KINDS, WAVES } from './config.js';
-import { creatureThink, payday, tryAttract } from './creatures.js';
+import { collect, creatureThink, payday, tryAttract } from './creatures.js';
 import { cpuTick } from './cpu.js';
 import { addGold, arrive, gainXP, go, hasBed, leave, release, research, spawn, step, toPool } from './entities.js';
 import { fight, heartFoe, joy, kill, march, nearestEnemy } from './combat.js';
-import { doClaim, doDig, doReinforce, impThink } from './imps.js';
+import { doClaim, doDig, doReinforce, impThink, pickUpPile } from './imps.js';
 import { newGame, vision } from './map.js';
 import { bfs } from './path.js';
 import { loadGame } from './save.js';
@@ -162,6 +162,21 @@ function tick(e, dt) {
             }
             e.hp = Math.min(e.maxhp, e.hp + e.maxhp * 0.06 * dt);
             if (e.hp >= e.maxhp) {
+                e.state = 'think';
+            }
+            break;
+        case 'pickup':
+            if ((e.timer -= dt) <= 0) {
+                pickUpPile(e);
+            }
+            break;
+        case 'collect':
+            if ((e.timer -= dt) <= 0) {
+                collect(e);
+            }
+            break;
+        case 'cheer':
+            if ((e.timer -= dt) <= 0) {
                 e.state = 'think';
             }
             break;

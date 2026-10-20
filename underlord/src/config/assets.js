@@ -238,6 +238,10 @@ export default {
     props: {
         chest: 'mini/chest.glb',
         coin: 'mini/coin.glb',
+        /** Stacks of coins in the Treasury, more and bigger as it fills (KayKit Dungeon Pack 1.1). */
+        coinsSmall: 'kaykit/coin_stack_small.glb',
+        coinsMedium: 'kaykit/coin_stack_medium.glb',
+        coinsLarge: 'kaykit/coin_stack_large.glb',
         dummy: 'mini/wood-support.glb',
         shield: 'mini/shield-round.glb',
         sword: 'mini/weapon-sword.glb',

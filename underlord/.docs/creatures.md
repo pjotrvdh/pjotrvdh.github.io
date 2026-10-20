@@ -61,7 +61,7 @@ Enemy scanning in `tick()` interrupts all of this: see [combat](combat.md).
 
 ## Wages and leaving
 
-- `payday()` ([rules](rules.md)): pays `wage(k) = round(wage * economy.wageMul)` per creature in `G.ents` order while gold lasts; the others `leave(e, 'unpaid')`. Leaving creatures are skipped.
+- `payday()` ([rules](rules.md)): adds `wage(k) = round(wage * economy.wageMul)` to each creature's `payDue` (saved) and sends idle, walking, studying and training ones back to `think`. `creatureThink()` then (after Call to Arms, before anything else) walks it to the nearest Treasury tile, or next to the Heart without a Treasury (`collect` state, `COLLECT_TIME`); with no path it collects where it stands. `collect()` takes the gold and sets `cheer` (`CHEER_TIME`, the cheering clip), or `leave(e, 'unpaid')` when the gold is short. Leaving creatures are skipped.
 - `leave(e, why)`: sets `e.leaving = why` (saved), message, then `headOut(e)`: BFS to an own portal; state `leave` walks there and then the creature is removed with `toPool()`. With no reachable own portal it vanishes immediately. A held creature heads out once dropped.
 - `e.leaving` is permanent: `creatureThink()` calls `headOut()` first, so a drop or a reload only delays the walk. A dropped leaving creature gets no room job.
 - While leaving it does not scan for enemies, is not paid or counted in the wage total, ignores Call to Arms and is skipped by the assistant's Move; the starving check is skipped (hunger still rises).

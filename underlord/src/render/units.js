@@ -679,6 +679,8 @@ function activityOf(e, moving) {
             return 'train';
         case 'study':
             return 'study';
+        case 'cheer':
+            return 'cheer';
         case 'stun':
             return 'stun';
         case 'guard':

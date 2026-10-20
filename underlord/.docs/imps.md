@@ -20,6 +20,7 @@ description: Imp AI in Underlord (impThink): digging, gold hauling, claiming, re
 Runs from state `think`. First `release(e)` drops any reservation. `full = G.money >= cap()`.
 
 1. Carrying >= 100 and not full: walk to the nearest `depositGoal` tile (Treasury tile or walkable tile next to the Heart) -> `deposit`.
+   - After an adjacent claim (step 2), not full and pocket not full: a gold pile (`G.pile`) within 20 steps -> walk onto it (`pickup`, 0.3 s; `pickUpPile()` takes as much as the pocket holds).
 2. Claim nearby: a `FLOOR` tile or unowned `PORTAL`, not reserved, next to a `CLAIM` tile, path length <= 2 -> reserve it, `claim` with 1.2 s.
 3. Dig: nearest walkable tile next to a marked diggable block (`digTarget()`), -> reserve the block, `dig` with 0.15 s first hit.
    - `allowGold = !(full && carry >= 100)`: when full and loaded, only marked `EARTH` counts (no gold, gem or wall).
@@ -34,9 +35,9 @@ Runs from state `think`. First `release(e)` drops any reservation. `full = G.mon
 
 - `doDig()` — hit every 0.38 s (timer runs 1.25x faster while slapped). Aborts to `think` if the block is unmarked, no longer diggable or not adjacent.
   - `EARTH` / `WALL`: `G.hp[j]--`; at 0 `openTile(j)`.
-  - `GOLD`: takes `min(20, G.gold[j])` into `carry`; opens when the seam is empty (300 -> 15 hits).
+  - `GOLD`: takes `min(20, G.gold[j])` into `carry`; opens when the seam is empty (300 -> 15 hits). Above `IMP_POCKET` (100) the rest drops in a pile on the imp's tile (`G.pile`, saved), and the imp keeps mining the seam out (unless the treasuries are full).
   - `GEM`: `carry += 20`, never opens.
-  - Stops to `think` at `carry >= 100` unless full and digging earth (then it keeps digging earth).
+  - Stops to `think` at `carry >= 100`: on gold only when the treasuries are full; on earth and walls unless full (then it keeps digging earth).
 - `doClaim()` — after 1.2 s on the tile, if a neighbour is `CLAIM`: `PORTAL` -> `G.pown[i]=1` and the "portal is yours" message; `FLOOR` -> `CLAIM`.
 - `doReinforce()` — must stand on `CLAIM` next to the earth; a step every 0.5 s; after 5 steps the earth becomes `WALL` with `G.hp = WALL_HP`. Aborts (and resets the step count) if the tile gets marked or changes.
 - `arrive()` with `deposit`: `addGold(carry)`; leftover stays in `carry` with "Your treasuries are full. Build more."

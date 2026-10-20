@@ -45,6 +45,18 @@ export const depositGoal = (i) => walk(i) && (G.room[i] === TREAS || adjHeart(i)
 
 const claimable = (i) => (G.t[i] === FLOOR || (G.t[i] === PORTAL && !G.pown[i])) && !G.res.has(i) && nb(i, (j) => G.t[j] === CLAIM) >= 0;
 
+/** How much gold an imp carries before it hauls it to a Treasury. */
+export const IMP_POCKET = 100;
+
+/** Picks up gold from the pile on this tile, as much as the pocket holds. */
+export function pickUpPile(e) {
+    const i = ti(e);
+    const a = Math.min(G.pile[i], IMP_POCKET - e.carry);
+    G.pile[i] -= a;
+    e.carry += a;
+    e.state = 'think';
+}
+
 export function impThink(e) {
     release(e);
     const here = ti(e);
@@ -65,6 +77,15 @@ export function impThink(e) {
         go(e, p, 'claim', 1.2);
 
         return;
+    }
+    // gold lying around (dropped by a full imp at a seam): pick it up while the pocket has room
+    if (!full && e.carry < IMP_POCKET) {
+        p = bfs(here, (i) => G.pile[i] > 0, 1, walk, 20);
+        if (p) {
+            go(e, p, 'pickup', 0.3);
+
+            return;
+        }
     }
     const allowGold = !(full && e.carry >= 100);
     p = bfs(here, (i) => digTarget(i, allowGold) >= 0);
@@ -141,6 +162,11 @@ export function doDig(e, dt) {
         const g = Math.min(20, G.gold[j]);
         G.gold[j] -= g;
         e.carry += g;
+        // a full pocket does not stop the mining: the rest falls in a pile at the imp's feet
+        if (e.carry > IMP_POCKET) {
+            G.pile[ti(e)] += e.carry - IMP_POCKET;
+            e.carry = IMP_POCKET;
+        }
         if (G.gold[j] <= 0) {
             openTile(j);
         }
@@ -148,7 +174,9 @@ export function doDig(e, dt) {
         e.carry += 20;
     }
     fx({ type: 'dust', x: (e.x + tx(j) + 0.5) / 2, y: (e.y + ty(j) + 0.5) / 2, dur: 0.35, col: t === EARTH ? '#8a6446' : t === WALL ? '#9a8a80' : '#f2cb55' });
-    if (e.carry >= 100 && (G.money < cap() || t !== EARTH)) {
+    // full: haul it (earth and walls), or for gold keep mining the seam out unless the treasuries are full
+    const full = G.money >= cap();
+    if (e.carry >= IMP_POCKET && (t === GOLD ? full : !full || t !== EARTH)) {
         e.state = 'think';
     }
 }

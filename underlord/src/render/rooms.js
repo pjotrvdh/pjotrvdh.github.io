@@ -22,7 +22,7 @@ export class Rooms {
         scene.add(this.group);
         const P = ASSETS.props;
         this.trim = new Instances(this.group, [{ geometry: new THREE.BoxGeometry(1, 0.05, 0.07), material: std('#ffffff', { emissive: '#222222' }) }]);
-        this.coins = new Instances(this.group, P.coin);
+        this.coins = [P.coinsSmall, P.coinsMedium, P.coinsLarge].map((file) => new Instances(this.group, file));
         this.nests = new Instances(this.group, [{ geometry: new THREE.TorusGeometry(0.27, 0.09, 5, 10).rotateX(Math.PI / 2), material: std('#9a7a3e') }]);
         this.nestBeds = new Instances(this.group, [{ geometry: new THREE.CylinderGeometry(0.24, 0.24, 0.04, 10), material: std('#3a2a20') }]);
         this.flags = new Instances(this.group, [{ geometry: new THREE.SphereGeometry(0.07, 8, 6), material: std('#ffffff', { emissive: '#333333' }) }]);
@@ -82,7 +82,7 @@ export class Rooms {
     }
 
     rebuild() {
-        const parts = [this.trim, this.coins, this.nests, this.nestBeds, this.flags, this.straw, this.dummies, this.shields, this.swords, this.spears, this.tables, this.chairs, this.potions, this.shelves, this.books, this.banners];
+        const parts = [this.trim, ...this.coins, this.nests, this.nestBeds, this.flags, this.straw, this.dummies, this.shields, this.swords, this.spears, this.tables, this.chairs, this.potions, this.shelves, this.books, this.banners];
         for (const p of parts) {
             p.begin();
         }
@@ -109,9 +109,14 @@ export class Rooms {
                 this.trim.add(place(x + 0.5 + dx * 0.46, 0.04, y + 0.5 + dy * 0.46, dx ? Math.PI / 2 : 0, 1, m), col);
             }
             if (r === TREAS) {
-                const n = Math.round(fill * 5);
+                // flat coin stacks: up to four per tile, bigger as the Treasury fills (a tile's own share
+                // of the gold varies a little, so the room does not look stamped)
+                const share = Math.max(0, Math.min(1, fill * (0.8 + 0.4 * h(50))));
+                const n = share > 0 ? 1 + Math.floor(share * 3.99) : 0;
+                const size = share < 0.35 ? 0 : share < 0.7 ? 1 : 2;
                 for (let k = 0; k < n; k++) {
-                    this.coins.add(place(x + 0.25 + h(k + 30) * 0.5, 0, y + 0.25 + h(k + 40) * 0.5, h(k) * 6, 0.45 + 0.25 * fill, m));
+                    const s = Math.max(0, size - (k % 2));
+                    this.coins[s].add(place(x + 0.27 + (k % 2) * 0.46 + (h(k + 30) - 0.5) * 0.08, 0, y + 0.27 + Math.floor(k / 2) * 0.46 + (h(k + 40) - 0.5) * 0.08, h(k) * 6, [0.3, 0.27, 0.2][s], m));
                 }
             } else if (r === LAIR) {
                 if (beds.has(i)) {

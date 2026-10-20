@@ -406,6 +406,11 @@ const cheatList = () => [
 
         return app.wavesHeld ? 'wave countdown paused' : 'wave countdown resumed';
     }],
+    ['Payday now', () => {
+        G.payT = 0;
+
+        return 'payday called';
+    }],
     ['Defeat heroes', () => {
         let n = 0;
         for (const e of G.ents) {

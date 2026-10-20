@@ -80,6 +80,7 @@ export class Terrain {
         this.claimed = new Instances(this.group, A.claimed);
         this.lava = new Instances(this.group, A.lava);
         this.chests = new Instances(this.group, ASSETS.props.chest);
+        this.piles = [ASSETS.props.coinsSmall, ASSETS.props.coinsMedium, ASSETS.props.coinsLarge].map((file) => new Instances(this.group, file));
         const markMaterial = new THREE.MeshBasicMaterial({ map: markTexture(), transparent: true, depthWrite: false });
         this.marks = new Instances(this.group, [{ geometry: new THREE.PlaneGeometry(0.96, 0.96).rotateX(-Math.PI / 2), material: markMaterial }], { renderOrder: 12 }); // after the clouds (10), so marks show through them
         // your colour (assets.js `keeper`): an inlaid emblem on claimed tiles and a jewel on reinforced walls
@@ -102,7 +103,7 @@ export class Terrain {
         let s = 0;
         for (let i = 0; i < N; i++) {
             const t = G.t[i];
-            s = (Math.imul(s, 31) + (t | (G.room[i] ? 16 : 0) | G.mark[i] << 5 | G.seen[i] << 6 | (G.loot[i] > 0) << 7 | (t === WALL ? G.hp[i] << 8 : 0))) | 0;
+            s = (Math.imul(s, 31) + (t | (G.room[i] ? 16 : 0) | G.mark[i] << 5 | G.seen[i] << 6 | (G.loot[i] > 0) << 7 | Math.min(3, Math.ceil(G.pile[i] / 100)) << 9 | (t === WALL ? G.hp[i] << 8 : 0))) | 0;
         }
 
         return s + '|' + G.portals.join(',');
@@ -118,7 +119,7 @@ export class Terrain {
     }
 
     rebuild() {
-        const parts = [...Object.values(this.blocks), this.floor, this.claimed, this.lava, this.chests, this.marks, this.emblems, this.jewels];
+        const parts = [...Object.values(this.blocks), this.floor, this.claimed, this.lava, this.chests, ...this.piles, this.marks, this.emblems, this.jewels];
         for (const p of parts) {
             p.begin();
         }
@@ -162,6 +163,11 @@ export class Terrain {
             } else if (t === FLOOR || t === GATE || t === PORTAL) {
                 col.copy(WHITE).multiplyScalar(0.9 + 0.15 * hash(x, y, 1));
                 this.floor.add(place(x + 0.5, -TOP / 2, y + 0.5, turn, BLOCK, m), col);
+            }
+            // gold dropped at a seam, waiting for an imp: a bigger stack for more
+            if (G.pile[i] > 0) {
+                const size = G.pile[i] < 100 ? 0 : G.pile[i] < 200 ? 1 : 2;
+                this.piles[size].add(place(x + 0.5, 0, y + 0.5, hash(x, y, 9) * 6, [0.3, 0.27, 0.2][size], m));
             }
             if (G.loot[i] > 0) {
                 this.chests.add(place(x + 0.5, 0, y + 0.5, hash(x, y, 8) * 6.28, 1.1, m));

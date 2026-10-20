@@ -40,12 +40,12 @@ description: Underlord's 3D view (three.js: camera, picking, terrain, rooms, uni
 - Unseen tiles draw nothing (the clouds cover them), except dig marks, which float above the clouds and are drawn after them (render order 12, clouds 10), so a marked area stays visible through the shroud.
 - Blocks (KayKit Block Bits, `assets.js` `tiles`; 2 units on a side, `BLOCK` = 0.5 scale is one tile), each turned a random quarter: solid tiles are full blocks `TOP` high (earth `dirt`, gold `stone_with_gold`, gems `stone_with_silver`, rock `stone_dark`, reinforced walls `bricks_A`), shaded per type (`SHADE`: earth darker, so walls and floors read apart from above). Reinforced walls darken as they are damaged and carry a keeper-coloured jewel (`jewels`). A block in the inner corner of a reinforced wall (`wallCorner()`: diagonal to open ground, reinforced walls on both sides) is drawn as reinforced too, although imps never reinforce it.
 - Open tiles are a block sunk to floor level: `gravel` for unclaimed ground, gate and portal; `bricks_B` (a tile on top) for claimed ground, the Heart and rooms, tinted with the keeper colour (`assets.js` `keeper`) or the room colour; every claimed tile outside rooms has an inlaid keeper emblem (`emblems`). Lava (older saves only) is a sunk `lava` block.
-- Chests (Mini Dungeon) on tiles with `G.loot`.
+- Chests (Mini Dungeon) on tiles with `G.loot`; gold piles (`G.pile`, gold dropped by a full imp at a seam) as a KayKit coin stack, bigger for more.
 
 ## Rooms (`rooms.js`)
 
 - Rebuilt when rooms, the Treasury fill (tenths) or the set of claimed beds change.
-- A trim in the room colour along each room's outline. Treasury: coins, more and bigger as it fills. Lair: a straw nest on each claimed bed, with a ball in the owner's colour. Hatchery: straw and chickens (animated every frame). Training Room: wooden posts with shields on a checkerboard, and swords or spears. Library: bookshelves (built in code), tables with chairs and potions, banners.
+- A trim in the room colour along each room's outline. Treasury: flat coin stacks (KayKit Dungeon Pack 1.1 `coin_stack_small/medium/large`), up to four per tile, more and bigger as it fills. Lair: a straw nest on each claimed bed, with a ball in the owner's colour. Hatchery: straw and chickens (animated every frame). Training Room: wooden posts with shields on a checkerboard, and swords or spears. Library: bookshelves (built in code), tables with chairs and potions, banners.
 
 ## Landmarks (`specials.js`)
 
@@ -100,7 +100,7 @@ description: Underlord's 3D view (three.js: camera, picking, terrain, rooms, uni
 ## Cheats
 
 - Typing `iliketocheat` unlocks the Cheats panel (`cheatKey()` in `ui.js`); keys that continue the code from its third letter on are swallowed, so its E's do not turn the view. Not stored: a reload locks it again.
-- `cheatList()`: +500 / +5000 gold, Reveal map, Finish research, Restore Heart, Free imp, + Orc / Warlock / Troll / Dark Mistress (at an owned portal, or next to the Heart without one; ignoring pool and limit), Level up all, Next wave now, Pause / Resume waves (toggles `app.wavesHeld`: the wave countdown in `update()` stands still and the HUD adds `(paused)`; not saved, a reload clears it), Defeat heroes. A cheat label can be a function, re-read after each click.
+- `cheatList()`: +500 / +5000 gold, Reveal map, Finish research, Restore Heart, Free imp, + Orc / Warlock / Troll / Dark Mistress (at an owned portal, or next to the Heart without one; ignoring pool and limit), Level up all, Next wave now, Payday now (`G.payT = 0`), Pause / Resume waves (toggles `app.wavesHeld`: the wave countdown in `update()` stands still and the HUD adds `(paused)`; not saved, a reload clears it), Defeat heroes. A cheat label can be a function, re-read after each click.
 
 ## Gotchas
 

@@ -2,12 +2,12 @@
  * Your creatures: what they do when idle (creatureThink()), arriving through portals (tryAttract())
  * and getting paid (payday()).
  */
-import { CLAIM, HATCH, LAIR, LIB, TRAIN, rand, tx, ty } from './constants.js';
+import { CLAIM, HATCH, LAIR, LIB, TRAIN, TREAS, rand, tx, ty } from './constants.js';
 import { ATTRACT, KINDS, PORTAL_LIMIT, wage } from './config.js';
 import { creatures, go, headOut, leave, release, spawn, toBed } from './entities.js';
 import { bfs } from './path.js';
 import { G } from './state.js';
-import { frontier, ti, walk } from './tiles.js';
+import { adjHeart, frontier, ti, walk } from './tiles.js';
 import { msg } from './ui.js';
 import { fx } from './world.js';
 
@@ -27,6 +27,17 @@ export function creatureThink(e) {
 
             return;
         }
+    }
+    // payday: go and collect the wage at a Treasury (or the Heart, which holds gold too, without one)
+    if (e.payDue > 0) {
+        p = bfs(here, (i) => (G.rc[TREAS] ? G.room[i] === TREAS : adjHeart(i)), 6);
+        if (p) {
+            go(e, p, 'collect', COLLECT_TIME);
+        } else {
+            collect(e);
+        }
+
+        return;
     }
     if (e.hp < e.maxhp * 0.5) {
         p = toBed(e);
@@ -114,24 +125,48 @@ export function tryAttract() {
     msg('A ' + KINDS[k].n + ' steps through the portal.', 'arr' + e.id, 'good');
 }
 
+/** Seconds a creature spends at the Treasury collecting its wage, and cheering afterwards. */
+const COLLECT_TIME = 0.8;
+const CHEER_TIME = 2.2;
+
+/**
+ * Payday: every creature (not imps, not those leaving) is owed its wage (`e.payDue`). It walks to a
+ * Treasury, or to the Heart without one, and collects it there (`collect()`); a wage still unpaid at
+ * the next payday adds up.
+ */
 export function payday() {
-    let paid = 0;
-    let gone = 0;
+    let due = 0;
     for (const e of creatures()) {
         if (e.leaving) {
             continue;
         }
-        const w = wage(e.kind);
-        if (G.money >= w) {
-            G.money -= w;
-            paid += w;
-            fx({ type: 'text', x: e.x, y: e.y - 0.4, dur: 1, txt: '-' + w, col: '#e3b23c' });
-        } else {
-            gone++;
-            leave(e, 'unpaid');
+        e.payDue = (e.payDue || 0) + wage(e.kind);
+        due += wage(e.kind);
+        if (!e.held && ['idle', 'walk', 'study', 'train', 'think'].includes(e.state)) {
+            e.state = 'think';
         }
     }
-    if (paid || gone) {
-        msg('Payday: ' + paid + ' gold paid out' + (gone ? ', ' + gone + ' went unpaid.' : '.'), 'pay' + G.time, gone ? 'bad' : '');
+    if (due) {
+        msg('Payday: your creatures go to collect ' + due + ' gold' + (G.rc[TREAS] ? ' from the Treasury.' : ' from your Heart.'), 'pay' + G.time);
+    }
+}
+
+/** A creature takes its wage: paid, it cheers; with too little gold it leaves, unpaid. */
+export function collect(e) {
+    const w = e.payDue || 0;
+    e.payDue = 0;
+    if (!w) {
+        e.state = 'think';
+
+        return;
+    }
+    if (G.money >= w) {
+        G.money -= w;
+        fx({ type: 'text', x: e.x, y: e.y - 0.4, dur: 1, txt: '-' + w, col: '#e3b23c' });
+        e.state = 'cheer';
+        e.timer = CHEER_TIME;
+    } else {
+        msg('A ' + KINDS[e.kind].n + ' found too little gold for its wage and leaves.', 'unpaid' + e.id, 'bad');
+        leave(e, 'unpaid');
     }
 }

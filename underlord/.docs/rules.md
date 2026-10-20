@@ -32,7 +32,7 @@ description: Underlord's rules as the player experiences them (goal, gold, rooms
 ## Paydays and wages
 
 - Every `economy.js` `payInterval` (180 s, first one 180 s in) `payday()` runs.
-- Each creature (imps excluded, creatures already leaving skipped) is paid `round(wage * wageMul)` (`creatures/*.js` `wage`, `economy.js` `wageMul`) in entity order. A creature that cannot be paid leaves ("unpaid"). Details: [creatures](creatures.md).
+- Each creature (imps excluded, creatures already leaving skipped) is owed `round(wage * wageMul)` (`creatures/*.js` `wage`, `economy.js` `wageMul`) as `e.payDue`. It walks to a Treasury (or next to the Heart without one) and collects it there (`collect()`); paid, it cheers. If there is too little gold when it arrives, it leaves ("unpaid"). A wage not yet collected at the next payday adds up. Details: [creatures](creatures.md).
 - The HUD Payday stat shows the countdown and the total due; it turns red when due > gold.
 
 ## Digging, claiming, walls
