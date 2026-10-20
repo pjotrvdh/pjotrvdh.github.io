@@ -72,7 +72,7 @@ description: Underlord's 3D view (three.js: camera, picking, terrain, rooms, uni
 
 ## Panel and HUD (`underlord/index.html`, `game/ui.js`, `ui()` every 0.2 s)
 
-- Header stats: Gold `money / cap`, Imps, Creatures `count / Lair tiles`, Research, Payday `m:ss · due g` (red when due > gold), Heroes `wave N in m:ss` / `final wave`, Heart bar. Buttons: Save, Load, Cheats (hidden), Pause/Resume, speed `1× 2× 3×`.
+- Header stats: Gold `money / cap`, Imps, Creatures `count / Lair tiles`, Research, Payday `m:ss · due g` (red when due > gold), Heroes `wave N in m:ss` (plus `(paused)` while the cheat holds it) / `final wave`, Heart bar. Buttons: Save, Load, Cheats (hidden), Pause/Resume, speed `1× 2× 3×`.
 - Tools (`buildTools()`): Hand / Slap / Look; Rooms tab: each room + Sell; Spells tab: every spell (cost or "research N", disabled while locked).
 - Tabs (`showTab()`, remembered in `localStorage['underlord-tab']`): Info (payday and research gauges, portal pool list), Rooms, Spells, Creatures (idle/working/fighting per kind with SVG portraits from `assets.js` `icons`, list by kind and level).
 - `#info`: hover details for the unit (`app.hover.unit`) or tile under the pointer, or help for the current tool.
@@ -99,7 +99,7 @@ description: Underlord's 3D view (three.js: camera, picking, terrain, rooms, uni
 ## Cheats
 
 - Typing `iliketocheat` unlocks the Cheats panel (`cheatKey()` in `ui.js`); keys that continue the code from its third letter on are swallowed, so its E's do not turn the view. Not stored: a reload locks it again.
-- `cheatList()`: +500 / +5000 gold, Reveal map, Finish research, Restore Heart, Free imp, + Orc / Warlock / Troll / Dark Mistress (at an owned portal, or next to the Heart without one; ignoring pool and limit), Level up all, Next wave now, Defeat heroes.
+- `cheatList()`: +500 / +5000 gold, Reveal map, Finish research, Restore Heart, Free imp, + Orc / Warlock / Troll / Dark Mistress (at an owned portal, or next to the Heart without one; ignoring pool and limit), Level up all, Next wave now, Pause / Resume waves (toggles `app.wavesHeld`: the wave countdown in `update()` stands still and the HUD adds `(paused)`; not saved, a reload clears it), Defeat heroes. A cheat label can be a function, re-read after each click.
 
 ## Gotchas
 

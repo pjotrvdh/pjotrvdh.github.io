@@ -14,6 +14,8 @@ export const app = {
     /** A game has been started or loaded (the intro card is gone). */
     running: false,
     paused: false,
+    /** The "Pause waves" cheat: the wave countdown stands still (this page load only, not saved). */
+    wavesHeld: false,
     /** update() runs this many times per frame (1-3). */
     speed: 1,
     /** The selected tool: 'hand', 'slap', 'look', a room code, 'sell' or a spell key. */

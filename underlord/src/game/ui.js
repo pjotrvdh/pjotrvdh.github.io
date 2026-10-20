@@ -166,7 +166,7 @@ export function ui() {
     const due = creatures().filter((e) => !e.leaving).reduce((a, e) => a + wage(e.kind), 0);
     $('sPay').textContent = fmtT(G.payT) + (due ? ' · ' + due + 'g' : '');
     $('sPay').style.color = due > G.money ? '#f08a7e' : '';
-    $('sWave').textContent = G.wave >= WAVES.length ? 'final wave' : 'wave ' + (G.wave + 1) + ' in ' + fmtT(G.nextWave);
+    $('sWave').textContent = G.wave >= WAVES.length ? 'final wave' : 'wave ' + (G.wave + 1) + ' in ' + fmtT(G.nextWave) + (app.wavesHeld ? ' (paused)' : '');
     $('sHeart').style.width = (100 * G.heartHP / G.heartMax) + '%';
     for (const [k, s] of Object.entries(SPELLS)) {
         const b = btns[k];
@@ -401,6 +401,11 @@ const cheatList = () => [
 
         return 'next wave called';
     }],
+    [() => (app.wavesHeld ? 'Resume waves' : 'Pause waves'), () => {
+        app.wavesHeld = !app.wavesHeld;
+
+        return app.wavesHeld ? 'wave countdown paused' : 'wave countdown resumed';
+    }],
     ['Defeat heroes', () => {
         let n = 0;
         for (const e of G.ents) {
@@ -464,12 +469,14 @@ export function initUi() {
     for (const [label, fn] of cheatList()) {
         const b = document.createElement('button');
         b.type = 'button';
-        b.textContent = label;
+        const name = () => (typeof label === 'function' ? label() : label);
+        b.textContent = name();
         b.onclick = () => {
             if (!app.running || G.over) {
                 return;
             }
             const r = fn();
+            b.textContent = name();
             msg('Cheat: ' + r + '.', 'cheat' + G.time + label, 'good');
         };
         $('cheatList').appendChild(b);

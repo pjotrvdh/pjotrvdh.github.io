@@ -234,7 +234,7 @@ export function update(dt) {
         return;
     }
     G.time += dt;
-    if (G.wave < WAVES.length) {
+    if (G.wave < WAVES.length && !app.wavesHeld) {
         G.nextWave -= dt;
         if (G.nextWave <= 0) {
             launchWave();
