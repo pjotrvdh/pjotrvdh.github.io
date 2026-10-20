@@ -8,7 +8,7 @@ Pong, but with a twist: down a neon tunnel. Your see-through paddle is at the fr
 - **Curve the ball** by moving your paddle as you hit it: the faster you move, the more it bends.
 - **Modes:**
   - **1 player:** against the computer through ten levels, each faster and sharper. Pick the level to start on. You have 5 lives; take the opponent's 3 to clear a level.
-  - **Play online:** make a room and share the code or link (copy it, or Share to WhatsApp, Telegram, Messages, e-mail or the phone's share menu), or join someone's room. Over WebRTC with [PeerJS](https://peerjs.com/): the host runs the game, the guest sends its paddle and sees the tunnel mirrored, so both have their own paddle at the front.
+  - **Play online:** make a room and share the code or link (copy it, send it with WhatsApp, Telegram, Messages, e-mail or the phone's share menu, or let them scan a QR code), or join someone's room. Over WebRTC with [PeerJS](https://peerjs.com/): the host runs the game, the guest sends its paddle and sees the tunnel mirrored, so both have their own paddle at the front.
   - **CPU vs CPU:** watch the computer play itself.
 - **Scoring (1 player):** 100 per return, a curve bonus (50) or super curve bonus (150), a bullseye bonus (100) for hitting the ball in the centre of your paddle, and a level bonus that counts down from 3000.
 - **Colours:** five palettes (Neon, Sunset, Glacier, Toxic, High contrast). High scores, the palette and the start level are kept in your browser.

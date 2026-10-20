@@ -12,6 +12,7 @@ import config from '../config/index.js';
 import { createRenderer } from './render.js';
 import { sounds, isMuted, setMuted } from './audio.js';
 import { addHighScore, loadHighScores, qualifies } from './highscores.js';
+import qrcode from 'qrcode-generator';
 import { cleanCode, createSession, isValidCode, randomCode } from './net.js';
 
 const { tunnel: T, rules: R, scoring: S, levels: LEVELS, palettes: PALETTES } = config;
@@ -367,6 +368,7 @@ function hostRoom() {
     link.hash = '';
     $('roomCode').textContent = code;
     $('roomLink').value = link.href;
+    fillShare(link.href);
     $('roomBox').hidden = false;
     $('onlineStatus').textContent = 'Waiting for the other player…';
 }
@@ -1188,42 +1190,52 @@ $('copyLink').addEventListener('click', async () => {
         $('roomLink').select();
     }
 });
-// The share sheet: the room link prefilled for WhatsApp, Telegram, a text message or an e-mail, a
-// copy button, and "More…" for the device's own share menu where the browser has one.
-function openShare() {
-    const link = $('roomLink').value;
+/** Draws the room link as a QR code: dark squares on white, with the quiet zone around it scanners need. */
+function drawQr(svg, text) {
+    const qr = qrcode(0, 'M');
+    qr.addData(text);
+    qr.make();
+    const count = qr.getModuleCount();
+    const quiet = 4;
+    let d = '';
+    for (let row = 0; row < count; row++) {
+        for (let col = 0; col < count; col++) {
+            if (qr.isDark(row, col)) {
+                d += `M${col + quiet} ${row + quiet}h1v1h-1z`;
+            }
+        }
+    }
+    const size = count + 2 * quiet;
+    const ns = 'http://www.w3.org/2000/svg';
+    const background = document.createElementNS(ns, 'rect');
+    background.setAttribute('width', String(size));
+    background.setAttribute('height', String(size));
+    background.setAttribute('fill', '#fff');
+    const modules = document.createElementNS(ns, 'path');
+    modules.setAttribute('d', d);
+    modules.setAttribute('fill', '#000');
+    svg.setAttribute('viewBox', `0 0 ${size} ${size}`);
+    svg.setAttribute('shape-rendering', 'crispEdges');
+    svg.replaceChildren(background, modules);
+}
+
+// The share options under the room link: the link prefilled for WhatsApp, Telegram, a text message or
+// an e-mail, "More…" for the device's own share menu where the browser has one, and a QR code.
+function fillShare(link) {
     const text = `Play Twistball with me! Room ${$('roomCode').textContent}: ${link}`;
     $('shareWhatsApp').href = `https://wa.me/?text=${encodeURIComponent(text)}`;
     $('shareTelegram').href = `https://t.me/share/url?url=${encodeURIComponent(link)}&text=${encodeURIComponent('Play Twistball with me!')}`;
     $('shareSms').href = `sms:?&body=${encodeURIComponent(text)}`;
     $('shareMail').href = `mailto:?subject=${encodeURIComponent('Play Twistball with me')}&body=${encodeURIComponent(text)}`;
     $('shareMoreItem').hidden = !navigator.share;
-    $('shareStatus').textContent = '';
-    $('shareSheet').showModal();
+    drawQr($('shareQr'), link);
 }
 
-$('shareLink').addEventListener('click', openShare);
-$('shareCopy').addEventListener('click', async () => {
-    try {
-        await navigator.clipboard.writeText($('roomLink').value);
-        $('shareStatus').textContent = 'Link copied.';
-    } catch {
-        $('shareStatus').textContent = $('roomLink').value;
-    }
-});
 $('shareMore').addEventListener('click', async () => {
     try {
         await navigator.share({ title: 'Twistball', text: 'Play Twistball with me!', url: $('roomLink').value });
-        $('shareSheet').close();
     } catch {
-        // Cancelled: keep the sheet open.
-    }
-});
-$('shareClose').addEventListener('click', () => $('shareSheet').close());
-// A tap on the dimmed backdrop (outside the sheet) closes it.
-$('shareSheet').addEventListener('click', (event) => {
-    if (event.target === $('shareSheet')) {
-        $('shareSheet').close();
+        // Cancelled.
     }
 });
 $('onlineBack').addEventListener('click', toMenu);
