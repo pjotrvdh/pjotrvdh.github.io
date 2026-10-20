@@ -13,8 +13,8 @@ import { animations, clone, modelHeight, ownAnimations } from './models.js';
 
 /** Which clip plays for which activity, per rig. */
 export const CLIPS = {
-    kaykit: { idle: 'Idle_A', guard: 'Idle_B', walk: 'Walking_A', run: 'Running_A', attack: 'Melee_Unarmed_Attack_Punch_A', dig: 'Pickaxing', claim: 'Working_A', reinforce: 'Hammering', train: 'Melee_1H_Attack_Chop', study: 'Holding_A', eat: 'Use_Item', sleep: 'Lie_Idle', stun: 'Hit_B', hurt: 'Hit_A', held: 'Jump_Idle', cheer: 'Cheering', die: 'Death_A' },
-    kenney: { idle: 'idle', guard: 'idle', walk: 'walk', run: 'sprint', attack: 'attack-melee-right', dig: 'interact-right', claim: 'interact-right', reinforce: 'interact-right', train: 'attack-melee-left', study: 'interact-left', eat: 'pick-up', sleep: 'sit', stun: 'crouch', hurt: 'crouch', held: 'fall', cheer: 'emote-yes', die: 'die' },
+    kaykit: { idle: 'Idle_A', guard: 'Idle_B', walk: 'Walking_A', run: 'Running_A', attack: 'Melee_Unarmed_Attack_Punch_A', dig: 'Pickaxing', claim: 'Working_A', reinforce: 'Hammering', train: 'Melee_1H_Attack_Chop', study: 'Holding_A', eat: 'Use_Item', sleep: 'Lie_Idle', stun: 'Hit_B', hurt: 'Hit_A', held: 'Jump_Idle', cheer: 'Cheering', wave: 'Waving', die: 'Death_A' },
+    kenney: { idle: 'idle', guard: 'idle', walk: 'walk', run: 'sprint', attack: 'attack-melee-right', dig: 'interact-right', claim: 'interact-right', reinforce: 'interact-right', train: 'attack-melee-left', study: 'interact-left', eat: 'pick-up', sleep: 'sit', stun: 'crouch', hurt: 'crouch', held: 'fall', cheer: 'emote-yes', wave: 'emote-yes', die: 'die' },
 };
 const ONCE = new Set(['die']);
 const mirrors = new Map();
@@ -95,6 +95,9 @@ function mirrored(clip, file) {
     return out;
 }
 
+/** Seconds a unit stands idle before it may wave or cheer, and the chance per second that it then does. */
+const IDLE_FUN = 3;
+const IDLE_FUN_CHANCE = 0.25;
 /** Seconds a dropped weapon lies on the floor before it fades. */
 const DROP_LIE = 3;
 /** Attack clips play this much faster than modelled: a swing takes about half a second. */
@@ -512,6 +515,39 @@ export class Figure {
         return out;
     }
 
+    /**
+     * A unit idle for IDLE_FUN seconds or more now and then waves or cheers (once through), then idles
+     * again for at least as long. Anything else it does stops the fun.
+     */
+    pastime(what, dt, time) {
+        if (what !== 'idle') {
+            this.idleT = 0;
+            this.fun = null;
+
+            return what;
+        }
+        if (this.fun) {
+            if (time < this.funUntil) {
+                return this.fun;
+            }
+            this.fun = null;
+            this.idleT = 0;
+        }
+        this.idleT = (this.idleT ?? 0) + dt;
+        if (this.idleT >= IDLE_FUN && Math.random() < dt * IDLE_FUN_CHANCE) {
+            const fun = Math.random() < 0.5 ? 'wave' : 'cheer';
+            const a = this.actions[fun];
+            if (a) {
+                this.fun = fun;
+                this.funUntil = time + a.getClip().duration;
+
+                return fun;
+            }
+        }
+
+        return what;
+    }
+
     play(what, timeScale = 1) {
         for (const item of this.items) {
             item.object.visible = itemShown(item, what);
@@ -733,6 +769,7 @@ export class Units {
             } else if (time < (f.swingUntil ?? 0) && what !== 'walk') {
                 what = 'attack';
             }
+            what = f.pastime(what, dt, time);
             const base = KINDS[e.kind].spd || 2;
             f.play(what, what === 'walk' ? Math.max(0.6, Math.min(2.2, f.speed / base * 1.4)) : what === 'attack' ? ATTACK_SPEED : 1);
             f.mixer?.update(dt);

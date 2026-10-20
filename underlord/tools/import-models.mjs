@@ -32,7 +32,7 @@ const ANIMATIONS = {
     MovementBasic: ['Walking_A', 'Running_A', 'Jump_Idle'],
     CombatMelee: ['Melee_1H_Attack_Chop', 'Melee_1H_Attack_Slice_Horizontal', 'Melee_2H_Attack_Chop', 'Melee_Unarmed_Attack_Punch_A', 'Melee_Blocking'],
     CombatRanged: ['Ranged_Bow_Release', 'Ranged_Magic_Shoot', 'Ranged_Magic_Spellcasting'],
-    Simulation: ['Lie_Idle', 'Sit_Floor_Idle', 'Push_Ups', 'Cheering'],
+    Simulation: ['Lie_Idle', 'Sit_Floor_Idle', 'Push_Ups', 'Cheering', 'Waving'],
     Tools: ['Pickaxing', 'Hammering', 'Working_A', 'Holding_A'],
 };
 

@@ -10,7 +10,7 @@ import { ASSETS, KINDS } from '../game/config.js';
 import { CLIPS, Figure } from './units.js';
 import { parts } from './models.js';
 
-const ACTS = ['idle', 'walk', 'run', 'attack', 'dig', 'claim', 'reinforce', 'train', 'study', 'eat', 'sleep', 'stun', 'hurt', 'held', 'guard', 'cheer', 'die'];
+const ACTS = ['idle', 'walk', 'run', 'attack', 'dig', 'claim', 'reinforce', 'train', 'study', 'eat', 'sleep', 'stun', 'hurt', 'held', 'guard', 'cheer', 'wave', 'die'];
 const SPACING = 1.3;
 
 export function showGallery() {
