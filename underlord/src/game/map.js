@@ -189,7 +189,7 @@ export function newGame() {
     vision();
     clearLog();
     msg('A portal glows in the dark near your Heart. Dig a tunnel and claim it to attract creatures.');
-    msg('Click or sweep over earth to mark it for digging. Right-click drops and slaps.');
+    msg('Click or drag a box over earth to mark it for digging. Right-click drops and slaps.');
     msg('Build a Treasury: your Heart holds only ' + HEART_CAP + ' gold.');
     view.centerOn(G.hx, G.hy);
     syncCpu();

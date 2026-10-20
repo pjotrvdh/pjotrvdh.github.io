@@ -34,6 +34,7 @@
   <main class="stage" id="stage">
     <canvas id="cv" aria-label="Dungeon map. Click to dig, build or cast; drag to mark an area; right-click to slap."></canvas>
     <div class="labels" id="labels" aria-hidden="true"></div>
+    <div class="tip" id="tip" hidden></div>
     <div class="banner" id="banner" aria-hidden="true"></div>
     <div class="cheats" id="cheats" hidden>
       <h2>Cheats</h2>
@@ -45,7 +46,7 @@
         <h2><img src="./src/assets/brand/logo.svg" alt="Underlord"></h2>
         <p>The heroes of the surface world are coming for your Dungeon Heart. Dig into the dark, build rooms, attract creatures and survive <span id="waveCount">six</span> invasions.</p>
         <ul>
-          <li>Click a block to mark it for digging, or hold the button and sweep over blocks. Your imps dig, haul gold and claim new ground.</li>
+          <li>Click a block to mark it for digging, or drag a box over blocks. Your imps dig, haul gold and claim new ground.</li>
           <li>The map is hidden in clouds, but gold seams and portals shine through. Mark blocks anywhere, even in the clouds, and dig to find treasure and wandering creatures.</li>
           <li>A portal near your Dungeon Heart is always visible. Claim it to attract creatures. Each creature needs a free bed in your Lair; stronger creatures also need bigger rooms. Each map has a limited pool of creatures.</li>
           <li>Invading heroes show as white dots until they reach ground you have discovered.</li>

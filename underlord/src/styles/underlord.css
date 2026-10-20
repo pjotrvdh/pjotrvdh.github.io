@@ -44,6 +44,7 @@ canvas{display:block;touch-action:none;cursor:crosshair;position:absolute;inset:
 #cv.over-unit{cursor:url('../assets/cursors/claw-open.svg') 15 14,grab}
 #cv.grab{cursor:url('../assets/cursors/claw-fist.svg') 14 14,grabbing}
 .labels{position:absolute;inset:0;pointer-events:none;overflow:hidden}
+.tip{position:absolute;pointer-events:none;background:rgba(15,11,10,.92);border:1px solid var(--line);border-radius:3px;padding:3px 7px;font-size:12px;color:var(--ink);white-space:nowrap;font-variant-numeric:tabular-nums}
 .ulabel{position:absolute;left:0;top:0;display:flex;flex-direction:column;align-items:center;gap:2px;margin:-26px 0 0 -18px;width:36px;transform-origin:50% 100%;font:700 12px/1 var(--f-body);text-shadow:0 1px 2px #000,0 0 3px #000}
 .ulabel .lv{color:#e3b23c;min-height:12px}
 .ulabel .z{position:absolute;left:28px;top:-6px;color:#cdbbf5}
@@ -56,6 +57,8 @@ canvas{display:block;touch-action:none;cursor:crosshair;position:absolute;inset:
 .zoom button{width:34px;height:34px;padding:0;font-size:18px;line-height:1;background:rgba(22,16,14,.88)}
 .zoom button.fit{font-size:11px;letter-spacing:0;text-transform:uppercase}
 aside{background:var(--panel);border:1px solid var(--line);border-radius:4px;padding:12px;display:flex;flex-direction:column;gap:12px;overflow-y:auto;min-height:0}
+/* the panel scrolls instead of squeezing its parts (long hover text used to run over the Chronicle) */
+aside>*{flex-shrink:0}
 aside h2{font-family:var(--f-display);font-weight:500;font-size:19px;margin:0 0 6px;color:var(--ink);letter-spacing:.03em}
 .tools{display:grid;grid-template-columns:1fr 1fr;gap:6px}
 .tool{display:flex;flex-direction:column;align-items:flex-start;text-align:left;padding:6px 8px;gap:1px;line-height:1.15}

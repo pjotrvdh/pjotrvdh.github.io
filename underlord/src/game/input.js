@@ -1,8 +1,9 @@
 /**
  * Mouse, touch and keyboard, after Dungeon Keeper (1997):
  *
- * - Left button: pick up your creature; on blocks, hold and sweep to tag them for digging (start on a
- *   tagged block to untag); with a room or Sell, hold and sweep to build or sell; with a spell, cast.
+ * - Left button: pick up your creature; on blocks, click or drag a box to tag them for digging (start on
+ *   a tagged block to untag); with a room or Sell, click or drag a box to build or sell (the box as in
+ *   Dungeon Keeper 2, shown while dragging and applied on release, so a whole room goes down at once); with a spell, cast.
  * - Right button: drop the creature picked up last on your territory (or dismiss it on your portal);
  *   with an empty hand, slap your creature; with a room, Sell or a spell selected, go back to the hand.
  *   These happen on release; holding the right button and moving drags the map instead.
@@ -16,18 +17,16 @@
  */
 import { CLAIM, H, HATCH, LAIR, LIB, N, N4, TRAIN, TREAS, W, inb, ix, tx, ty } from './constants.js';
 import { ROOMS, SPELLS } from './config.js';
-import { cast, dismissHeld, dropHeld, endPaint, paintTile, pickUp, slap } from './actions.js';
+import { applyRect, cast, dismissHeld, dropHeld, pickUp, slap } from './actions.js';
 import { G, app } from './state.js';
 import { diggable, ownPortal } from './tiles.js';
-import { cheatKey, cheatsUnlocked, msg, setSpeed, setTool, showTab, syncPause, toggleCheats } from './ui.js';
+import { cheatKey, cheatsUnlocked, dragRect, msg, setSpeed, setTool, showTab, syncPause, toggleCheats, updateTip } from './ui.js';
 import { view } from '../render/view.js';
 
 const keys = new Set();
 const ptrs = new Map();
 let pinch = null;
 let pan = null;
-/** A paint stroke in progress: { mode, x, y } (the last tile painted). */
-let stroke = null;
 /** Map scrolling speed for the edge of the view, in screen widths per second (Dungeon Keeper style). */
 const EDGE = 16;
 
@@ -69,29 +68,6 @@ function drop(i) {
     }
 }
 
-/** Paints every tile on the straight line from the stroke's last tile to (x, y). */
-function paintTo(x, y) {
-    let { x: cx, y: cy } = stroke;
-    for (;;) {
-        if (inb(cx, cy) && !paintTile(stroke.mode, ix(cx, cy))) {
-            stroke.out = true;
-
-            return;
-        }
-        if (cx === x && cy === y) {
-            break;
-        }
-        // one step towards the target, the longer axis first (a 4-connected line)
-        if (Math.abs(x - cx) >= Math.abs(y - cy)) {
-            cx += Math.sign(x - cx);
-        } else {
-            cy += Math.sign(y - cy);
-        }
-    }
-    stroke.x = x;
-    stroke.y = y;
-}
-
 function rightClick(p, i) {
     if (G.held.length) {
         drop(i);
@@ -112,10 +88,7 @@ function onDown(ev, cv) {
     ptrs.set(ev.pointerId, p);
     setHover(p);
     if (ptrs.size === 2) {
-        if (stroke) {
-            endPaint();
-        }
-        stroke = null;
+        app.drag = null;
         pan = null;
         const [a, b] = [...ptrs.values()];
         pinch = { d: Math.hypot(a.sx - b.sx, a.sy - b.sy) || 1, mx: (a.sx + b.sx) / 2, my: (a.sy + b.sy) / 2 };
@@ -161,14 +134,12 @@ function onDown(ev, cv) {
 
             return;
         }
-        stroke = { mode: G.mark[i] && diggable(i) ? 'unmark' : 'mark', x: p.x, y: p.y };
-        paintTo(p.x, p.y);
+        app.drag = { mode: G.mark[i] && diggable(i) ? 'unmark' : 'mark', x0: p.x, y0: p.y, x1: p.x, y1: p.y };
 
         return;
     }
     if (ROOMS[app.tool] || app.tool === 'sell') {
-        stroke = { mode: String(app.tool), x: p.x, y: p.y };
-        paintTo(p.x, p.y);
+        app.drag = { mode: String(app.tool), x0: p.x, y0: p.y, x1: p.x, y1: p.y };
 
         return;
     }
@@ -209,9 +180,11 @@ function onMove(ev, cv) {
 
         return;
     }
-    if (stroke && !stroke.out && p.x >= 0 && (p.x !== stroke.x || p.y !== stroke.y)) {
-        paintTo(Math.max(0, Math.min(W - 1, p.x)), Math.max(0, Math.min(H - 1, p.y)));
+    if (app.drag && p.x >= 0) {
+        app.drag.x1 = Math.max(0, Math.min(W - 1, p.x));
+        app.drag.y1 = Math.max(0, Math.min(H - 1, p.y));
     }
+    updateTip();
 }
 
 function onUp(ev, cv) {
@@ -228,10 +201,11 @@ function onUp(ev, cv) {
         pan = null;
         cv.classList.toggle('grab', app.tool === 'look');
     }
-    if (stroke) {
-        endPaint();
-        stroke = null;
+    if (app.drag && ev.type === 'pointerup' && G && !G.over) {
+        applyRect(app.drag.mode, dragRect());
     }
+    app.drag = null;
+    updateTip();
 }
 
 /** The rooms of code `code` you own, one tile per room (connected tiles count as one room). */
@@ -316,10 +290,8 @@ function onKey(e) {
         syncPause();
     } else if (e.key === 'Escape') {
         setTool('hand');
-        if (stroke) {
-            endPaint();
-            stroke = null;
-        }
+        app.drag = null;
+        updateTip();
         toggleCheats(false);
     } else if (e.key === '`' && cheatsUnlocked()) {
         e.preventDefault();

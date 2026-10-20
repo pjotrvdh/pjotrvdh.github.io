@@ -6,11 +6,11 @@ The game is a web page built with [Vite](https://vite.dev) and drawn in 3D with 
 
 ## How to play
 
-- **Dig:** click a block to mark it for digging, or hold the button and sweep over blocks. You can mark blocks inside the clouds too. Your imps dig the blocks out, carry the gold to the Heart or a Treasury, and claim the new floor.
+- **Dig:** click a block to mark it for digging, or drag a box over blocks. You can mark blocks inside the clouds too. Your imps dig the blocks out, carry the gold to the Heart or a Treasury, and claim the new floor.
 - **Imps defend the Heart:** imps flee from heroes, but when the Dungeon Heart is under attack, the imps nearby rush in to fight.
 - **Walls:** idle imps reinforce the earth walls around your territory. Heroes take much longer to tunnel through a reinforced wall.
 - **Explore:** the map is hidden in clouds. Your units reveal what they can see, and walls block their sight. Gold seams and the portal near your Dungeon Heart shine through the clouds. Hidden caverns hold treasure chests, wandering creatures that join you, and a camp of sleeping heroes. Invading heroes show as white dots, on the map and the minimap, until they reach ground you have discovered; only then can you see which hero it is.
-- **Build:** you build rooms on claimed ground by clicking a tile, or holding the button and sweeping over tiles. The rooms are Treasury, Lair, Hatchery, Training Room and Library.
+- **Build:** you build rooms on claimed ground by clicking a tile, or dragging a box to place a whole room at once (as in Dungeon Keeper 2). The rooms are Treasury, Lair, Hatchery, Training Room and Library.
 - **Creatures:** creatures only arrive through a portal you have claimed. Each one claims its own bed (a Lair tile) the first time it needs one; that tile is then locked for the others. Stronger creatures also need rooms of 9 or more tiles. Each map has a limited pool of creatures, and they want their wages on payday.
 - **Hand:** left-click a creature to pick it up (you can hold up to 8), then right-click your territory to drop the one picked up last.
   - A creature dropped into a Training Room, Library or Hatchery starts working there right away, with a small bonus.
@@ -27,12 +27,12 @@ The game is a web page built with [Vite](https://vite.dev) and drawn in 3D with 
 
 ### Controls
 
-The controls follow the original Dungeon Keeper.
+The controls follow the original Dungeon Keeper, with Dungeon Keeper 2's box for marking and building.
 
 | Action | Mouse / touch | Keyboard |
 |---|---|---|
-| Mark blocks for digging (or unmark) | click, or hold and sweep over blocks (start on a marked block to unmark) | |
-| Build / sell rooms | with a room or **Sell**: click, or hold and sweep | |
+| Mark blocks for digging (or unmark) | click, or drag a box over blocks (start on a marked block to unmark) | |
+| Build / sell rooms | with a room or **Sell**: click, or drag a box (a whole room at once) | |
 | Pick up a creature (up to 8) | click it | |
 | Drop the creature picked up last | right-click your territory (on your portal: dismiss it); on a touch screen, tap | |
 | Slap | right-click a creature with an empty hand, or the **Slap** tool | |

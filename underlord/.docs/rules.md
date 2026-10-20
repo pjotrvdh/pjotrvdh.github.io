@@ -37,16 +37,16 @@ description: Underlord's rules as the player experiences them (goal, gold, rooms
 
 ## Digging, claiming, walls
 
-- Mark blocks with the Hand tool: click, or hold the button and sweep over blocks (Dungeon Keeper style; `paintTile()` per tile, tiles in between filled in a straight line). Seen tiles: only diggable ones (earth, gold, gem, reinforced wall). Unseen tiles: anything but rock.
-- Click a marked block (or start a sweep on one) to unmark.
+- Mark blocks with the Hand tool: click, or drag a box (Dungeon Keeper 2 style, applied on release by `applyRect()`). Seen tiles: only diggable ones (earth, gold, gem, reinforced wall). Unseen tiles: anything but rock can be in the box, but only diggable tiles get marked.
+- Click a marked block (or start a box on one) to unmark.
 - Imps dig marked blocks, haul gold, then claim dug floor next to your territory (red `CLAIM` tiles). Claiming only spreads from tiles adjacent to existing territory.
 - Idle imps reinforce unmarked earth next to your territory into walls (`WALL`): `settings/walls.js` `hp` (8) hits to dig, vs 3 for earth (heroes also need 5 for gold; imps empty a seam 20 gold per hit). Heroes path around walls when cheaper. Details: [imps](imps.md).
 - Rock (map border) cannot be dug or crossed. New maps have no lava (older saves may: it cannot be dug or crossed either).
 
 ## Rooms
 
-- Built only on your own claimed tiles without a room (`build()`), cost per tile in `rooms/*.js` `cost`. Click, or hold and sweep, with a room tool; a sweep stops at the first tile you cannot afford.
-- Sell tool: any room tile, refunds `floor(cost / 2)`; gold above capacity after the sweep is cut off (`endPaint()`) ("Not all the gold fit").
+- Built only on your own claimed tiles without a room (`build()`), cost per tile in `rooms/*.js` `cost`. Click, or drag a box, with a room tool; building stops at the first tile you cannot afford.
+- Sell tool: any room tile, refunds `floor(cost / 2)`; gold above capacity after the box is cut off (`applyRect()`) ("Not all the gold fit").
 - Room tile counts per type live in `G.rc[code]`, recomputed by `recount()`.
 
 | Room | Code | Effect |
@@ -83,7 +83,7 @@ Mechanics of eating, sleeping, training, studying: [creatures](creatures.md).
 
 ## Gotchas
 
-- Capacity is enforced at income time and at the end of every paint stroke (`endPaint()`), not continuously: the gold cheats can push `G.money` above `cap()` until the next stroke on the map clamps it.
+- Capacity is enforced at income time and after every click or box on the map (`applyRect()`), not continuously: the gold cheats can push `G.money` above `cap()` until the next click or box on the map clamps it.
 - Selling Treasury tiles lowers `cap()`; the clamp after the drag destroys the excess gold.
 
 ## See also
