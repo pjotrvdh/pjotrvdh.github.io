@@ -83,7 +83,7 @@ export const view = {
             return;
         }
         rig.update(dt);
-        parts.terrain.update(time);
+        parts.terrain.update();
         parts.rooms.update(time);
         parts.specials.update(time);
         parts.specials.face(rig.yaw);

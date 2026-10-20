@@ -106,7 +106,7 @@ export class Rooms {
                 if (inb(a, b) && G.room[ix(a, b)] === r) {
                     continue;
                 }
-                this.trim.add(place(x + 0.5 + dx * 0.46, 0.025, y + 0.5 + dy * 0.46, dx ? Math.PI / 2 : 0, 1, m), col);
+                this.trim.add(place(x + 0.5 + dx * 0.46, 0.04, y + 0.5 + dy * 0.46, dx ? Math.PI / 2 : 0, 1, m), col);
             }
             if (r === TREAS) {
                 const n = Math.round(fill * 5);

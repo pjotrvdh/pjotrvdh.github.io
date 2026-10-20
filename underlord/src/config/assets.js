@@ -47,12 +47,19 @@ export default {
     /** Animation clips shared by every KayKit figure. */
     rigs: ['kaykit/Rig_Medium_General.glb', 'kaykit/Rig_Medium_MovementBasic.glb'],
 
-    /** Unclaimed floor and earth walls (Kenney Modular Cave Kit). Claimed tiles and reinforced (brick) walls are drawn in code. */
+    /**
+     * Blocks per tile type (KayKit Block Bits): solid tiles are full blocks, open tiles a block sunk to
+     * floor level. `claimed` is tinted with the keeper colour (rooms with their room colour).
+     */
     tiles: {
-        floor: 'cave/template-floor.glb',
-        floorDetail: 'cave/template-floor-detail.glb',
-        claimedDetail: 'mini/floor-detail.glb', // the stands in the character viewer
-        wall: 'cave/template-wall.glb',
+        earth: 'blocks/dirt.glb',
+        gold: 'blocks/stone_with_gold.glb',
+        gem: 'blocks/stone_with_silver.glb',
+        rock: 'blocks/stone_dark.glb',
+        wall: 'blocks/bricks_A.glb',
+        floor: 'blocks/gravel.glb',
+        claimed: 'blocks/bricks_B.glb',
+        lava: 'blocks/lava.glb',
     },
 
     /** Props in rooms and landmarks (Kenney). */

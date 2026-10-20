@@ -45,10 +45,11 @@ export function showGallery() {
         f.gold.visible = false;
         const stand = new THREE.Group();
         stand.add(f.root);
-        for (const p of parts(ASSETS.tiles.claimedDetail)) {
+        for (const p of parts(ASSETS.tiles.claimed)) {
             const tile = new THREE.Mesh(p.geometry, p.material);
             tile.applyMatrix4(p.matrix);
-            tile.scale.multiplyScalar(1.1);
+            tile.scale.multiplyScalar(0.55);
+            tile.position.y = -0.55;
             stand.add(tile);
         }
         scene.add(stand);

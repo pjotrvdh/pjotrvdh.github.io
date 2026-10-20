@@ -87,4 +87,4 @@ src/
 
 ## Credits
 
-3D models by [Kenney](https://kenney.nl) (Mini Dungeon, Modular Dungeon Kit, Modular Cave Kit), and [Kay Lousberg](https://www.kaylousberg.com) (KayKit Adventurers), all CC0.
+3D models by [Kenney](https://kenney.nl) (Mini Dungeon, Modular Dungeon Kit, Modular Cave Kit), and [Kay Lousberg](https://www.kaylousberg.com) (KayKit Adventurers and Block Bits), all CC0.

@@ -6,7 +6,7 @@
  *     node underlord/tools/import-models.mjs
  *
  * The packs (all CC0): Kenney Mini Dungeon, Modular Dungeon Kit and Modular Cave Kit (kenney.nl),
- * KayKit Adventurers 2.0 (kaylousberg.itch.io). See underlord/src/assets/README.md.
+ * KayKit Adventurers 2.0 and KayKit Block Bits 1.0 (kaylousberg.itch.io). See underlord/src/assets/README.md.
  */
 import { mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
@@ -18,15 +18,18 @@ const MINI = 'kenney_mini-dungeon/Models/GLB format';
 const DUNGEON = 'kenney_modular-dungeon-kit_1.0/Models/GLB format';
 const CAVE = 'kenney_modular-cave-kit_1.0/Models/GLB format';
 const KAYKIT = 'KayKit_Adventurers_2.0_FREE';
+const BLOCKS = 'KayKit_BlockBits_1.0_FREE/Assets/gltf';
 
 /** [target name, source file] */
 const MODELS = [
-    ...['floor-detail', 'coin', 'chest', 'table', 'chair', 'banner', 'potion', 'wood-support', 'weapon-sword', 'weapon-spear', 'shield-round']
+    ...['coin', 'chest', 'table', 'chair', 'banner', 'potion', 'wood-support', 'weapon-sword', 'weapon-spear', 'shield-round']
         .map((name) => [`mini/${name}.glb`, `${MINI}/${name}.glb`]),
     ...['template-detail', 'gate-metal-bars']
         .map((name) => [`dungeon/${name}.glb`, `${DUNGEON}/${name}.glb`]),
-    ...['template-floor', 'template-floor-detail', 'template-wall', 'gate']
+    ...['gate']
         .map((name) => [`cave/${name}.glb`, `${CAVE}/${name}.glb`]),
+    ...['dirt', 'gravel', 'stone_dark', 'stone_with_gold', 'stone_with_silver', 'bricks_A', 'bricks_B', 'lava']
+        .map((name) => [`blocks/${name}.glb`, `${BLOCKS}/${name}.gltf`]),
     ...['Barbarian', 'Knight', 'Mage', 'Ranger', 'Rogue', 'Rogue_Hooded']
         .map((name) => [`kaykit/${name}.glb`, `${KAYKIT}/Characters/gltf/${name}.glb`]),
     ...['General', 'MovementBasic']
