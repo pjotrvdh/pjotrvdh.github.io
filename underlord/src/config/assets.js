@@ -80,7 +80,7 @@ export default {
             height: 0.74,
             tint: '#b796e6',
             right: 'kaykit/staff.glb',
-            left: 'kaykit/spellbook_open.glb',
+            left: 'kaykit/spellbook_closed.glb',
         },
         troll: {
             clips: {
@@ -248,6 +248,8 @@ export default {
         potion: 'mini/potion.glb',
         /** Held while eating (KayKit Restaurant Bits). */
         steak: 'kaykit/steak.glb',
+        /** Held open while studying (KayKit Adventurers). */
+        book: 'kaykit/spellbook_open.glb',
         banner: 'mini/banner.glb',
         heartColumn: 'dungeon/template-detail.glb',
         portalArch: 'cave/gate.glb',

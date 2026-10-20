@@ -410,7 +410,7 @@ export class Figure {
             this.attach(model, cfg.right, 'handslot.r');
             this.attach(model, cfg.left, 'handslot.l');
             // what any unit holds while studying, eating or digging (a pick only when it has no tool of its own)
-            this.attach(model, 'kaykit/spellbook_open.glb', 'handslot.l', 'book');
+            this.attach(model, ASSETS.props.book, 'handslot.r', 'book');
             this.attach(model, ASSETS.props.steak, 'handslot.r', 'steak');
             if (!this.items.some((item) => item.use === 'tool')) {
                 this.attach(model, 'pickaxe', 'handslot.r', 'pickaxe');
@@ -580,7 +580,7 @@ export class Figure {
  * the model in the hand.
  */
 const PROPS = {
-    book: { during: 'study', turn: [0, 0, 0], scale: 1 },
+    book: { during: 'study', turn: [0, Math.PI, 0], scale: 1 },
     steak: { during: 'eat', turn: [Math.PI / 2, 0, 0], scale: 0.45 },
     pickaxe: { during: 'dig', turn: [0, Math.PI, 0], scale: 1 },
 };

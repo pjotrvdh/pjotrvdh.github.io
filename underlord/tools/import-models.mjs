@@ -49,7 +49,7 @@ const MODELS = [
     ...['Barbarian', 'Knight', 'Mage', 'Ranger', 'Rogue', 'Rogue_Hooded']
         .map((name) => [`kaykit/${name}.glb`, `${KAYKIT}/Characters/gltf/${name}.glb`]),
     ['kaykit/steak.glb', `${RESTAURANT}/food_ingredient_steak.gltf`],
-    ...['sword_1handed', 'sword_2handed_color', 'shield_badge_color', 'bow_withString', 'staff', 'axe_1handed', 'dagger', 'spellbook_open']
+    ...['sword_1handed', 'sword_2handed_color', 'shield_badge_color', 'bow_withString', 'staff', 'axe_1handed', 'dagger', 'spellbook_open', 'spellbook_closed']
         .map((name) => [`kaykit/${name}.glb`, `${KAYKIT}/Assets/gltf/${name}.gltf`]),
 ];
 
