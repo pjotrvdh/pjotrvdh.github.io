@@ -24,7 +24,7 @@ description: Hub of the Twistball wiki (3D tunnel pong). Read first when working
 | `twistball/src/game/net.js` | PeerJS rooms: create, join, send |
 | `twistball/src/game/audio.js` | laser sounds (Web Audio, no files) |
 | `twistball/src/game/highscores.js` | local high score list |
-| `twistball/src/config/*.js` | all tuning: `tunnel.js`, `rules.js`, `scoring.js`, `levels.js`, `palettes.js` |
+| `twistball/src/config/*.js` | all tuning: `tunnel.js`, `rules.js`, `scoring.js`, `levels.js`, `cpus.js` (kinds of computer), `palettes.js` |
 | `twistball/src/styles/game.css` | layout, HUD, screens, share options; colours come from the palette as CSS variables. On a phone (≤ 640 px wide, or landscape under 500 px high) every screen fills the whole screen, and in portrait the canvas takes all the height left (the camera fits the tunnel's width) |
 
 ## Docs in this wiki
@@ -39,7 +39,7 @@ description: Hub of the Twistball wiki (3D tunnel pong). Read first when working
 ## Gotchas
 
 - Text uses system fonts only (DIN-like HUD stack, monospaced HUD numbers); never add a font file. See [../../.docs/build.md](../../.docs/build.md).
-- `localStorage` keys are prefixed `twistball-`: `twistball-highscores`, `twistball-name`, `twistball-palette`, `twistball-start-level`.
+- `localStorage` keys are prefixed `twistball-`: `twistball-highscores`, `twistball-name`, `twistball-palette`, `twistball-start-level`, `twistball-cpu`.
 
 ## See also
 

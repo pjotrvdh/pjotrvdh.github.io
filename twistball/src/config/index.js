@@ -6,5 +6,6 @@ import rules from './rules.js';
 import scoring from './scoring.js';
 import levels from './levels.js';
 import palettes from './palettes.js';
+import cpus from './cpus.js';
 
-export default { tunnel, rules, scoring, levels, palettes };
+export default { tunnel, rules, scoring, levels, palettes, cpus };

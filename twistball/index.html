@@ -13,11 +13,12 @@
     <header class="hud">
       <h1><img src="./src/logo.svg" alt="Twistball" width="688" height="150"></h1>
       <dl>
-        <div class="solo-only"><dt>Score</dt><dd id="score">000000</dd></div>
+        <div class="score"><dt id="scoreLabel">Score</dt><dd id="score">000000</dd></div>
         <div><dt id="levelLabel">Level</dt><dd id="level">1 / 10</dd></div>
         <div class="solo-only"><dt>Level bonus</dt><dd id="levelBonus">3000</dd></div>
         <div class="you"><dt id="nearLabel">You</dt><dd id="nearLives"></dd></div>
         <div class="them"><dt id="farLabel">Opponent</dt><dd id="farLives"></dd></div>
+        <div class="match-only them-score"><dt id="farScoreLabel">Opponent score</dt><dd id="farScore">000000</dd></div>
       </dl>
       <div class="buttons">
         <button id="pause" type="button">Pause</button>
@@ -41,7 +42,7 @@
             <li><strong>Curve the ball:</strong> move your paddle as you hit it. The faster you move, the more it bends.</li>
             <li>Hit the ball in the <strong>centre</strong> of your paddle for a bonus. Clear a level fast for the level bonus.</li>
             <li>Take the opponent's 3 lives to clear a level. You have 5 lives for all ten levels.</li>
-            <li><strong>Play online:</strong> make a room and send the code or link to a friend, or join theirs.</li>
+            <li><strong>Play online:</strong> make a room and send the code or link to a friend, or join theirs. Both of you score; when one runs out of lives, the higher score wins.</li>
           </ul>
           <div class="modes">
             <button id="startSolo" class="main" type="button" autofocus>1 player</button>
@@ -50,6 +51,9 @@
           </div>
           <p class="speed"><label for="startLevel">1 player: start at level</label>
             <select id="startLevel"></select>
+          </p>
+          <p class="speed"><label for="cpuKind">1 player: computer</label>
+            <select id="cpuKind"></select>
           </p>
           <fieldset class="palettes">
             <legend>Colours</legend>
@@ -143,6 +147,10 @@
 
         <section class="screen" id="screenEnd" aria-labelledby="endTitle" hidden>
           <h2 id="endTitle">Game over</h2>
+          <div class="match-summary" id="matchSummary" hidden>
+            <p><span class="you">You <strong id="matchYou">0</strong></span> · <span class="them">Opponent <strong id="matchThem">0</strong></span></p>
+            <p id="matchNote"></p>
+          </div>
           <p id="endSummary">Score: <strong id="endScore">0</strong> · reached level <strong id="endLevel">1</strong></p>
           <form id="scoreForm" hidden>
             <label for="playerName">A new high score! Your name:</label>

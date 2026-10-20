@@ -18,6 +18,7 @@ description: Twistball online play over PeerJS: host/guest roles, message protoc
 
 ## Who runs what
 
+- **Scores** are kept by the host for both sides (the guest's returns score from its paddle movement as the host sees it) and sent with every `state`.
 - **The host is authoritative.** It plays the near paddle and runs the whole simulation; the guest's paddle is the host's far paddle, driven by the guest's `input` messages through `moveHuman()`.
 - **The guest only renders.** It moves its own paddle from local input (drawn straight away, so it never lags) and draws everything else from the host's `state`, mirrored: host near ↔ guest far, x flipped, z → `depth − z`. Both players see their own paddle at the front.
 
@@ -26,14 +27,14 @@ description: Twistball online play over PeerJS: host/guest roles, message protoc
 | Type | Direction | Content |
 |---|---|---|
 | `start` | host → guest | a match starts; `level` (speed) |
-| `state` | host → guest, every frame in a match | `mode`, `server`, `serveIn` (serve countdown), `ball` (or null), `near`/`far` as `[x, y, lives]`, `level`, `events` |
+| `state` | host → guest, every frame in a match | `mode`, `server`, `serveIn` (serve countdown), `ball` (or null), `near`/`far` as `[x, y, lives, score]`, `level`, `events` |
 | `input` | guest → host, every frame | the guest's paddle target `x, y` (guest's own view) |
 | `ready` | both ways | "I'm ready" (start, rematch, or resume after a pause) |
 | `pause` | both ways | "I left the page": pause for both |
 | `countdown` | host → guest | both are ready again: run the 3-2-1 resume countdown |
 | `ping` | both ways, every second | heartbeat |
 
-- `events` carry what happened during the frame (`wall`, `hit`, `point`, `explode`, `start`, `end`, each with a `side` from the host's view); `playEvent()` plays them (sounds, sparks, calls, explosions) on the guest, mirrored.
+- `events` carry what happened during the frame (`wall`, `hit`, `point`, `bonus` (with `words` and `points`), `explode`, `start`, `end`, each with a `side` from the host's view); `playEvent()` plays them (sounds, sparks, calls, explosions) on the guest, mirrored.
 
 ## Ready check
 

@@ -15,7 +15,7 @@ import { addHighScore, loadHighScores, qualifies } from './highscores.js';
 import qrcode from 'qrcode-generator';
 import { cleanCode, createSession, isValidCode, randomCode } from './net.js';
 
-const { tunnel: T, rules: R, scoring: S, levels: LEVELS, palettes: PALETTES } = config;
+const { tunnel: T, rules: R, scoring: S, levels: LEVELS, palettes: PALETTES, cpus: CPUS } = config;
 const $ = (id) => document.getElementById(id);
 
 const canvas = $('stage');
@@ -26,9 +26,9 @@ const limitX = T.halfWidth - T.paddleHalfWidth;
 const limitY = T.halfHeight - T.paddleHalfHeight;
 const clamp = (value, limit) => Math.max(-limit, Math.min(limit, value));
 
-/** A paddle: where it is, how fast it moves (that becomes spin), who controls it, and its lives. */
+/** A paddle: where it is, how fast it moves (that becomes spin), who controls it, its lives and (in a match) its score. */
 function paddle(name, z) {
-    return { name, z, x: 0, y: 0, vx: 0, vy: 0, target: { x: 0, y: 0 }, human: false, lives: 0 };
+    return { name, z, x: 0, y: 0, vx: 0, vy: 0, target: { x: 0, y: 0 }, human: false, lives: 0, score: 0, cpu: CPUS.calm };
 }
 
 const near = paddle('You', 0);
@@ -90,8 +90,8 @@ function sendState() {
         server: state.server === near ? 'near' : 'far',
         serveIn: state.mode === 'serve' ? state.serveTimer : null,
         ball: state.ballVisible ? [ball.x, ball.y, ball.z] : null,
-        near: [near.x, near.y, near.lives],
-        far: [far.x, far.y, far.lives],
+        near: [near.x, near.y, near.lives, near.score],
+        far: [far.x, far.y, far.lives, far.score],
         level: state.level,
         events,
     });
@@ -109,9 +109,11 @@ function applyState(message) {
     state.server = otherSide(message.server);
     // Our own paddle is drawn from our own input (see update), so it never lags; we only take the lives.
     near.lives = message.far[2];
+    near.score = message.far[3];
     far.x = mirror(message.near[0]);
     far.y = message.near[1];
     far.lives = message.near[2];
+    far.score = message.near[3];
     state.ballVisible = Boolean(message.ball);
     if (message.ball) {
         state.ball.x = mirror(message.ball[0]);
@@ -143,12 +145,13 @@ function playEvent(event, mirrored) {
             if (side === far) {
                 state.backFlash = 1;
                 sounds.point();
-                call('Point!', 'good');
+                call(`Point! +${S.matchPoint}`, 'good');
             } else {
                 call('Missed!', 'bad');
             }
             break;
         }
+        case 'bonus': callBonus(side, event.words, event.points); break;
         case 'start': call('Online match', 'good'); break;
         case 'explode': explodePaddle(side); break;
         case 'end': showMatchEnd(side); break;
@@ -392,6 +395,8 @@ function startGuest(message) {
     sounds.unlock();
     state.kind = 'online';
     state.score = 0;
+    near.score = 0;
+    far.score = 0;
     state.level = message.level;
     near.human = true;
     far.human = true;
@@ -414,7 +419,11 @@ function lives(paddleState, max) {
 function updateHud() {
     const max = isSolo() ? R.playerLives : R.matchLives;
     const farMax = isSolo() ? R.opponentLives : R.matchLives;
-    $('score').textContent = String(state.score).padStart(6, '0');
+    // Solo: your score. In a match both sides score: yours (or CPU 1's) here, the opponent's next to its lives.
+    $('score').textContent = String(isSolo() ? state.score : near.score).padStart(6, '0');
+    $('scoreLabel').textContent = isSolo() ? 'Score' : `${near.name} score`;
+    $('farScore').textContent = String(far.score).padStart(6, '0');
+    $('farScoreLabel').textContent = `${far.name} score`;
     $('level').textContent = isSolo() ? `${state.level + 1} / ${LEVELS.length}` : `${state.level + 1}`;
     $('levelLabel').textContent = isSolo() ? 'Level' : 'Speed';
     $('levelBonus').textContent = Math.ceil(state.levelBonus);
@@ -426,6 +435,9 @@ function updateHud() {
     $('farLives').setAttribute('aria-label', `${far.lives} of ${farMax}`);
     for (const element of document.querySelectorAll('.solo-only')) {
         element.hidden = !isSolo();
+    }
+    for (const element of document.querySelectorAll('.match-only')) {
+        element.hidden = isSolo();
     }
 }
 
@@ -482,11 +494,21 @@ function startGame(kind) {
     sounds.unlock();
     state.kind = kind;
     state.score = 0;
+    near.score = 0;
+    far.score = 0;
     state.paused = false;
     near.human = kind !== 'demo';
     far.human = kind === 'online';
     near.name = { solo: 'You', online: 'You', demo: 'CPU 1' }[kind];
     far.name = { solo: 'Opponent', online: 'Opponent', demo: 'CPU 2' }[kind];
+    if (kind === 'demo') {
+        // CPU vs CPU: two different kinds of computer, picked at random for every match.
+        const [first, second] = shuffled(Object.values(CPUS));
+        near.cpu = first;
+        far.cpu = second;
+        near.name = first.name;
+        far.name = second.name;
+    }
     if (kind === 'solo') {
         state.level = Number($('startLevel').value) - 1;
         state.startLevel = state.level;
@@ -512,19 +534,38 @@ function resetPaddles() {
     }
 }
 
+/** The kinds of computer in a random order. */
+function shuffled(list) {
+    const copy = [...list];
+    for (let i = copy.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [copy[i], copy[j]] = [copy[j], copy[i]];
+    }
+
+    return copy;
+}
+
+/** Solo: the computer you picked on the title screen, or a random one for every level (Auto). */
+function pickSoloCpu() {
+    const choice = $('cpuKind').value;
+    far.cpu = CPUS[choice] ?? shuffled(Object.values(CPUS))[0];
+    far.name = far.cpu.name;
+}
+
 function startLevel() {
+    pickSoloCpu();
     far.lives = R.opponentLives;
     state.levelBonus = S.levelBonus;
     resetPaddles();
     showScreen(null);
-    call(`Level ${state.level + 1}`);
+    call(`Level ${state.level + 1} · ${far.cpu.name}`);
     toServe(near);
 }
 
 function startMatch() {
     resetPaddles();
     showScreen(null);
-    call(state.kind === 'demo' ? 'CPU vs CPU' : 'Online match');
+    call(state.kind === 'demo' ? `${near.cpu.name} vs ${far.cpu.name}` : 'Online match');
     toServe(Math.random() < 0.5 ? near : far);
 }
 
@@ -601,23 +642,28 @@ function launch(side, isReturn) {
         ball.sx = side.vx * R.spinFromPaddle * level.curve;
         ball.sy = side.vy * R.spinFromPaddle * level.curve;
     } else {
-        ball.vx = offsetX * R.angleFromOffset * 0.8 + (Math.random() - 0.5) * 0.6;
-        ball.vy = offsetY * R.angleFromOffset * 0.8 + (Math.random() - 0.5) * 0.4;
+        // The computer's kind (cpus.js) sets how sharp, how curved and how hard its returns are.
+        const cpu = side.cpu;
+        ball.vx = (offsetX * R.angleFromOffset * 0.8 + (Math.random() - 0.5) * 0.6) * cpu.angle;
+        ball.vy = (offsetY * R.angleFromOffset * 0.8 + (Math.random() - 0.5) * 0.4) * cpu.angle;
+        ball.vz *= cpu.smash;
         const angle = Math.random() * Math.PI * 2;
-        const spin = level.opponentSpin * (1 + Math.random() * 1.5);
+        const wild = Math.random() < cpu.wild ? 2 : 1;
+        const spin = (level.opponentSpin * cpu.spin + cpu.minSpin) * (1 + Math.random() * 1.5) * wild;
         ball.sx = Math.cos(angle) * spin;
         ball.sy = Math.sin(angle) * spin;
     }
     playEvent({ e: 'hit', side: side === near ? 'near' : 'far' }, false);
     emit({ e: 'hit', side: side === near ? 'near' : 'far' });
 
-    if (isReturn && isSolo() && side === near) {
-        scoreReturn(offsetX, offsetY);
+    // Solo: only your returns score. In a match (online, CPU vs CPU) both sides score their returns.
+    if (isReturn && (side === near || !isSolo())) {
+        scoreReturn(side, offsetX, offsetY);
     }
 }
 
-/** Solo: points for your return, plus a bonus for a big curve or a hit in the middle of the paddle. */
-function scoreReturn(offsetX, offsetY) {
+/** Points for a return, plus a bonus for a big curve or a hit in the middle of the paddle. */
+function scoreReturn(side, offsetX, offsetY) {
     const ball = state.ball;
     let points = S.hit;
     const words = [];
@@ -633,11 +679,38 @@ function scoreReturn(offsetX, offsetY) {
         points += S.accuracyBonus;
         words.push('Bullseye!');
     }
-    state.score += points;
-    if (words.length) {
-        sounds.bonus();
-        call(`${words.join(' ')} +${points}`, 'bonus');
+    if (isSolo()) {
+        state.score += points;
+    } else {
+        side.score += points;
     }
+    if (words.length) {
+        callBonus(side, words, points);
+        emit({ e: 'bonus', side: side === near ? 'near' : 'far', words, points });
+    }
+}
+
+/**
+ * Calls a bonus: yours as is, the other side's in its colour with its name. Not in CPU vs CPU: the
+ * computer scores one on nearly every return, so the calls would never stop (the score still counts).
+ */
+function callBonus(side, words, points) {
+    if (state.kind === 'demo') {
+        return;
+    }
+    sounds.bonus();
+    if (side === near) {
+        call(`${words.join(' ')} +${points}`, 'bonus');
+    } else {
+        call(`${side.name}: ${words.join(' ')} +${points}`, 'them');
+    }
+}
+
+/** A match ends when a side runs out of lives; then the higher score wins (on a tie, the side with lives left). */
+function matchWinner(out) {
+    const other = out === near ? far : near;
+
+    return out.score > other.score ? out : other;
 }
 
 /** A paddle missed the ball: it loses a life and serves the next point. */
@@ -645,6 +718,10 @@ function missed(side) {
     const other = side === near ? far : near;
     side.lives--;
     state.ballVisible = false;
+    if (!isSolo()) {
+        // In a match, taking a life scores too.
+        other.score += S.matchPoint;
+    }
 
     // Every miss breaks the paddle that missed; it is whole again at the next serve.
     explodePaddle(side);
@@ -662,10 +739,10 @@ function missed(side) {
         if (isSolo()) {
             pauseThen(R.explosionTime, side === far ? levelCleared : () => endSolo(false));
         } else if (state.kind === 'demo') {
-            endMatch(other);
+            endMatch(matchWinner(side));
         } else {
             state.mode = 'over';
-            setTimeout(() => endMatch(other), R.explosionTime * 1000);
+            setTimeout(() => endMatch(matchWinner(side)), R.explosionTime * 1000);
         }
 
         return;
@@ -676,7 +753,7 @@ function missed(side) {
         pauseThen(0.8, () => toServe(near));
     } else {
         if (state.kind === 'demo') {
-            call(`Point for ${other.name}!`, other === near ? 'good' : 'them');
+            call(`Point for ${other.name}! +${S.matchPoint}`, other === near ? 'good' : 'them');
         }
         pauseThen(0.8, () => toServe(side));
     }
@@ -722,6 +799,7 @@ function endSolo(won) {
     }
     $('endTitle').textContent = won ? 'You beat all ten levels!' : 'Game over';
     $('endSummary').hidden = false;
+    $('matchSummary').hidden = true;
     $('endScore').textContent = state.score.toLocaleString('en');
     $('endLevel').textContent = state.level + 1;
     const entry = qualifies(state.score, R.highScores);
@@ -739,7 +817,7 @@ function endMatch(winner) {
     if (state.kind === 'demo') {
         // Watching: announce the winner and start the next match by itself.
         sounds.levelClear();
-        call(`${winner.name} wins!`, winner === near ? 'good' : 'them');
+        call(`${winner.name} wins! ${near.score.toLocaleString('en')} – ${far.score.toLocaleString('en')}`, winner === near ? 'good' : 'them');
         setHint();
         pauseThen(R.demoRestartDelay, () => startGame('demo'));
 
@@ -757,6 +835,14 @@ function showMatchEnd(winner) {
     (winner === near ? sounds.levelClear : sounds.gameOver)();
     $('endTitle').textContent = winner === near ? 'You win!' : 'Your opponent wins';
     $('endSummary').hidden = true;
+    const outOfLives = near.lives <= 0 ? near : far;
+    $('matchSummary').hidden = false;
+    $('matchYou').textContent = near.score.toLocaleString('en');
+    $('matchThem').textContent = far.score.toLocaleString('en');
+    // Out of lives but still the winner: say so, it is the surprising case.
+    $('matchNote').textContent = outOfLives === winner
+        ? (winner === near ? 'You ran out of lives, but your trick shots won it.' : 'Your opponent ran out of lives, but their trick shots won it.')
+        : '';
     $('scoreForm').hidden = true;
     $('endBoard').hidden = true;
     $('playAgain').textContent = 'Rematch';
@@ -879,13 +965,14 @@ function moveCpu(side, dt) {
         const time = Math.abs((side.z - ball.z) / ball.vz);
         const predictedX = clamp(ball.x + ball.vx * time, T.halfWidth);
         const predictedY = clamp(ball.y + ball.vy * time, T.halfHeight);
-        aimX = ball.x + (predictedX - ball.x) * level.opponentAim;
-        aimY = ball.y + (predictedY - ball.y) * level.opponentAim;
+        const read = Math.max(0, Math.min(1, level.opponentAim + side.cpu.aim));
+        aimX = ball.x + (predictedX - ball.x) * read;
+        aimY = ball.y + (predictedY - ball.y) * read;
     } else if (state.mode === 'play') {
-        aimX = ball.x * 0.3;
-        aimY = ball.y * 0.3;
+        aimX = ball.x * side.cpu.follow;
+        aimY = ball.y * side.cpu.follow;
     }
-    const step = level.opponentSpeed * dt;
+    const step = level.opponentSpeed * side.cpu.speed * dt;
     const oldX = side.x;
     const oldY = side.y;
     side.x = clamp(side.x + clamp(aimX - side.x, step), limitX);
@@ -1005,6 +1092,42 @@ function update(dt) {
 
 let last = performance.now();
 let hudTimer = 0;
+// Keep the screen on while a game runs (a phone would dim and lock while you only drag the paddle):
+// a Screen Wake Lock during a match, released on the menus, the end screen and a solo pause. The
+// browser drops the lock when the page is hidden, so it is asked again once the page is back.
+let wakeLock = null;
+let wakeWanted = false;
+let wakeRetry = 0;
+
+function keepAwake() {
+    const wanted = (!['title', 'over'].includes(state.mode) || state.kind === 'demo') && !(state.paused && !state.countingDown && state.kind !== 'online');
+    if (wanted === wakeWanted || !navigator.wakeLock || document.hidden || performance.now() < wakeRetry) {
+        return;
+    }
+    wakeWanted = wanted;
+    if (wanted) {
+        navigator.wakeLock.request('screen').then((lock) => {
+            wakeLock = lock;
+            lock.addEventListener('release', () => {
+                if (wakeLock === lock) {
+                    wakeLock = null;
+                    wakeWanted = false;
+                }
+            });
+            if (!wakeWanted) {
+                lock.release();
+            }
+        }).catch(() => {
+            // Not allowed right now (battery saver, for example): the screen may dim; try again later.
+            wakeWanted = false;
+            wakeRetry = performance.now() + 5000;
+        });
+    } else {
+        wakeLock?.release();
+        wakeLock = null;
+    }
+}
+
 function frame(now) {
     const dt = Math.min(0.05, (now - last) / 1000);
     last = now;
@@ -1017,6 +1140,7 @@ function frame(now) {
         }
     }
     renderer.draw(state);
+    keepAwake();
     requestAnimationFrame(frame);
 }
 
@@ -1261,6 +1385,25 @@ try {
 if (!$('startLevel').value) {
     $('startLevel').value = '1';
 }
+$('cpuKind').replaceChildren(
+    Object.assign(document.createElement('option'), { value: 'auto', textContent: 'Auto (a random one every level)' }),
+    ...Object.entries(CPUS).map(([key, cpu]) => Object.assign(document.createElement('option'), { value: key, textContent: `${cpu.name}: ${cpu.about}` })),
+);
+try {
+    $('cpuKind').value = localStorage.getItem('twistball-cpu') ?? 'auto';
+} catch {
+    // Auto.
+}
+if (!$('cpuKind').value) {
+    $('cpuKind').value = 'auto';
+}
+$('cpuKind').addEventListener('change', () => {
+    try {
+        localStorage.setItem('twistball-cpu', $('cpuKind').value);
+    } catch {
+        // Not remembering it is fine.
+    }
+});
 $('startLevel').addEventListener('change', () => {
     try {
         localStorage.setItem('twistball-start-level', $('startLevel').value);

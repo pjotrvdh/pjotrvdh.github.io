@@ -1,4 +1,7 @@
-/** Points. Every return you make scores; a good return scores a bonus on top. */
+/**
+ * Points. Every return scores; a good return scores a bonus on top. Solo only your returns count; in a
+ * match (online, CPU vs CPU) both sides score, and the higher score wins.
+ */
 export default {
     /** Every ball you return. */
     hit: 100,
@@ -14,6 +17,8 @@ export default {
     superCurveThreshold: 2.6,
     /** How close to the centre counts as accurate, as a share of the paddle's half size. */
     accuracyZone: 0.25,
+    /** A match (online, CPU vs CPU): points for taking one of the other side's lives. */
+    matchPoint: 300,
     /** The level bonus you get for clearing a level fast: it starts here... */
     levelBonus: 3000,
     /** ...and drops by this much every second the ball is in play. */

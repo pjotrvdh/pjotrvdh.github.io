@@ -61,6 +61,10 @@ a { color: var(--near); }
 .hud dd { margin: 0; font-family: var(--mono); font-size: 16px; font-weight: 700; font-variant-numeric: tabular-nums; }
 .hud .you dd { color: var(--near); letter-spacing: .1em; }
 .hud .them dd { color: var(--far); letter-spacing: .1em; }
+.hud .them-score dd { color: var(--far); }
+.match-summary .you strong { color: var(--near); }
+.match-summary .them strong { color: var(--far); }
+.match-summary strong { font-size: 22px; font-variant-numeric: tabular-nums; }
 .hud .buttons { display: flex; gap: 8px; margin-left: auto; }
 
 /* ---------- arena ---------- */
@@ -183,7 +187,7 @@ a { color: var(--near); }
 .screen .modes .main { margin-top: 0; }
 .speed { color: var(--muted); }
 .speed label { margin-right: 8px; }
-.speed select { padding: 4px 8px; border: 2px solid var(--line); border-radius: 6px; color: var(--ink); background: var(--bg); font: inherit; }
+.speed select { max-width: 100%; padding: 4px 8px; border: 2px solid var(--line); border-radius: 6px; color: var(--ink); background: var(--bg); font: inherit; }
 .call.them { color: var(--far); text-shadow: 0 0 16px color-mix(in srgb, var(--far) 60%, transparent), 0 2px 0 #000; }
 
 .room { margin: 12px 0; }
