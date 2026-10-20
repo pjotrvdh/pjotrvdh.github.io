@@ -477,6 +477,7 @@ export class Figure {
             if (prop) {
                 const how = PROPS[prop];
                 w.rotation.set(...how.turn);
+                w.position.set(...(how.at ?? [0, 0, 0]));
                 w.scale.setScalar(how.scale);
             } else {
                 w.rotation.y += THREE.MathUtils.degToRad(this.cfg.turn?.[hand] ?? 0);
@@ -576,13 +577,27 @@ export class Figure {
 
 /**
  * The props a unit holds for one activity, in place of its own things: an open book to study, a steak
- * to eat, a pick to dig (units with a tool of their own dig with that). `turn` (radians) and `scale` fit
- * the model in the hand.
+ * to eat, a pick to dig (units with a tool of their own dig with that). `turn` (radians, x y z), `at`
+ * (a shift from the hand, in the hand's own units) and `scale` fit the model in the hand.
  */
 const PROPS = {
-    book: { during: 'study', turn: [0, 0, 0], scale: 1 },
-    steak: { during: 'eat', turn: [Math.PI / 2, 0, 0], scale: 0.45 },
-    pickaxe: { during: 'dig', turn: [0, Math.PI, 0], scale: 1 },
+    book: {
+        during: 'study',
+        turn: [Math.PI, -Math.PI / 2, 0],
+        at: [0, 0.3, -0.35],
+        scale: 1
+    },
+    steak: {
+        during: 'eat',
+        turn: [Math.PI / 2, 0, 0],
+        at: [0.2, 0, -0.1],
+        scale: 0.45
+    },
+    pickaxe: {
+        during: 'dig',
+        turn: [0, Math.PI, 0],
+        scale: 1
+    },
 };
 
 /**
