@@ -1,6 +1,6 @@
 /**
  * The clouds over undiscovered ground: a drifting cloud layer just above the blocks, opaque over every
- * unseen tile with soft edges. Gold and gems glint through it, and invading heroes in undiscovered
+ * unseen tile with soft edges. Gold and gems glint, through it and once discovered, and invading heroes in undiscovered
  * ground show as white dots on top of it (Dungeon Keeper style).
  */
 import * as THREE from 'three';
@@ -69,18 +69,23 @@ export class Fog {
             G.fogDirty = false;
             this.game = G;
         }
-        // gold and gems glint through the clouds
+        // gold and gems glint, through the clouds and on discovered seams alike
         let n = 0;
         const gp = this.glints.geometry.attributes.position;
         const gc = this.glints.geometry.attributes.color;
         for (let i = 0; i < N && n < MAX_DOTS; i++) {
             const t = G.t[i];
-            if (G.seen[i] || (t !== GOLD && t !== GEM)) {
+            if (t !== GOLD && t !== GEM) {
                 continue;
             }
             const x = tx(i);
             const y = ty(i);
-            const tw = 0.45 + 0.55 * Math.max(0, Math.sin(time * 2.2 + hash(x, y) * 40));
+            // through the clouds a steady twinkle; on a discovered seam now and then a short sparkle
+            const wave = Math.sin(time * (G.seen[i] ? 1.1 + hash(x, y, 31) : 2.2) + hash(x, y) * 40);
+            const tw = G.seen[i] ? Math.max(0, wave - 0.93) / 0.07 : 0.45 + 0.55 * Math.max(0, wave);
+            if (tw <= 0) {
+                continue;
+            }
             gp.setXYZ(n, x + 0.3 + hash(x, y, 11) * 0.4, FOG_Y + 0.05, y + 0.3 + hash(x, y, 21) * 0.4);
             if (t === GOLD) {
                 gc.setXYZ(n, 0.95 * tw, 0.72 * tw, 0.25 * tw);

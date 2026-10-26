@@ -78,7 +78,7 @@ After the loop: `G.hp` and `G.gold` per tile, then the caverns are populated.
 - `reveal(i)`: a tile a unit looks at gets `G.seen` bit 2 (looked at) and, with the 8 tiles around it, bit 1 (shown, out of the shroud). So there is always one tile of clear ground around everything you have discovered; `vision()` skips only looked-at tiles, so a ring tile still spreads its own ring once a unit sees it. Any non-zero `G.seen` counts as seen.
 - Radius: imps `settings/imp.js` `vision` (4), creatures `vision` in their `creatures/*.js` (5). Heroes and neutrals reveal nothing.
 - New seen tiles set `G.fogDirty`; the cloud layer (`underlord/src/render/fog.js`) then rewrites its W x H mask and clears the flag.
-- Through the clouds the player sees (drawn by `render/fog.js`, `render/terrain.js` and `drawMini()`): gold and gem tiles (glints), dig marks, the portal(s) (always drawn, minimap too) and invading heroes as white dots ([heroes](heroes.md)). Chests, caverns, the gate, lava and neutrals do not show.
+- Through the clouds the player sees (drawn by `render/fog.js`, `render/terrain.js` and `drawMini()`): gold and gem tiles (glints; discovered seams sparkle now and then), dig marks, the portal(s) (always drawn, minimap too) and invading heroes as white dots ([heroes](heroes.md)). Chests, caverns, the gate, lava and neutrals do not show.
 - The Hero Gate (model and light) is drawn only once the gate tile is seen.
 
 ## Pathfinding
