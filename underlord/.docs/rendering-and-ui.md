@@ -20,7 +20,7 @@ description: Underlord's 3D view (three.js: camera, picking, terrain, rooms, uni
 
 - 1 world unit = 1 tile. Tile (x, y) spans x..x+1 on X and y..y+1 on Z; floors at Y = 0, solid blocks `TOP` (1) high (`terrain.js`), the clouds at `FOG_Y` (`fog.js`).
 - `CameraRig`: a perspective camera (FOV 38) looking at `target` on the ground from pitch `PITCH` (~56 degrees), at distance `dist` (5..70), turned by `yaw`. Yaw 0 looks north, so the view matches the minimap. `rotate(±1)` eases a quarter turn (Q / E, the ⟲ ⟳ buttons).
-- `zoomAt()` keeps the ground point under the pointer fixed; `panStart()`/`panTo()` drag the ground point under the pointer; `panKeys()` scrolls in screen directions; `fit()` shows the whole map; `clamp()` keeps the target on the map.
+- `zoomAt()` keeps the ground point under the pointer fixed; `panStart()`/`panTo()` drag the ground point under the pointer; `panKeys()` scrolls in screen directions; `panPixels()` moves the view by a screen distance; `fit()` shows the whole map; `clamp()` keeps the target on the map.
 - `groundView()` returns the four ground points at the screen corners: the trapezoid on the minimap.
 
 ## Picking
@@ -87,7 +87,7 @@ description: Underlord's 3D view (three.js: camera, picking, terrain, rooms, uni
 - The controls follow Dungeon Keeper (1997); the header of `game/input.js` sums them up.
 - Left button: Hand: pick up your unit, else start a box (`app.drag`, mode `mark`, or `unmark` when it starts on a marked block); room or Sell: a box; spell: cast at the picked point; Slap tool: slap; Look tool: drag the map. The box is Dungeon Keeper 2's: it is shown while dragging and `applyRect()` applies it on release, so a whole room goes down at once (a click is a 1 × 1 box).
 - Right button: with units in hand, drop the last one picked up (`drop()`); otherwise with a room, Sell or spell selected, back to the Hand; otherwise slap your unit under the pointer. This happens on release, at the point where it was pressed, and only if the pointer moved 5 px or less: holding the right button and moving drags the map instead. On a touch screen a Hand tap with units in hand drops.
-- Camera: arrows/WASD (Shift ×2.5), the pointer within `EDGE` (16 px) of the view's edge (`keyPan()`), right- or middle-drag, Look-tool drag, two-pointer pinch and pan, wheel zoom at the pointer (×1.15).
+- Camera: arrows/WASD (Shift ×2.5), the pointer within `EDGE` (16 px) of the view's edge (`keyPan()`), right- or middle-drag, Look-tool drag, two-pointer pinch and pan, scrolling (trackpad two-finger scroll or mouse wheel; Shift + wheel sideways) pans by the scrolled pixels (`panPixels()`); a trackpad pinch (a wheel event with Ctrl) or Ctrl/Cmd + wheel zooms at the pointer (at most ×1.25 per event). Dungeon Keeper itself had no wheel zoom: it zoomed and turned with the keyboard.
 - Keys: `P`/`Space` pause, `+`/`-` speed, `1`-`5` panels (Info, Rooms, Spells, Creatures), `Ctrl`+`←`/`→` and `Q`/`E` turn, `Ctrl`+`↑`/`↓` zoom, `M` whole map, `V` sound on/off, `H` Heart, `T` Treasury, `Shift`+`T` Training Room, `Shift`+`H` Hatchery, `Shift`+`L` Lair, `L` Library (`jumpToRoom()` cycles through separate rooms), `Ctrl`+`P` portal, `F` a fight, `Esc` hand tool + end stroke + close cheats, `` ` `` or `Ctrl`+`C` the Cheats panel once unlocked. Other keys with Ctrl, Cmd or Alt are left to the browser. Cheat-code letters from the second on are swallowed (`cheatKey()`), so typing it does not jump or turn the view.
 - Buttons ⟲ ⟳ + − Fit on the map.
 

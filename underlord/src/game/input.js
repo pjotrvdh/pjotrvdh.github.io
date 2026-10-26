@@ -8,7 +8,8 @@
  *   with an empty hand, slap your creature; with a room, Sell or a spell selected, go back to the hand.
  *   These happen on release; holding the right button and moving drags the map instead.
  * - Camera: arrow keys / WASD (Shift: faster), the pointer at the edge of the view, Ctrl + arrows to turn
- *   and zoom. Extras: right- or middle-drag moves the map, the mouse wheel zooms, Q / E turn.
+ *   and zoom. Extras: right- or middle-drag moves the map, scrolling (trackpad or wheel) moves it too,
+ *   a pinch or Ctrl + wheel zooms, Q / E turn.
  * - Keys: P pause, + / - game speed, 1-4 panels, H / T / L ... jump to the Heart or a room, F to a fight,
  *   M the whole map, Esc the hand.
  *
@@ -352,10 +353,20 @@ export function initInput() {
     cv.addEventListener('pointerleave', () => {
         app.hover.in = false;
     });
+    // Scrolling moves the map (a trackpad's two fingers, a mouse wheel; Shift for sideways). Zooming is a
+    // pinch on the trackpad (the browser sends it as a wheel with Ctrl), Ctrl + wheel, the + / - buttons
+    // or Ctrl + arrow keys, as in Dungeon Keeper.
     cv.addEventListener('wheel', (ev) => {
         ev.preventDefault();
-        const { sx, sy } = screen(ev, cv);
-        view.zoomAt(ev.deltaY < 0 ? 1.15 : 1 / 1.15, sx, sy);
+        const unit = ev.deltaMode === 1 ? 16 : ev.deltaMode === 2 ? cv.clientHeight : 1;
+        if (ev.ctrlKey || ev.metaKey) {
+            const { sx, sy } = screen(ev, cv);
+            view.zoomAt(Math.min(1.25, Math.max(0.8, Math.exp(-ev.deltaY * unit * 0.01))), sx, sy);
+        } else if (ev.shiftKey && !ev.deltaX) {
+            view.panPixels(ev.deltaY * unit, 0);
+        } else {
+            view.panPixels(ev.deltaX * unit, ev.deltaY * unit);
+        }
     }, { passive: false });
     addEventListener('keydown', (e) => {
         if (e.key === 'Shift') {

@@ -122,6 +122,16 @@ export class CameraRig {
     }
 
     /** Scrolls with the keys: `right` and `down` are -1, 0 or 1 in screen directions. */
+    /** Moves the view by a screen distance in pixels (a trackpad's two-finger scroll, a mouse wheel). */
+    panPixels(dx, dy) {
+        const k = 2 * this.dist * Math.tan(THREE.MathUtils.degToRad(this.camera.fov / 2)) / Math.max(1, this.height);
+        const s = Math.sin(this.yaw);
+        const c = Math.cos(this.yaw);
+        this.target.x += (dx * c + dy * s) * k;
+        this.target.z += (-dx * s + dy * c) * k;
+        this.clamp();
+    }
+
     panKeys(right, down, dt) {
         const v = this.dist * 0.9 * dt;
         const s = Math.sin(this.yaw);
