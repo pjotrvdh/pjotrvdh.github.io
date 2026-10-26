@@ -3,7 +3,7 @@
  * and reinforcing walls. impThink() picks the next job; doDig(), doClaim() and doReinforce() do it.
  */
 import { CLAIM, EARTH, FLOOR, GEM, GOLD, N4, PORTAL, TREAS, WALL, inb, ix, tx, ty } from './constants.js';
-import { CFG, WALL_HP } from './config.js';
+import { ASSETS, CFG, WALL_HP } from './config.js';
 import { go, openTile, release, reserve } from './entities.js';
 import { bfs } from './path.js';
 import { G } from './state.js';
@@ -179,7 +179,7 @@ export function doDig(e, dt) {
     } else if (t === GEM) {
         e.carry += 20;
     }
-    fx({ type: 'dust', x: (e.x + tx(j) + 0.5) / 2, y: (e.y + ty(j) + 0.5) / 2, dur: 0.35, col: t === EARTH ? '#8a6446' : t === WALL ? '#9a8a80' : '#f2cb55' });
+    fx({ type: 'dust', x: (e.x + tx(j) + 0.5) / 2, y: (e.y + ty(j) + 0.5) / 2, dur: 0.35, col: t === EARTH ? '#8a6446' : t === WALL ? '#9a8a80' : t === GEM ? ASSETS.gemColor : '#f2cb55' });
     // full: haul it (earth and walls), or for gold keep mining the seam out unless the treasuries are full
     const full = G.money >= cap();
     if (e.carry >= IMP_POCKET && (t === GOLD ? full : !full || t !== EARTH)) {

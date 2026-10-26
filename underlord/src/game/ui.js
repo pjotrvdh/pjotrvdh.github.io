@@ -592,10 +592,10 @@ export function drawMini() {
     const c = m.getContext('2d');
     const s = m.width / W;
     c.setTransform(1, 0, 0, 1, 0, 0);
-    const col = ['#121116', '#4b3423', '#d6a52a', '#56d6ea', '#2a211b', '#6a2620', '#ff4a3a', '#c24bd6', '#bcd2f0', '#e0561b', '#6b5d55'];
+    const col = ['#121116', '#4b3423', '#d6a52a', ASSETS.gemColor, '#2a211b', '#6a2620', '#ff4a3a', '#c24bd6', '#bcd2f0', '#e0561b', '#6b5d55'];
     for (let i = 0; i < G.t.length; i++) {
         const t = G.t[i];
-        c.fillStyle = !G.seen[i] ? (t === GOLD || t === GEM ? '#5a4416' : '#0c0a0f') : G.room[i] ? ROOMS[G.room[i]].col : col[t];
+        c.fillStyle = !G.seen[i] ? (t === GOLD ? '#5a4416' : t === GEM ? '#4a1834' : '#0c0a0f') : G.room[i] ? ROOMS[G.room[i]].col : col[t];
         c.fillRect(tx(i) * s, ty(i) * s, Math.ceil(s), Math.ceil(s));
     }
     for (const P of G.portals) {

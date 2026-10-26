@@ -20,6 +20,9 @@ export default {
     /** Your colour as the keeper: claimed floor, the emblem on it, the jewels on reinforced walls, your units' rings. */
     keeper: '#e0483c',
 
+    /** Ruby purple: the gems in gem seams (the gold of the gold block, recoloured), their glints and the minimap. */
+    gemColor: '#a32a9c',
+
     /** Panel portraits per unit kind. */
     icons: Object.fromEntries(['imp', 'orc', 'warlock', 'troll', 'mistress', 'skeleton', 'tunneller', 'thief', 'archer', 'wizard', 'barbarian', 'knight', 'lord'].map((k) => [k, icon(k)])),
 
@@ -256,7 +259,8 @@ export default {
     tiles: {
         earth: 'blocks/dirt.glb',
         gold: 'blocks/stone_with_gold.glb',
-        gem: 'blocks/stone_with_silver.glb',
+        /** The gold block, its gold recoloured with `gemColor` (terrain.js), so gem seams read like gold seams. */
+        gem: 'blocks/stone_with_gold.glb',
         rock: 'blocks/stone_dark.glb',
         wall: 'blocks/bricks_A.glb',
         floor: 'blocks/gravel.glb',

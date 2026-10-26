@@ -50,7 +50,7 @@ const MODELS = [
         .map((name) => [`dungeon/${name}.glb`, `${DUNGEON}/${name}.glb`]),
     ...['gate']
         .map((name) => [`cave/${name}.glb`, `${CAVE}/${name}.glb`]),
-    ...['dirt', 'gravel', 'stone_dark', 'stone_with_gold', 'stone_with_silver', 'bricks_A', 'bricks_B', 'lava']
+    ...['dirt', 'gravel', 'stone_dark', 'stone_with_gold', 'bricks_A', 'bricks_B', 'lava']
         .map((name) => [`blocks/${name}.glb`, `${BLOCKS}/${name}.gltf`]),
     ...['Barbarian', 'Knight', 'Mage', 'Ranger', 'Rogue', 'Rogue_Hooded']
         .map((name) => [`kaykit/${name}.glb`, `${KAYKIT}/Characters/gltf/${name}.glb`]),

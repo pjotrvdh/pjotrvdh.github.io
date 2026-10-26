@@ -10,6 +10,7 @@ import { ASSETS, ROOMS, WALL_HP } from '../game/config.js';
 import { G } from '../game/state.js';
 import { diggable, solid } from '../game/tiles.js';
 import { Instances, place } from './instances.js';
+import { parts } from './models.js';
 
 /** Height of a solid block. */
 export const TOP = 1;
@@ -20,6 +21,52 @@ const col = new THREE.Color();
 /** Block Bits blocks are 2 units on every side: half scale is one tile. */
 const BLOCK = 0.5;
 const WHITE = new THREE.Color(1, 1, 1);
+
+/**
+ * The gold block's material with every gold pixel of its texture recoloured in `assets.js` `gemColor`
+ * (same shading, ruby purple), so a gem seam looks like a gold seam with rubies.
+ */
+function gemMaterial(gold) {
+    const m = gold.clone();
+    const img = gold.map?.image;
+    if (!img) {
+        m.color.set(ASSETS.gemColor);
+
+        return m;
+    }
+    const c = document.createElement('canvas');
+    c.width = img.width;
+    c.height = img.height;
+    const g = c.getContext('2d');
+    g.drawImage(img, 0, 0);
+    const d = g.getImageData(0, 0, c.width, c.height);
+    const ruby = new THREE.Color(ASSETS.gemColor);
+    const p = d.data;
+    for (let k = 0; k < p.length; k += 4) {
+        const r = p[k];
+        const gr = p[k + 1];
+        const b = p[k + 2];
+        const max = Math.max(r, gr, b);
+        // gold: warm (red >= green > blue) and saturated
+        if (max > 40 && r >= gr && gr > b && (max - b) / max > 0.35) {
+            const l = (r + gr + b) / (3 * 170);
+            p[k] = Math.min(255, ruby.r * 255 * l * 1.3);
+            p[k + 1] = Math.min(255, ruby.g * 255 * l * 1.3);
+            p[k + 2] = Math.min(255, ruby.b * 255 * l * 1.3);
+        }
+    }
+    g.putImageData(d, 0, 0);
+    const t = new THREE.CanvasTexture(c);
+    t.flipY = gold.map.flipY;
+    t.colorSpace = gold.map.colorSpace;
+    t.wrapS = gold.map.wrapS;
+    t.wrapT = gold.map.wrapT;
+    t.magFilter = gold.map.magFilter;
+    t.minFilter = gold.map.minFilter;
+    m.map = t;
+
+    return m;
+}
 /** Chance that a side of a reinforced wall facing your ground carries a torch. */
 const TORCHES = 0.22;
 /** Brightness per block type: earth darker than the floors, so walls and floors read apart from above. */
@@ -74,7 +121,7 @@ export class Terrain {
         this.blocks = {
             [EARTH]: new Instances(this.group, A.earth),
             [GOLD]: new Instances(this.group, A.gold),
-            [GEM]: new Instances(this.group, A.gem),
+            [GEM]: new Instances(this.group, parts(A.gem).map((q) => ({ ...q, material: gemMaterial(q.material) }))),
             [ROCK]: new Instances(this.group, A.rock),
             [WALL]: new Instances(this.group, A.wall),
         };

@@ -11,6 +11,8 @@ import { glowTexture } from './effects.js';
 import { TOP } from './terrain.js';
 
 export const FOG_Y = TOP + 0.1;
+/** Most glints and hero dots drawn at once (a big map has a few hundred gold tiles). */
+const MAX_DOTS = 1024;
 
 export class Fog {
     constructor(scene) {
@@ -43,8 +45,8 @@ export class Fog {
         this.plane = plane;
         const dots = (size) => {
             const geo = new THREE.BufferGeometry();
-            geo.setAttribute('position', new THREE.BufferAttribute(new Float32Array(3 * 256), 3));
-            geo.setAttribute('color', new THREE.BufferAttribute(new Float32Array(3 * 256), 3));
+            geo.setAttribute('position', new THREE.BufferAttribute(new Float32Array(3 * MAX_DOTS), 3));
+            geo.setAttribute('color', new THREE.BufferAttribute(new Float32Array(3 * MAX_DOTS), 3));
             const pts = new THREE.Points(geo, new THREE.PointsMaterial({ map: glowTexture(), size, vertexColors: true, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending }));
             pts.renderOrder = 11;
             pts.frustumCulled = false;
@@ -71,7 +73,7 @@ export class Fog {
         let n = 0;
         const gp = this.glints.geometry.attributes.position;
         const gc = this.glints.geometry.attributes.color;
-        for (let i = 0; i < N && n < 256; i++) {
+        for (let i = 0; i < N && n < MAX_DOTS; i++) {
             const t = G.t[i];
             if (G.seen[i] || (t !== GOLD && t !== GEM)) {
                 continue;
@@ -83,7 +85,7 @@ export class Fog {
             if (t === GOLD) {
                 gc.setXYZ(n, 0.95 * tw, 0.72 * tw, 0.25 * tw);
             } else {
-                gc.setXYZ(n, 0.35 * tw, 0.8 * tw, 0.95 * tw);
+                gc.setXYZ(n, 0.8 * tw, 0.2 * tw, 0.55 * tw);
             }
             n++;
         }
@@ -95,7 +97,7 @@ export class Fog {
         const hp = this.heroes.geometry.attributes.position;
         const hc = this.heroes.geometry.attributes.color;
         for (const e of unknownHeroes()) {
-            if (n >= 256) {
+            if (n >= MAX_DOTS) {
                 break;
             }
             const p = 0.6 + 0.4 * Math.sin(time * 5 + e.id);
