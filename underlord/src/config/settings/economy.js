@@ -7,8 +7,8 @@ export default {
     treasCap: 500,
     /** Gold in each gold-seam tile. */
     seamGold: 300,
-    /** Gold veins per map. */
-    goldVeins: 13,
+    /** Gold veins per map (80 x 52 tiles). */
+    goldVeins: 48,
     /** Seconds between paydays. */
     payInterval: 180,
     /** Multiplier on every creature wage. */

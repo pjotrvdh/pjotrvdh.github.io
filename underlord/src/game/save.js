@@ -9,7 +9,7 @@ import { newGame } from './map.js';
 import { G, app } from './state.js';
 import { clearLog, msg, syncCpu, syncPause } from './ui.js';
 
-const SAVE_V = 2;
+const SAVE_V = 3;
 const SAVE_KEYS = ['id', 'kind', 'side', 'x', 'y', 'hp', 'maxhp', 'atk', 'lvl', 'xp', 'carry', 'hunger', 'guard', 'bed', 'leaving', 'fromPool', 'payDue', 'cell'];
 
 function serialize() {

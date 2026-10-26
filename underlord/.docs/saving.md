@@ -13,7 +13,7 @@ description: Underlord save games: localStorage, SAVE_V format, autosave, saved 
 
 - One slot: `localStorage['underlord-save']`, JSON. `lsGet()` / `lsSet()` swallow errors (private mode, quota) and return `null` / `false`.
 - `localStorage['underlord-tab']` separately remembers the last panel tab.
-- `SAVE_V = 2`. `loadGame()` refuses any other `v` ("from an older version ... cannot be loaded").
+- `SAVE_V = 3` (3: the map grew to 80 x 52; older saves cannot load). `loadGame()` refuses any other `v` ("from an older version ... cannot be loaded").
 
 ## When it saves
 

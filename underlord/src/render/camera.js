@@ -8,11 +8,11 @@ import { H, W } from '../game/constants.js';
 
 const PITCH = 0.98; // radians above the horizon (about 56 degrees)
 const MIN_DIST = 5;
-const MAX_DIST = 70;
+const MAX_DIST = 140;
 
 export class CameraRig {
     constructor() {
-        this.camera = new THREE.PerspectiveCamera(38, 1, 0.1, 200);
+        this.camera = new THREE.PerspectiveCamera(38, 1, 0.1, 300);
         this.target = new THREE.Vector3(W / 2, 0, H / 2);
         this.yaw = 0;
         this.yawGoal = 0;

@@ -13,7 +13,7 @@ description: Hub for the Underlord docs: what the game is, the loop, the source 
 
 - A Dungeon Keeper (1997)-style real-time game, drawn in 3D with three.js (Kenney and KayKit models). The player is a keeper: imps dig and claim, rooms attract and serve creatures, six hero waves march from a Hero Gate to the Dungeon Heart.
 - Win: every wave in `underlord/src/config/waves.js` has spawned and no non-guard hero is alive. Lose: the Heart's health reaches 0.
-- One map per game: 40 x 26 tiles (`W`, `H` in `underlord/src/game/constants.js`).
+- One map per game: 80 x 52 tiles (`W`, `H` in `underlord/src/game/constants.js`).
 - Only creatures and heroes from the original Dungeon Keeper belong in the game (see `AGENTS.md`).
 
 ## Game loop at a glance

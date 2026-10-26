@@ -34,13 +34,13 @@ description: Underlord map generation (genMap), tile types, caverns, portal, gat
 Up to 40 attempts; an attempt is kept as soon as a hero path exists (`dijkstra(G.gate, adjHeart)`); after 40 failures the last attempt is kept anyway. Steps per attempt, in order (later steps overwrite earlier ones):
 
 1. Fill with earth; border ring of rock.
-2. `blob(GOLD, economy.goldVeins, 7)`: 13 random walks of 7 steps (`economy.js` `goldVeins`). No lava for now: `LAVA` still exists (older saves have it, and it is drawn and blocks everyone), but `genMap()` places none.
-3. 2 single gem tiles at x 16-33, y 3-22.
-4. 5 hidden caverns: centre x 13-32, y 3-22, up to 30 tries to keep > 7 tiles from earlier centres; each a 14-step random walk stamping 2 x 2 `FLOOR` squares (kept inside x/y 2..W-3/H-3).
-5. Heart area at `hx=5`, `hy=H>>1` (13): a 9 x 9 earth square (clears anything there), then a 7 x 7 `CLAIM` square with the 3 x 3 `HEART` in the middle. That is the starting territory (40 claimed tiles).
+2. `blob(GOLD, economy.goldVeins, 7)`: 48 random walks of 7 steps (`economy.js` `goldVeins`). No lava for now: `LAVA` still exists (older saves have it, and it is drawn and blocks everyone), but `genMap()` places none.
+3. `GEMS` (6) single gem tiles at x 16..W-7, y 3..H-4.
+4. `CAVES` (14) hidden caverns: centre x 13..W-8, y 3..H-4, up to 30 tries to keep > 9 tiles from earlier centres; each a `CAVE_STEPS` (18) step random walk stamping 2 x 2 `FLOOR` squares (kept inside x/y 2..W-3/H-3).
+5. Heart area at `hx=5`, `hy=H>>1` (26): a 9 x 9 earth square (clears anything there), then a 7 x 7 `CLAIM` square with the 3 x 3 `HEART` in the middle. That is the starting territory (40 claimed tiles).
 6. Starter gold seam: x = `hx+5` (10), y = `hy-2..hy+1` (4 tiles), one earth tile past the territory.
-7. The single portal: x 12-14, y = `hy ± (4..6)` (above or below at random), a 3 x 3 `FLOOR` patch with `PORTAL` in the centre. `G.portals = [i]`, `G.portal = i`.
-8. Hero Gate: x = `W-4` (36), y 4-21, a 5 x 5 `FLOOR` patch with `GATE` in the centre.
+7. The single portal (exactly one creature portal per map): x 12-14, y = `hy ± (4..6)` (above or below at random), a 3 x 3 `FLOOR` patch with `PORTAL` in the centre. `G.portals = [i]`, `G.portal = i`.
+8. Hero Gate: x = `W-4` (76), y 4..H-5, a 5 x 5 `FLOOR` patch with `GATE` in the centre.
 
 After the loop: `G.hp` and `G.gold` per tile, then the caverns are populated.
 
@@ -53,7 +53,7 @@ After the loop: `G.hp` and `G.gold` per tile, then the caverns are populated.
 | 0 (farthest) | Hero camp: Knight + Archer with `guard=true`, state `guard`; chest of 600 |
 | 1 | Neutral Orc (`side=2`, state `neutral`); chest of 200 |
 | 2 | Neutral Troll; chest of 200 |
-| 3, 4 | Chests of 250 and 150 |
+| 3 and further | Chests of 250 and 150 |
 
 - Chests are `G.loot[i]` gold amounts. Any own unit standing on the tile takes what fits under capacity (`tick()`), so the chest can empty in parts.
 - Neutrals: frozen (`tick()` returns early for side 2), ignored by all targeting, drawn faded with a "?". In `vision()`, a neutral on a seen tile with an own, not-held unit within 3 tiles joins: `side=0`, state `think`. Joining does not touch `G.pool`, and a joined neutral never goes back to it.

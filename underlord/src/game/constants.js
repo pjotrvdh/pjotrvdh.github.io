@@ -4,8 +4,8 @@
  */
 
 /** Map size in tiles. */
-export const W = 40;
-export const H = 26;
+export const W = 80;
+export const H = 52;
 export const N = W * H;
 
 // Tile types (G.t). Saved games store these codes: changing them needs a new SAVE_V (see save.js).

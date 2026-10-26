@@ -12,6 +12,11 @@ import { clearLog, msg, syncCpu } from './ui.js';
 import { fx } from './world.js';
 import { view } from '../render/view.js';
 
+/** Gem seams, hidden caverns and how far each cavern winds (steps of 2 x 2 tiles), for the 80 x 52 map. */
+const GEMS = 6;
+const CAVES = 14;
+const CAVE_STEPS = 18;
+
 function genMap() {
     let caves = [];
     for (let tries = 0; tries < 40; tries++) {
@@ -40,25 +45,25 @@ function genMap() {
             }
         };
         blob(GOLD, ECON.goldVeins, 7);
-        for (let k = 0; k < 2; k++) {
-            t[ix(16 + rand(18), 3 + rand(H - 6))] = GEM;
+        for (let k = 0; k < GEMS; k++) {
+            t[ix(16 + rand(W - 22), 3 + rand(H - 6))] = GEM;
         }
         const hx = 5;
         const hy = H >> 1;
         // hidden caverns
-        for (let k = 0; k < 5; k++) {
+        for (let k = 0; k < CAVES; k++) {
             let cx = 0;
             let cy = 0;
             let ok = false;
             for (let a = 0; a < 30 && !ok; a++) {
                 cx = 13 + rand(W - 20);
                 cy = 3 + rand(H - 6);
-                ok = caves.every((c) => Math.hypot(c.x - cx, c.y - cy) > 7);
+                ok = caves.every((c) => Math.hypot(c.x - cx, c.y - cy) > 9);
             }
             const cells = [];
             let x = cx;
             let y = cy;
-            for (let s = 0; s < 14; s++) {
+            for (let s = 0; s < CAVE_STEPS; s++) {
                 for (const [dx, dy] of [[0, 0], [1, 0], [0, 1], [1, 1]]) {
                     const a = x + dx;
                     const b = y + dy;
