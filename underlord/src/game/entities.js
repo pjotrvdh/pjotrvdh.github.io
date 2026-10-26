@@ -3,6 +3,7 @@
  * experience, research, gold and leaving. The per-kind behaviour lives in imps.js, creatures.js and
  * combat.js; the state machine that drives them is tick() in world.js.
  */
+import { sound } from './audio.js';
 import { FLOOR, LAIR, hash, inb, ix, tx, ty } from './constants.js';
 import { CFG, KINDS, SPELLS } from './config.js';
 import { bfs } from './path.js';
@@ -117,6 +118,9 @@ export function arrive(e) {
     if (e.state === 'deposit') {
         const add = addGold(e.carry);
         e.carry -= add;
+        if (add > 0) {
+            sound('coins', e.x, e.y);
+        }
         if (e.carry > 0) {
             msg('Your treasuries are full. Build more.', 'full', 'bad');
         }
@@ -198,6 +202,7 @@ export function research(n) {
     for (const [k, s] of Object.entries(SPELLS)) {
         if (s.req && before < s.req && G.research >= s.req) {
             msg('Research complete: ' + s.n + '.', 'sp' + k, 'good');
+            sound('chime');
         }
     }
 }

@@ -20,7 +20,7 @@ import { ROOMS, SPELLS } from './config.js';
 import { applyRect, canDrop, cast, dismissHeld, dropHeld, pickUp, slap } from './actions.js';
 import { G, app } from './state.js';
 import { diggable, ownPortal } from './tiles.js';
-import { cheatKey, cheatsUnlocked, dragRect, msg, setSpeed, setTool, showTab, syncPause, toggleCheats, updateTip } from './ui.js';
+import { cheatKey, cheatsUnlocked, dragRect, msg, setSpeed, setTool, showTab, syncPause, toggleCheats, toggleSound, updateTip } from './ui.js';
 import { view } from '../render/view.js';
 
 const keys = new Set();
@@ -306,6 +306,8 @@ function onKey(e) {
         view.rotate(k === 'q' ? -1 : 1);
     } else if (k === 'm') {
         view.fit();
+    } else if (k === 'v') {
+        toggleSound();
     } else if (G && e.key === 'h') {
         view.centerOn(G.hx, G.hy);
     } else if (G && ROOM_KEYS[e.key] && ROOM_KEYS[e.key][1] === e.shiftKey) {

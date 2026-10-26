@@ -2,6 +2,7 @@
  * The simulation step: update(dt) advances the whole game (waves, portal, payday, the Heart's zap,
  * every unit's state machine in tick()), then checks for a win or a loss.
  */
+import { sound } from './audio.js';
 import { HATCH, LIB, TRAIN, tx, ty, words } from './constants.js';
 import { CFG, ECON, KINDS, WAVES } from './config.js';
 import { collect, creatureThink, payday, tryAttract } from './creatures.js';
@@ -253,6 +254,7 @@ function launchWave() {
         }
     }
     msg('Wave ' + G.wave + ': heroes are invading your realm!', 'wave' + G.wave, 'bad');
+    sound('horn');
     banner(w.lord ? 'The ' + KINDS.lord.n + ' approaches' : 'Heroes approach');
 }
 
@@ -313,6 +315,7 @@ export function update(dt) {
         if (best) {
             G.zapT = CFG.heart.zapInterval;
             fx({ type: 'proj', x: c.x, y: c.y, x1: best.x, y1: best.y, dur: 0.2, col: '#ff6a4a', heart: true });
+            sound('zap', c.x, c.y);
             best.hp -= CFG.heart.zapDamage;
             best.hurtT = 0.3;
             if (best.hp <= 0) {
@@ -345,6 +348,7 @@ export function update(dt) {
 
 function end(win) {
     G.over = win ? 'win' : 'lose';
+    sound(win ? 'win' : 'lose');
     const ov = document.getElementById('ov');
     ov.innerHTML = win
         ? '<div class="card"><h2>The surface kneels</h2><p>All ' + words(WAVES.length) + ' invasions are broken' + (WAVES.some((w) => w.lord) ? ' and the ' + KINDS.lord.n + ' lies in your dungeon' : '') + '. Your reign is complete.</p><div class="row"><button id="bAgain" class="main" type="button">New dungeon</button></div></div>'

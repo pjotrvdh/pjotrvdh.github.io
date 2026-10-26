@@ -2,6 +2,7 @@
  * Your creatures: what they do when idle (creatureThink()), arriving through portals (tryAttract())
  * and getting paid (payday()).
  */
+import { sound } from './audio.js';
 import { CLAIM, HATCH, LAIR, LIB, TRAIN, TREAS, rand, tx, ty } from './constants.js';
 import { ATTRACT, KINDS, PORTAL_LIMIT, wage } from './config.js';
 import { creatures, go, headOut, leave, release, spawn, toBed } from './entities.js';
@@ -122,6 +123,7 @@ export function tryAttract() {
     const e = spawn(k, tx(pt), ty(pt));
     e.fromPool = true;
     fx({ type: 'ring', x: e.x, y: e.y, dur: 0.8, col: '#c58cff' });
+    sound('portal', e.x, e.y);
     msg('A ' + KINDS[k].n + ' steps through the portal.', 'arr' + e.id, 'good');
 }
 
@@ -147,6 +149,7 @@ export function payday() {
         }
     }
     if (due) {
+        sound('payday');
         msg('Payday: your creatures go to collect ' + due + ' gold' + (G.rc[TREAS] ? ' from the Treasury.' : ' from your Heart.'), 'pay' + G.time);
     }
 }
@@ -163,6 +166,7 @@ export function collect(e) {
     if (G.money >= w) {
         G.money -= w;
         fx({ type: 'text', x: e.x, y: e.y - 0.4, dur: 1, txt: '-' + w, col: '#e3b23c' });
+        sound('coins', e.x, e.y);
         e.state = 'cheer';
         e.timer = CHEER_TIME;
     } else {

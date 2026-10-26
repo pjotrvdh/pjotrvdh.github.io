@@ -48,6 +48,7 @@ description: Hub for the Underlord docs: what the game is, the loop, the source 
 | `underlord/src/game/world.js` | `update()`, `tick()` (the unit state machine), waves, win/loss, `fx()` |
 | `underlord/src/game/actions.js` | Build, sell, mark, cast, pick up, drop, dismiss, slap |
 | `underlord/src/game/cpu.js`, `save.js` | Computer Assistant; save and load |
+| `underlord/src/game/audio.js` | Sound effects and the cave ambience (Web Audio, no files) |
 | `underlord/src/game/ui.js`, `input.js` | HUD, panel, Chronicle, minimap, cheats; mouse, touch and keys |
 | `underlord/src/render/` | The 3D view (three.js), see [rendering-and-ui](rendering-and-ui.md) |
 | `underlord/src/styles/underlord.css` | Layout, colours, system font stacks, labels over the map |

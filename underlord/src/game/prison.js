@@ -4,6 +4,7 @@
  * starves and, once dead, rises as a Skeleton on your side (`prisonerTick()`). Prisoners are side 3:
  * nobody fights them, and they do not count as heroes for winning.
  */
+import { sound } from './audio.js';
 import { PRISON, tx, ty } from './constants.js';
 import { KINDS, PORTAL_LIMIT, ROOMS } from './config.js';
 import { creatures, go, release, spawn } from './entities.js';
@@ -39,6 +40,7 @@ export function capture(t) {
     t.guard = false;
     t.cell = -1;
     t.by = 0;
+    sound('knockout', t.x, t.y);
     msg('A ' + KINDS[t.kind].n + ' is knocked out. Your imps will take it to the Prison.', 'ko' + t.id, 'good');
 
     return true;
@@ -172,5 +174,6 @@ function rise(e) {
     s.state = 'stun';
     s.timer = 1.2;
     fx({ type: 'ring', x: s.x, y: s.y, dur: 0.8, col: '#d8d0b8' });
+    sound('portal', s.x, s.y);
     msg('A ' + KINDS[e.kind].n + ' died in your Prison and rises as a Skeleton.', 'sk' + s.id, 'good');
 }

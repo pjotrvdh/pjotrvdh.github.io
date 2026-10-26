@@ -5,6 +5,7 @@
 import { CLAIM, GEM, GOLD, H, LAIR, PORTAL, STATE_EN, TILE_EN, W, inb, ix, rand, tx, ty, words } from './constants.js';
 import { ASSETS, ATTRACT, CFG, ECON, KINDS, PORTAL_LIMIT, ROOMS, SPELLS, WAVES, wage } from './config.js';
 import { activity, affects, pickUp, spellCost } from './actions.js';
+import { isMuted, setMuted } from './audio.js';
 import { kill } from './combat.js';
 import { creatures, gainXP, need, research, spawn } from './entities.js';
 import { newGame } from './map.js';
@@ -291,6 +292,18 @@ function crPick(kind, act, look) {
     ui();
 }
 
+/** Sound on or off (the header button and V). */
+export function toggleSound() {
+    setMuted(!isMuted());
+    syncSound();
+}
+
+export function syncSound() {
+    const b = $('bSound');
+    b.textContent = isMuted() ? 'Muted' : 'Sound';
+    b.setAttribute('aria-pressed', String(!isMuted()));
+}
+
 export function syncPause() {
     $('bPause').textContent = app.paused ? 'Resume' : 'Pause';
 }
@@ -555,6 +568,8 @@ export function initUi() {
         syncPause();
     };
     $('bSpeed').onclick = () => setSpeed(app.speed === 1 ? 2 : app.speed === 2 ? 3 : 1);
+    $('bSound').onclick = () => toggleSound();
+    syncSound();
     $('bStart').onclick = () => {
         newGame();
         $('ov').hidden = true;

@@ -165,4 +165,6 @@ export const view = {
     panTo: (sx, sy) => rig.panTo(sx, sy),
     panKeys: (right, down, dt) => rig.panKeys(right, down, dt),
     groundView: () => rig.groundView(),
+    /** The middle of the view on the map and how far the camera is from it (for sound volume). */
+    focus: () => (parts ? { x: rig.target.x, z: rig.target.z, dist: rig.dist } : null),
 };

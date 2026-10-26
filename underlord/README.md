@@ -43,6 +43,7 @@ The controls follow the original Dungeon Keeper, with Dungeon Keeper 2's box for
 | Jump to | | `H` Heart, `T` Treasury, `Shift`+`T` Training Room, `Shift`+`H` Hatchery, `Shift`+`L` Lair, `L` Library, `Ctrl`+`P` portal, `F` a fight (again: next room of that kind) |
 | Panels | the tabs | `1` Info, `2` Rooms, `3` Spells, `4` / `5` Creatures |
 | Pause | **Pause** button | `P` / `Space` |
+| Sound on / off | **Sound** button | `V` |
 | Game speed | **1×** button | `+` / `-` |
 | Cheats panel (after typing `iliketocheat`) | **Cheats** button | `` ` `` |
 

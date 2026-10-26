@@ -2,6 +2,7 @@
  * Fighting and invading: line of sight for shots, picking targets, attacks, kills and bounties, and
  * heroes marching (and tunnelling) to the Dungeon Heart.
  */
+import { sound } from './audio.js';
 import { TREAS, inb, ix, tx, ty } from './constants.js';
 import { CFG, ECON, KINDS } from './config.js';
 import { addGold, gainXP, openTile, release, step } from './entities.js';
@@ -89,6 +90,7 @@ export function heartFoe(e) {
 export function attack(e, t) {
     const k = KINDS[e.kind];
     const dmg = e.atk * (0.85 + Math.random() * 0.3);
+    sound(k.range > 1.5 ? 'shot' : 'hit', e.x, e.y);
     if (k.range > 1.5) {
         fx({ type: 'proj', x: e.x, y: e.y, x1: t.x, y1: t.y, dur: 0.25, col: e.side ? '#bcd2f0' : '#c58cff' });
     } else {
@@ -133,6 +135,7 @@ export function kill(t) {
         msg((t.kind === 'imp' ? 'An imp' : 'Your ' + KINDS[t.kind].n) + ' has been slain.', 'die' + t.id, 'bad');
     }
     fx({ type: 'death', x: t.x, y: t.y, dur: 1.2, kind: t.kind, face: t.face, side: t.side });
+    sound('death', t.x, t.y);
 }
 
 /** State `fight`: chase the target and attack it when in range. */
@@ -226,6 +229,7 @@ export function march(e, dt) {
         e.path = [];
         fx({ type: 'text', x: e.x, y: e.y - 0.4, dur: 1.2, txt: '-' + a, col: '#e3b23c' });
         msg('A Thief is stealing from your Treasury!', 'steal' + e.id, 'bad');
+        sound('coins', e.x, e.y);
 
         return;
     }
@@ -236,6 +240,7 @@ export function march(e, dt) {
             e.hitT = 0.4;
             G.heartHP -= e.atk;
             G.heartFlash = 0.25;
+            sound('heart', G.hx + 0.5, G.hy + 0.5);
             G.heartAlarm = CFG.imp.defendTime;
             fx({ type: 'dust', x: G.hx + 0.5 + (e.x - G.hx - 0.5) * 0.4, y: G.hy + 0.5 + (e.y - G.hy - 0.5) * 0.4, dur: 0.3, col: '#ff6a4a' });
             msg('Your Dungeon Heart is under attack!', 'heart', 'bad');
@@ -286,6 +291,7 @@ export function march(e, dt) {
             openTile(n);
         }
         fx({ type: 'dust', x: (e.x + tx(n) + 0.5) / 2, y: (e.y + ty(n) + 0.5) / 2, dur: 0.35, col: '#8a6446' });
+        sound('dig', tx(n) + 0.5, ty(n) + 0.5);
 
         return;
     }
