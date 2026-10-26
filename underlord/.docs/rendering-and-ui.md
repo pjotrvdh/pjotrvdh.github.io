@@ -62,7 +62,7 @@ description: Underlord's 3D view (three.js: camera, picking, terrain, rooms, uni
 
 ## Clouds, overlay, cursor, effects
 
-- `fog.js`: one plane at `FOG_Y` with a shader: a `W x H` mask texture (unseen = opaque, linear filtering for soft edges) and drifting fbm clouds. Glints (points) on every gold and gem tile: a steady twinkle through the clouds, a short sparkle now and then on discovered seams; pulsing white dots for `unknownHeroes()`.
+- `fog.js`: one plane at `FOG_Y` with a shader: a `W x H` mask texture (unseen = opaque, linear filtering for soft edges) and drifting fbm clouds. Glints (points with a four-pointed star, `starTexture()`; gold-coloured on gold, `gemColor` on gems) on every gold and gem tile: a steady twinkle through the clouds, a short sparkle now and then on discovered seams; pulsing white dots for `unknownHeroes()`.
 - `overlay.js`: HTML labels in `#labels` over the canvas: per unit a health bar (when hurt), level above 1, "z" when sleeping or guarding, "?" on wanderers; and the floating texts (fx `text`).
 - `cursor.js`: the hover outline on the visible surface (light = `toolValid()`, red = not); while dragging a box, its outline and a tint on every tile `affects()` would change. The drag tip `#tip` (`updateTip()`) counts them ("Dig 6 blocks", "Lair × 9 · 900 gold").
 - `effects.js`: fx `proj` (glowing shot; from the Heart's core for the zap), `dust`, `ring`, `heal`, `bolt` (jagged line, glow and a flash light).

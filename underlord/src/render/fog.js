@@ -5,14 +5,53 @@
  */
 import * as THREE from 'three';
 import { GEM, GOLD, H, N, W, hash, tx, ty } from '../game/constants.js';
+import { ASSETS } from '../game/config.js';
 import { G } from '../game/state.js';
 import { unknownHeroes } from '../game/world.js';
 import { glowTexture } from './effects.js';
 import { TOP } from './terrain.js';
 
 export const FOG_Y = TOP + 0.1;
+
+/** A four-pointed sparkle (long rays across, short ones diagonal, a bright core) for the glints on gold and gems. */
+function starTexture() {
+    const size = 64;
+    const c = document.createElement('canvas');
+    c.width = c.height = size;
+    const g = c.getContext('2d');
+    const h = size / 2;
+    const ray = (angle, len, width) => {
+        g.save();
+        g.translate(h, h);
+        g.rotate(angle);
+        const gr = g.createLinearGradient(0, 0, len, 0);
+        gr.addColorStop(0, 'rgba(255,255,255,1)');
+        gr.addColorStop(1, 'rgba(255,255,255,0)');
+        g.fillStyle = gr;
+        g.beginPath();
+        g.moveTo(0, -width);
+        g.lineTo(len, 0);
+        g.lineTo(0, width);
+        g.closePath();
+        g.fill();
+        g.restore();
+    };
+    for (let k = 0; k < 4; k++) {
+        ray(k * Math.PI / 2, h, 3.2);
+        ray(Math.PI / 4 + k * Math.PI / 2, h * 0.45, 2);
+    }
+    const core = g.createRadialGradient(h, h, 0, h, h, h * 0.35);
+    core.addColorStop(0, 'rgba(255,255,255,1)');
+    core.addColorStop(1, 'rgba(255,255,255,0)');
+    g.fillStyle = core;
+    g.fillRect(0, 0, size, size);
+
+    return new THREE.CanvasTexture(c);
+}
 /** Most glints and hero dots drawn at once (a big map has a few hundred gold tiles). */
 const MAX_DOTS = 1024;
+const GOLD_GLINT = new THREE.Color(1, 0.78, 0.18);
+const gemGlint = new THREE.Color();
 
 export class Fog {
     constructor(scene) {
@@ -43,18 +82,18 @@ export class Fog {
         plane.renderOrder = 10;
         scene.add(plane);
         this.plane = plane;
-        const dots = (size) => {
+        const dots = (size, map = glowTexture()) => {
             const geo = new THREE.BufferGeometry();
             geo.setAttribute('position', new THREE.BufferAttribute(new Float32Array(3 * MAX_DOTS), 3));
             geo.setAttribute('color', new THREE.BufferAttribute(new Float32Array(3 * MAX_DOTS), 3));
-            const pts = new THREE.Points(geo, new THREE.PointsMaterial({ map: glowTexture(), size, vertexColors: true, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending }));
+            const pts = new THREE.Points(geo, new THREE.PointsMaterial({ map, size, vertexColors: true, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending }));
             pts.renderOrder = 11;
             pts.frustumCulled = false;
             scene.add(pts);
 
             return pts;
         };
-        this.glints = dots(0.55);
+        this.glints = dots(1.2, starTexture());
         this.heroes = dots(0.9);
         this.game = null;
     }
@@ -87,11 +126,8 @@ export class Fog {
                 continue;
             }
             gp.setXYZ(n, x + 0.3 + hash(x, y, 11) * 0.4, FOG_Y + 0.05, y + 0.3 + hash(x, y, 21) * 0.4);
-            if (t === GOLD) {
-                gc.setXYZ(n, 0.95 * tw, 0.72 * tw, 0.25 * tw);
-            } else {
-                gc.setXYZ(n, 0.8 * tw, 0.2 * tw, 0.55 * tw);
-            }
+            const c = t === GOLD ? GOLD_GLINT : gemGlint.set(ASSETS.gemColor).multiplyScalar(1.6);
+            gc.setXYZ(n, c.r * tw, c.g * tw, c.b * tw);
             n++;
         }
         this.glints.geometry.setDrawRange(0, n);
