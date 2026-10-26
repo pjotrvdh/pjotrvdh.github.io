@@ -10,7 +10,7 @@ import { ASSETS, KINDS } from '../game/config.js';
 import { G, app } from '../game/state.js';
 import { ti } from '../game/tiles.js';
 import { animations, clone, modelHeight, ownAnimations } from './models.js';
-import { bedTurn } from './rooms.js';
+import { bedQuarter, bedTurn } from './rooms.js';
 
 /** Which clip plays for which activity, per rig. */
 export const CLIPS = {
@@ -616,6 +616,18 @@ export class Figure {
 }
 
 /**
+ * Corrections for sleepers, per bed direction (`bedQuarter()` in rooms.js: where the pillow points with
+ * the camera not turned). `turn`: extra degrees the sleeper turns around; `x`, `z`: tiles it moves on the
+ * map (x to the right, z down the screen). Pillow right is correct as it is.
+ */
+const SLEEP_FIX = [
+    { turn: 0, x: -0.1, z: 0.2 }, // pillow up
+    { turn: 0, x: 0.2, z: 0.1 }, // pillow left
+    { turn: 0, x: 0.1, z: -0.2 }, // pillow down
+    { turn: 0, x: -0.2, z: 0 }, // pillow right
+];
+
+/**
  * The props a unit holds for one activity, in place of its own things: an open book to study, a steak
  * to eat, a pick to dig (units with a tool of their own dig with that). `turn` (radians, x y z), `at`
  * (a shift from the hand, in the hand's own units) and `scale` fit the model in the hand.
@@ -777,8 +789,9 @@ export class Units {
                 // in the middle of the bed, on the mattress, along it: Lie_Idle puts the head towards the
                 // figure's back (-Z), the same end as bed_floor's pillow, so the head lies on the pillow.
                 // It stays there when neighbours nudge the sleeper.
-                f.heading = bedTurn(e.bed);
-                f.root.position.set(tx(e.bed) + 0.5, SLEEP_LIFT, ty(e.bed) + 0.5);
+                const fix = SLEEP_FIX[bedQuarter(e.bed)];
+                f.heading = bedTurn(e.bed) + THREE.MathUtils.degToRad(fix.turn);
+                f.root.position.set(tx(e.bed) + 0.5 + fix.x, SLEEP_LIFT, ty(e.bed) + 0.5 + fix.z);
             } else if (e.state === 'hauled') {
                 // carried over the imp's head
                 f.root.position.y = 0.45;

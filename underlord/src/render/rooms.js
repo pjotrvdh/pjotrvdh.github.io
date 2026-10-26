@@ -21,8 +21,11 @@ const UP = new THREE.Vector3(0, 1, 0);
 
 const std = (color, extra = {}) => new THREE.MeshStandardMaterial({ color, roughness: 0.9, flatShading: true, ...extra });
 
-/** How a Lair bed on tile `i` lies: its sleeper turns the same way (units.js). */
-export const bedTurn = (i) => Math.floor(hash(tx(i), ty(i), 12) * 4) * Math.PI / 2;
+/** Which way a Lair bed on tile `i` lies, in quarter turns: its pillow points 0 up, 1 left, 2 down, 3 right (camera not turned). */
+export const bedQuarter = (i) => Math.floor(hash(tx(i), ty(i), 12) * 4);
+
+/** How a Lair bed on tile `i` is turned: its sleeper turns the same way (units.js, `SLEEP_FIX`). */
+export const bedTurn = (i) => bedQuarter(i) * Math.PI / 2;
 
 export class Rooms {
     constructor(scene) {
