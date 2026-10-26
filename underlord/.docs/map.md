@@ -7,7 +7,7 @@ description: Underlord map generation (genMap), tile types, caverns, portal, gat
 
 - You touch `genMap()`, `newGame()`, `vision()`, `los()` in `underlord/src/game/map.js`, or the tile helpers in `tiles.js` / `path.js`
 - You add a tile type, change gold/lava/gem placement, caverns, loot, neutrals or the hero camp
-- Keywords: tunnel size, Heart, portal, Hero Gate, seen, fog, clouds, shroud
+- Keywords: tunnel size, Heart, portal, Hero Gate, seen, fog, shroud, unrevealed
 
 ## Grid and tile types
 
@@ -70,8 +70,8 @@ After the loop: `G.hp` and `G.gold` per tile, then the caverns are populated.
 - `G.seen[i]` is permanent: once discovered, a tile stays visible; there is no live line of sight on seen ground. Heroes on seen tiles are always visible.
 - `vision()` (every 0.25 s from `update()`): every own unit that is not held reveals all tiles within its radius (`offsets(R)`, a disc) that pass `los()`. `los()` steps through the line and fails on any non-transparent intermediate tile; the end tile itself is revealed even if solid, so walls show.
 - Radius: imps `settings/imp.js` `vision` (4), creatures `vision` in their `creatures/*.js` (5). Heroes and neutrals reveal nothing.
-- New seen tiles set `G.fogDirty`; the cloud layer (`underlord/src/render/fog.js`) then rewrites its W x H mask and clears the flag.
-- Through the clouds the player sees (drawn by `render/fog.js`, `render/terrain.js` and `drawMini()`): gold and gem tiles (glints), dig marks, the portal(s) (always drawn, minimap too) and invading heroes as white dots ([heroes](heroes.md)). Chests, caverns, the gate, lava and neutrals do not show.
+- The shroud works as in Dungeon Keeper 1: undiscovered ground is drawn as plain solid earth (Dungeon Keeper's "unrevealed column"), whatever it hides: gold, gems, caverns, chests, tunnels, heroes and neutrals stay invisible until discovered. The minimap shows it black. Only dig marks show on it (you can mark undiscovered blocks), and the portal, which is discovered at the start.
+- The terrain layer rebuilds on its own when `G.seen` changes (it is part of its `signature()`).
 - The Hero Gate (model and light) is drawn only once the gate tile is seen.
 
 ## Pathfinding
@@ -92,4 +92,4 @@ After the loop: `G.hp` and `G.gold` per tile, then the caverns are populated.
 
 - [imps](imps.md) — digging, claiming the portal, reinforcing
 - [heroes](heroes.md) — the gate, tunnelling and the hero camp
-- [rendering-and-ui](rendering-and-ui.md) — how fog, clouds and the minimap are drawn
+- [rendering-and-ui](rendering-and-ui.md) — how the shroud and the minimap are drawn

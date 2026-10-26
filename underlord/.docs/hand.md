@@ -26,8 +26,8 @@ description: Underlord's Hand: pick up, drop (stun, room bonus, bed move), dismi
 As in Dungeon Keeper, **right-click** with something in hand drops the unit picked up last (`drop()` in `underlord/src/game/input.js`, any tool):
 
 1. Own portal and the top unit is not an imp: dismiss (see below).
-2. `CLAIM` tile or own portal: `dropHeld(i)` for the top unit.
-3. Anything else: "You can only drop creatures on your own territory."
+2. `canDrop(i, unit)` (`actions.js`): a `CLAIM` tile or own portal, or, for an imp, any discovered walkable tile (unclaimed ground too, as in Dungeon Keeper): `dropHeld(i)` for the top unit.
+3. Anything else: "You can only drop creatures on your own territory." (for an imp: "Imps can only be dropped on open ground you have discovered.")
 
 A left-click with something in hand still picks up another unit or marks blocks. On a touch screen (`pointerType` not `mouse`, no right button) a tap on a seen tile with the Hand drops instead.
 

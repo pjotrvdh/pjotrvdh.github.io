@@ -87,7 +87,7 @@ export class Terrain {
         this.halos = new Instances(this.group, [{ geometry: new THREE.SphereGeometry(0.1, 10, 8), material: new THREE.MeshBasicMaterial({ color: '#ff9a3c', transparent: true, opacity: 0.35, blending: THREE.AdditiveBlending, depthWrite: false }) }]);
         this.piles = [ASSETS.props.coinsSmall, ASSETS.props.coinsMedium, ASSETS.props.coinsLarge].map((file) => new Instances(this.group, file));
         const markMaterial = new THREE.MeshBasicMaterial({ map: markTexture(), transparent: true, depthWrite: false });
-        this.marks = new Instances(this.group, [{ geometry: new THREE.PlaneGeometry(0.96, 0.96).rotateX(-Math.PI / 2), material: markMaterial }], { renderOrder: 12 }); // after the clouds (10), so marks show through them
+        this.marks = new Instances(this.group, [{ geometry: new THREE.PlaneGeometry(0.96, 0.96).rotateX(-Math.PI / 2), material: markMaterial }], { renderOrder: 12 });
         // your colour (assets.js `keeper`): an inlaid emblem on claimed tiles and a jewel on reinforced walls
         this.keeper = new THREE.Color(ASSETS.keeper);
         const keeperGem = new THREE.MeshStandardMaterial({ color: this.keeper, emissive: this.keeper, emissiveIntensity: 0.35, roughness: 0.3, metalness: 0.2, flatShading: true });
@@ -150,13 +150,16 @@ export class Terrain {
             const y = ty(i);
             const t = G.t[i];
             if (G.mark[i] && diggable(i) || G.mark[i] && !G.seen[i]) {
-                this.marks.add(place(x + 0.5, G.seen[i] ? TOP + 0.04 : TOP + 0.12, y + 0.5, 0, 1, m));
-            }
-            if (!G.seen[i]) {
-                continue;
+                this.marks.add(place(x + 0.5, TOP + 0.04, y + 0.5, 0, 1, m));
             }
             // a quarter turn per tile, so the blocks do not repeat
             const turn = Math.floor(hash(x, y, 3) * 4) * Math.PI / 2;
+            if (!G.seen[i]) {
+                // undiscovered ground looks like plain earth, whatever it hides (Dungeon Keeper's unrevealed column)
+                col.copy(WHITE).multiplyScalar(SHADE[EARTH] * (0.92 + 0.12 * hash(x, y, 5)));
+                this.blocks[EARTH].add(place(x + 0.5, TOP / 2, y + 0.5, turn, BLOCK, m), col);
+                continue;
+            }
             if (solid(i)) {
                 const keeperWall = t === WALL || wallCorner(x, y);
                 const damaged = t === WALL && G.hp[i] < WALL_HP ? 0.7 + 0.3 * G.hp[i] / WALL_HP : 1;

@@ -8,12 +8,11 @@ import { affects, toolValid } from '../game/actions.js';
 import { G, app } from '../game/state.js';
 import { solid } from '../game/tiles.js';
 import { dragRect } from '../game/ui.js';
-import { FOG_Y } from './fog.js';
 import { Instances, place } from './instances.js';
 import { TOP } from './terrain.js';
 
-/** The height of the surface you see on tile i: block tops, the clouds, or the floor. */
-export const surface = (i) => (!G.seen[i] ? FOG_Y : solid(i) ? TOP : 0);
+/** The height of the surface you see on tile i: block tops (undiscovered tiles look solid) or the floor. */
+export const surface = (i) => (!G.seen[i] || solid(i) ? TOP : 0);
 
 const m = new THREE.Matrix4();
 const col = new THREE.Color();

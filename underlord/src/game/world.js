@@ -23,11 +23,6 @@ export function fx(f) {
     G.fx.push(f);
 }
 
-/** Heroes walking through ground nobody has discovered: drawn as white dots. */
-export function unknownHeroes() {
-    return G.ents.filter((e) => e.side === 1 && !e.dead && !e.guard && !G.seen[ti(e)]);
-}
-
 /** One unit's state machine for one step. */
 function tick(e, dt) {
     if (e.side === 2) {

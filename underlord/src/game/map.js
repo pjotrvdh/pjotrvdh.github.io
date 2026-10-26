@@ -244,7 +244,6 @@ function los(x0, y0, x1, y1) {
 
 /** Marks what your units see as seen (permanently), and lets wandering creatures you meet join you. */
 export function vision() {
-    let dirty = false;
     for (const e of G.ents) {
         if (e.dead || e.held || e.side !== 0) {
             continue;
@@ -263,7 +262,6 @@ export function vision() {
             }
             if (los(cx, cy, x, y)) {
                 G.seen[i] = 1;
-                dirty = true;
             }
         }
     }
@@ -277,8 +275,5 @@ export function vision() {
             fx({ type: 'ring', x: n.x, y: n.y, dur: 0.8, col: '#e0483c' });
             msg('A wandering ' + KINDS[n.kind].n + ' joins your dungeon.', 'join' + n.id, 'good');
         }
-    }
-    if (dirty) {
-        G.fogDirty = true;
     }
 }

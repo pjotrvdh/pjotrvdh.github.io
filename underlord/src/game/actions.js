@@ -100,12 +100,20 @@ export function applyRect(mode, R) {
     }
 }
 
+/**
+ * Can unit d be dropped on tile i? As in Dungeon Keeper: creatures only on your own territory (or your
+ * portal), imps also on any discovered open ground, claimed or not.
+ */
+export function canDrop(i, d) {
+    return G.t[i] === CLAIM || ownPortal(i) || (d.kind === 'imp' && !!G.seen[i] && walk(i));
+}
+
 /** Is the current tool usable on tile i (the hover outline: light = yes, red = no)? `ent` is the unit under the pointer. */
 export function toolValid(i, ent) {
     const tool = app.tool;
     if (tool === 'hand') {
         if (G.held.length) {
-            return G.t[i] === CLAIM || ownPortal(i);
+            return canDrop(i, G.held[G.held.length - 1]);
         }
 
         return !G.seen[i] || diggable(i) || !!ent;

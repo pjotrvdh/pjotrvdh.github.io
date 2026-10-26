@@ -15,9 +15,9 @@
  * On a touch screen (no right button) a tap with creatures in hand drops them, and the Slap and Look
  * tools stand in for the right button and for dragging the map.
  */
-import { CLAIM, H, HATCH, LAIR, LIB, N, N4, TRAIN, TREAS, W, inb, ix, tx, ty } from './constants.js';
+import { H, HATCH, LAIR, LIB, N, N4, TRAIN, TREAS, W, inb, ix, tx, ty } from './constants.js';
 import { ROOMS, SPELLS } from './config.js';
-import { applyRect, cast, dismissHeld, dropHeld, pickUp, slap } from './actions.js';
+import { applyRect, canDrop, cast, dismissHeld, dropHeld, pickUp, slap } from './actions.js';
 import { G, app } from './state.js';
 import { diggable, ownPortal } from './tiles.js';
 import { cheatKey, cheatsUnlocked, dragRect, msg, setSpeed, setTool, showTab, syncPause, toggleCheats, updateTip } from './ui.js';
@@ -61,10 +61,10 @@ function cursor(cv, overUnit) {
 function drop(i) {
     if (ownPortal(i) && G.held[G.held.length - 1].kind !== 'imp') {
         dismissHeld(i);
-    } else if (G.t[i] === CLAIM || ownPortal(i)) {
+    } else if (canDrop(i, G.held[G.held.length - 1])) {
         dropHeld(i);
     } else {
-        msg('You can only drop creatures on your own territory.', 'dropbad', 'bad');
+        msg(G.held[G.held.length - 1].kind === 'imp' ? 'Imps can only be dropped on open ground you have discovered.' : 'You can only drop creatures on your own territory.', 'dropbad', 'bad');
     }
 }
 
