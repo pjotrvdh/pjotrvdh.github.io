@@ -21,6 +21,17 @@ export const GATE = 8;
 export const LAVA = 9;
 export const WALL = 10;
 
+// Sides (e.side): whose a unit is. Saved games store these codes.
+export const OWN = 0;
+export const HERO = 1;
+/** A wandering creature that joins you when your units meet it. */
+export const NEUTRAL = 2;
+/** A hero knocked out and taken prisoner (prison.js). */
+export const PRISONER = 3;
+
+/** Do units a and b fight each other? Only yours and the heroes do; wanderers and prisoners never. */
+export const foes = (a, b) => a.side !== b.side && a.side <= HERO && b.side <= HERO;
+
 // Room codes (G.room), 1..6 in the order of ROOM_IDS. Saved games store these codes: only add new ones at the end.
 export const TREAS = 1;
 export const LAIR = 2;

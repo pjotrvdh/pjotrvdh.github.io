@@ -5,7 +5,7 @@
  * nobody fights them, and they do not count as heroes for winning.
  */
 import { sound } from './audio.js';
-import { PRISON, tx, ty } from './constants.js';
+import { HERO, PRISON, PRISONER, tx, ty } from './constants.js';
 import { KINDS, PORTAL_LIMIT, ROOMS } from './config.js';
 import { creatures, go, release, spawn } from './entities.js';
 import { bfs } from './path.js';
@@ -17,21 +17,21 @@ import { fx } from './world.js';
 const P = () => ROOMS[PRISON].cfg;
 
 /** Living prisoners: knocked out, carried or jailed. */
-export const prisoners = () => G.ents.filter((e) => e.side === 3 && !e.dead);
+export const prisoners = () => G.ents.filter((e) => e.side === PRISONER && !e.dead);
 
 /** Prison tile i holds a jailed prisoner (or one on its way there). */
-const taken = (i) => G.ents.some((e) => e.side === 3 && !e.dead && e.cell === i);
+const taken = (i) => G.ents.some((e) => e.side === PRISONER && !e.dead && e.cell === i);
 
 /** Is there room for one more prisoner? One per Prison tile. */
 export const prisonRoom = () => prisoners().length < (G.rc[PRISON] || 0);
 
 /** A defeated hero is knocked out and waits for an imp; true when it was taken prisoner. */
 export function capture(t) {
-    if (t.side !== 1 || !prisonRoom()) {
+    if (t.side !== HERO || !prisonRoom()) {
         return false;
     }
     release(t);
-    t.side = 3;
+    t.side = PRISONER;
     t.state = 'out';
     t.timer = P().outTime;
     t.hp = 1;
@@ -53,7 +53,7 @@ export function haulJob(e) {
     if (!G.rc[PRISON] || !bfs(here, free)) {
         return false;
     }
-    const wait = G.ents.filter((o) => o.side === 3 && !o.dead && o.state === 'out' && !o.by);
+    const wait = G.ents.filter((o) => o.side === PRISONER && !o.dead && o.state === 'out' && !o.by);
     if (!wait.length) {
         return false;
     }
@@ -73,7 +73,7 @@ export function haulJob(e) {
 
 /** State `grab` (imp): pick up the prisoner and carry it to a free Prison tile. */
 export function grab(e) {
-    const o = G.ents.find((u) => u.id === e.haul && !u.dead && u.side === 3);
+    const o = G.ents.find((u) => u.id === e.haul && !u.dead && u.side === PRISONER);
     const p = o && bfs(ti(e), (i) => G.room[i] === PRISON && walk(i) && !taken(i));
     if (!p) {
         drop(e);
@@ -88,7 +88,7 @@ export function grab(e) {
 
 /** State `jail` (imp): put the prisoner down in its cell. */
 export function jail(e) {
-    const o = G.ents.find((u) => u.id === e.haul && !u.dead && u.side === 3);
+    const o = G.ents.find((u) => u.id === e.haul && !u.dead && u.side === PRISONER);
     e.haul = 0;
     e.state = 'think';
     if (!o) {
@@ -120,6 +120,18 @@ export function drop(e) {
     }
 }
 
+/** A prisoner from a saved game: back in its cell if that is still a Prison tile, else knocked out where it lies. */
+export function restorePrisoner(e) {
+    e.by = 0;
+    if (e.cell >= 0 && G.room[e.cell] === PRISON) {
+        e.state = 'jailed';
+    } else {
+        e.state = 'out';
+        e.timer = P().outTime;
+        e.cell = -1;
+    }
+}
+
 /** One step for a prisoner: waiting, carried along, or starving in its cell. */
 export function prisonerTick(e, dt) {
     if (e.state === 'hauled') {
@@ -139,7 +151,7 @@ export function prisonerTick(e, dt) {
     if (e.state === 'jailed') {
         // a sold cell sets it free: it is a hero again
         if (G.room[e.cell] !== PRISON) {
-            e.side = 1;
+            e.side = HERO;
             e.state = 'march';
             e.hp = Math.max(e.hp, e.maxhp * 0.3);
             e.cell = -1;
@@ -157,14 +169,14 @@ export function prisonerTick(e, dt) {
     e.state = 'out';
     if (!e.by && (e.timer -= dt) <= 0) {
         e.dead = true;
-        fx({ type: 'death', x: e.x, y: e.y, dur: 1.2, kind: e.kind, face: e.face, side: 3 });
+        fx({ type: 'death', x: e.x, y: e.y, dur: 1.2, kind: e.kind, face: e.face, side: PRISONER });
     }
 }
 
 /** A prisoner dies in its cell and rises as a Skeleton (unless your dungeon is full). */
 function rise(e) {
     e.dead = true;
-    fx({ type: 'death', x: e.x, y: e.y, dur: 1.2, kind: e.kind, face: e.face, side: 3 });
+    fx({ type: 'death', x: e.x, y: e.y, dur: 1.2, kind: e.kind, face: e.face, side: PRISONER });
     if (creatures().length >= PORTAL_LIMIT) {
         msg('A prisoner died, but your dungeon is too full for another Skeleton.', 'skfull', 'bad');
 

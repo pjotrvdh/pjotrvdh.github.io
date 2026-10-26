@@ -11,7 +11,7 @@ description: Underlord creature AI (creatureThink): hunger, Lair beds, training,
 
 ## Entities
 
-- `spawn(kind, x, y, mult=1)` creates every unit: `id`, `kind`, `side` (0 own, 1 hero, 2 neutral, 3 prisoner; see [prison](prison.md)), `x/y` (tile centre +0.5), `hp/maxhp/atk` (x `mult`), `lvl` 1, `xp`, `state`, `path`, `hunger` (random 0-40), `slap`, `bed` -1, `guard`, ...
+- `spawn(kind, x, y, mult=1)` creates every unit: `id`, `kind`, `side` (`OWN`, `HERO`, `NEUTRAL` or `PRISONER` from constants.js; see [prison](prison.md)), `x/y` (tile centre +0.5), `hp/maxhp/atk` (x `mult`), `lvl` 1, `xp`, `state`, `path`, `hunger` (random 0-40), `slap`, `bed` -1, `guard`, ...
 - `KINDS[k]` is built in `applyConfig()` from `creatures/*.js` and `heroes/*.js`: `n` name, `hp`, `atk`, `spd`, `range`, `rate`, `wage`, `col`, `vision` (default 5), `pool`, `attract`, `train`, `study` (default 0), `likesSlaps`, plus hero `bounty`, `dig`, `big`.
 - `creatures()` = own, living, non-imp entities (held ones included).
 - States and their labels: `STATE_EN` in `underlord/src/game/constants.js`. Code: AI in `creatures.js`, the state machine `tick()` in `world.js`, beds, XP and leaving in `entities.js`.

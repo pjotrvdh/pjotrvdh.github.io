@@ -31,7 +31,7 @@ export default {
      * in `rigs`). `model`: a .glb under models/; `height`: in tiles; `width`: extra breadth (1 = as
      * modelled); `tint`: multiplied into every colour; `tints`: per part, matched on the mesh name (a colour, or [colour, brightness]);
      * `hide`: parts left out; `shape`: 'hourglass' (a feminine torso); `headSize`: head scale (less chibi); `gloss`: shiny parts (leather); `borrow`: parts taken from another KayKit model; `extras`: built-in
-     * pieces on the head ('crown', 'horns'); `right` / `left`: a model held in that hand ('pickaxe', 'mattock' and 'whip' are built in); `clips`: Rig_Medium clips per activity that replace the defaults (`CLIPS` in src/render/units.js); `turn`: extra degrees a held item turns around its length, per hand ({ left: 90 }); `mirror`: activities whose clip plays mirrored, left and right swapped. Check them all
+     * pieces on the head ('crown', 'horns'); `right` / `left`: a model held in that hand ('pickaxe', 'mattock' and 'whip' are built in); `clips`: Rig_Medium clips per activity that replace the defaults (`CLIPS` in src/render/poses.js); `turn`: extra degrees a held item turns around its length, per hand ({ left: 90 }). Check them all
      * in the character viewer: the game with ?characters.
      */
     units: {
@@ -40,7 +40,6 @@ export default {
                 attack: 'Melee_1H_Attack_Chop'
             },
             model: 'kaykit/Rogue.glb',
-            rig: 'kaykit',
             height: 0.5,
             width: 1.1,
             hide: ['Cape'],
@@ -59,7 +58,6 @@ export default {
                 train: 'Melee_1H_Attack_Slice_Horizontal',
             },
             model: 'kaykit/Knight.glb',
-            rig: 'kaykit',
             height: 0.84,
             width: 1.1,
             hide: ['Visor'],
@@ -78,7 +76,6 @@ export default {
                 attack: 'Ranged_Magic_Shoot',
             },
             model: 'kaykit/Rogue_Hooded.glb',
-            rig: 'kaykit',
             height: 0.74,
             tint: '#b796e6',
             right: 'kaykit/staff.glb',
@@ -90,7 +87,6 @@ export default {
                 train: 'Push_Ups',
             },
             model: 'kaykit/Barbarian.glb',
-            rig: 'kaykit',
             height: 0.7,
             width: 1.2,
             hide: ['BearHat'],
@@ -107,7 +103,6 @@ export default {
                 train: 'Melee_1H_Attack_Slice_Horizontal',
             },
             model: 'kaykit/Rogue.glb',
-            rig: 'kaykit',
             height: 0.92,
             shape: 'hourglass',
             headSize: 0.78,
@@ -139,7 +134,6 @@ export default {
                 attack: 'Melee_1H_Attack_Chop'
             },
             model: 'kaykit/Skeleton_Warrior.glb',
-            rig: 'kaykit',
             height: 0.78,
             hide: ['Cloak'],
             right: 'kaykit/Skeleton_Blade.glb',
@@ -149,7 +143,6 @@ export default {
                 attack: 'Melee_2H_Attack_Chop'
             },
             model: 'kaykit/Barbarian.glb',
-            rig: 'kaykit',
             height: 0.6,
             width: 1.25,
             hide: ['BearHat'],
@@ -172,7 +165,6 @@ export default {
                 attack: 'Melee_1H_Attack_Slice_Horizontal'
             },
             model: 'kaykit/Rogue_Hooded.glb',
-            rig: 'kaykit',
             height: 0.7,
             tint: '#8c94a0',
             right: 'kaykit/dagger.glb',
@@ -182,7 +174,6 @@ export default {
                 attack: 'Ranged_Bow_Release'
             },
             model: 'kaykit/Ranger.glb',
-            rig: 'kaykit',
             height: 0.76,
             left: 'kaykit/bow_withString.glb',
             turn: { left: 180 },
@@ -192,7 +183,6 @@ export default {
                 attack: 'Ranged_Magic_Shoot'
             },
             model: 'kaykit/Mage.glb',
-            rig: 'kaykit',
             height: 0.82,
             right: 'kaykit/staff.glb',
         },
@@ -201,7 +191,6 @@ export default {
                 attack: 'Melee_2H_Attack_Chop'
             },
             model: 'kaykit/Barbarian.glb',
-            rig: 'kaykit',
             height: 0.84,
             width: 1.15,
             right: 'kaykit/axe_2handed.glb',
@@ -212,7 +201,6 @@ export default {
                 guard: 'Melee_Blocking',
             },
             model: 'kaykit/Knight.glb',
-            rig: 'kaykit',
             height: 0.82,
             right: 'kaykit/sword_1handed.glb',
             left: 'kaykit/shield_badge_color.glb',
@@ -222,7 +210,6 @@ export default {
                 attack: 'Melee_2H_Attack_Chop'
             },
             model: 'kaykit/Knight.glb',
-            rig: 'kaykit',
             height: 0.82,
             tints: {
                 Helmet: [

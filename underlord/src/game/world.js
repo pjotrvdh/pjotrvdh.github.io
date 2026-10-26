@@ -3,12 +3,13 @@
  * every unit's state machine in tick()), then checks for a win or a loss.
  */
 import { sound } from './audio.js';
-import { HATCH, LIB, TRAIN, tx, ty, words } from './constants.js';
+import { HATCH, HERO, LIB, NEUTRAL, OWN, PRISONER, TRAIN, tx, ty, words } from './constants.js';
 import { CFG, ECON, KINDS, WAVES } from './config.js';
 import { collect, creatureThink, payday, tryAttract } from './creatures.js';
 import { cpuTick } from './cpu.js';
 import { addGold, arrive, gainXP, go, hasBed, leave, release, research, spawn, step, toPool } from './entities.js';
-import { fight, heartFoe, joy, kill, march, nearestEnemy } from './combat.js';
+import { fight, heartFoe, joy, kill, nearestEnemy } from './combat.js';
+import { march } from './heroes.js';
 import { doClaim, doDig, doReinforce, impThink, pickUpPile } from './imps.js';
 import { grab, jail, prisonerTick } from './prison.js';
 import { newGame, vision } from './map.js';
@@ -26,15 +27,15 @@ export function fx(f) {
 
 /** Heroes walking through ground nobody has discovered: drawn as white dots. */
 export function unknownHeroes() {
-    return G.ents.filter((e) => e.side === 1 && !e.dead && !e.guard && !G.seen[ti(e)]);
+    return G.ents.filter((e) => e.side === HERO && !e.dead && !e.guard && !G.seen[ti(e)]);
 }
 
 /** One unit's state machine for one step. */
 function tick(e, dt) {
-    if (e.side === 2) {
+    if (e.side === NEUTRAL) {
         return;
     }
-    if (e.side === 3) {
+    if (e.side === PRISONER) {
         prisonerTick(e, dt);
 
         return;
@@ -53,7 +54,7 @@ function tick(e, dt) {
     if (e.digging > 0) {
         e.digging -= dt;
     }
-    if (e.side === 0) {
+    if (e.side === OWN) {
         const i = ti(e);
         if (G.loot[i] > 0) {
             const a = addGold(G.loot[i]);
@@ -64,7 +65,7 @@ function tick(e, dt) {
             }
         }
     }
-    if (e.side === 0 && e.kind !== 'imp' && KINDS[e.kind].eats) {
+    if (e.side === OWN && e.kind !== 'imp' && KINDS[e.kind].eats) {
         e.hunger += dt * 1.5;
         if (e.hunger >= 200 && !e.leaving) {
             e.hunger = 0;
@@ -101,7 +102,7 @@ function tick(e, dt) {
         if (e.scan <= 0) {
             e.scan = 0.5;
             if (G.time >= e.ignoreT) {
-                const o = nearestEnemy(e, e.side ? 5 : 8);
+                const o = nearestEnemy(e, e.side === HERO ? 5 : 8);
                 if (o) {
                     release(e);
                     e.state = 'fight';
@@ -126,7 +127,7 @@ function tick(e, dt) {
             break;
         case 'think':
             e.boost = 1;
-            if (e.side) {
+            if (e.side === HERO) {
                 if (e.guard) {
                     e.state = 'guard';
                 } else {
@@ -305,7 +306,7 @@ export function update(dt) {
         let best = null;
         let bd = CFG.heart.zapRange;
         for (const o of G.ents) {
-            if (o.dead || o.side !== 1) {
+            if (o.dead || o.side !== HERO) {
                 continue;
             }
             const d = Math.hypot(o.x - c.x, o.y - c.y);
@@ -343,7 +344,7 @@ export function update(dt) {
     if (G.heartHP <= 0) {
         G.heartHP = 0;
         end(false);
-    } else if (G.wave >= WAVES.length && !G.spawnQ.length && !G.ents.some((e) => e.side === 1 && !e.guard)) {
+    } else if (G.wave >= WAVES.length && !G.spawnQ.length && !G.ents.some((e) => e.side === HERO && !e.guard)) {
         end(true);
     }
 }

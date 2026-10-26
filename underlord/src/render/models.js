@@ -46,16 +46,6 @@ export function animations(group) {
     return out;
 }
 
-/** A model's own animation clips (Kenney characters carry theirs). */
-export function ownAnimations(file) {
-    const out = {};
-    for (const clip of loaded.get(file)?.animations ?? []) {
-        out[clip.name] = clip;
-    }
-
-    return out;
-}
-
 /** A full copy of a model, with its own skeleton, for an animated unit. Null when it did not load. */
 export function clone(file) {
     const gltf = loaded.get(file);

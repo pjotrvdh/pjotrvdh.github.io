@@ -2,7 +2,7 @@
  * The Computer Assistant, modelled on Dungeon Keeper 1's: Aggressive, Defensive, Construction only or
  * Move only. cpuTick() runs every update(); every `assistant.interval` seconds it does what its mode allows.
  */
-import { CLAIM, EARTH, GEM, GOLD, H, HATCH, LAIR, LIB, N, N4, TRAIN, TREAS, W, WALL, inb, ix, rand, tx, ty } from './constants.js';
+import { CLAIM, EARTH, GEM, GOLD, H, HATCH, HERO, LAIR, LIB, N, N4, OWN, TRAIN, TREAS, W, WALL, inb, ix, rand, tx, ty } from './constants.js';
 import { CFG, ROOMS, SPELLS } from './config.js';
 import { activity, build, cast, dropHeld, impCost, pickUp, recount, spellCost } from './actions.js';
 import { clearShot } from './combat.js';
@@ -178,7 +178,7 @@ function cpuBuild() {
     for (let i = 0; i < N; i++) {
         claimed += G.t[i] === CLAIM;
     }
-    const imps = G.ents.filter((e) => e.kind === 'imp' && e.side === 0).length;
+    const imps = G.ents.filter((e) => e.kind === 'imp' && e.side === OWN).length;
     if (imps < Math.min(A.maxImps, CFG.imp.startCount + Math.floor(claimed / A.impsPerClaimed)) && G.money > impCost() + A.reserveGold) {
         const r = [];
         for (let i = 0; i < N; i++) {
@@ -194,7 +194,7 @@ function cpuBuild() {
 }
 
 function cpuMove() {
-    const heroes = G.ents.filter((e) => e.side === 1 && !e.dead && !e.guard && G.seen[ti(e)]);
+    const heroes = G.ents.filter((e) => e.side === HERO && !e.dead && !e.guard && G.seen[ti(e)]);
     if (heroes.length) {
         const tgt = heroes.reduce((a, b) => (Math.hypot(a.x - G.hx, a.y - G.hy) < Math.hypot(b.x - G.hx, b.y - G.hy) ? a : b));
         let drop = -1;
@@ -250,7 +250,7 @@ function cpuMove() {
 
 function cpuSpells(aggressive) {
     const A = CFG.assistant;
-    const heroes = G.ents.filter((e) => e.side === 1 && !e.dead && G.seen[ti(e)] && (aggressive ? !e.guard : Math.hypot(e.x - G.hx, e.y - G.hy) < 8));
+    const heroes = G.ents.filter((e) => e.side === HERO && !e.dead && G.seen[ti(e)] && (aggressive ? !e.guard : Math.hypot(e.x - G.hx, e.y - G.hy) < 8));
     if (heroes.length && G.research >= SPELLS.bolt.req && G.money > SPELLS.bolt.cost + A.reserveGold) {
         let best = null;
         let bn = 0;

@@ -2,7 +2,7 @@
  * Turns the game data in src/config into the lookup tables the game uses. applyConfig() runs once at
  * start; every table is a live export, so other modules always see the current values.
  */
-import { ROOM_IDS } from './constants.js';
+import { HERO, OWN, ROOM_IDS } from './constants.js';
 import { G } from './state.js';
 
 export let CFG;
@@ -38,7 +38,7 @@ export function applyConfig(c) {
         rate: v.rate,
         wage: v.wage || 0,
         col: v.color,
-        side: side || undefined,
+        side,
         bounty: v.bounty || 0,
         dig: v.dig,
         big: v.big ? 1 : 0,
@@ -55,10 +55,10 @@ export function applyConfig(c) {
     });
     KINDS = {};
     for (const [k, v] of Object.entries(c.creatures)) {
-        KINDS[k] = mk(v, 0);
+        KINDS[k] = mk(v, OWN);
     }
     for (const [k, v] of Object.entries(c.heroes)) {
-        KINDS[k] = mk(v, 1);
+        KINDS[k] = mk(v, HERO);
     }
     KINDS.imp.vision = CFG.imp.vision;
     ROOMS = {};
@@ -73,7 +73,7 @@ export function applyConfig(c) {
     WAVES = c.waves;
     ATTRACT = {};
     for (const [k, v] of Object.entries(KINDS)) {
-        if (v.side || k === 'imp' || !v.portal) {
+        if (v.side === HERO || k === 'imp' || !v.portal) {
             continue;
         }
         const req = Object.entries(v.attract);

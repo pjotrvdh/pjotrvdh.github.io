@@ -3,7 +3,7 @@
  * pick up, drop, dismiss and slap units. Input handling is in input.js; this is the game side.
  */
 import { sound } from './audio.js';
-import { CLAIM, HATCH, LAIR, LIB, N, ROCK, TRAIN, ix, rand, tx, ty } from './constants.js';
+import { CLAIM, HATCH, HERO, LAIR, LIB, N, OWN, ROCK, TRAIN, ix, rand, tx, ty } from './constants.js';
 import { CFG, KINDS, ROOMS, SPELLS } from './config.js';
 import { bedOwner, creatures, release, spawn, toPool } from './entities.js';
 import { kill } from './combat.js';
@@ -177,7 +177,7 @@ export function cast(k, i, px, py) {
         fx({ type: 'bolt', x: px, y: py, dur: 0.45, seed: rand(999) });
         sound('thunder', px, py);
         for (const o of G.ents) {
-            if (o.dead || o.side !== 1) {
+            if (o.dead || o.side !== HERO) {
                 continue;
             }
             if (Math.hypot(o.x - px, o.y - py) < s.radius) {
@@ -196,7 +196,7 @@ export function cast(k, i, px, py) {
         fx({ type: 'heal', x: px, y: py, dur: 0.6, r: s.radius });
         sound('heal', px, py);
         for (const o of G.ents) {
-            if (!o.dead && o.side === 0 && Math.hypot(o.x - px, o.y - py) < s.radius) {
+            if (!o.dead && o.side === OWN && Math.hypot(o.x - px, o.y - py) < s.radius) {
                 o.hp = o.maxhp;
             }
         }

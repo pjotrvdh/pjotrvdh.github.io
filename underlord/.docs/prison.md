@@ -1,18 +1,18 @@
 ---
 name: prison
-description: The Prison, prisoners and Skeletons: capture(), haulJob(), grab(), jail(), prisonerTick(), side 3. Read before touching kills of heroes, imp hauling or the Skeleton.
+description: The Prison, prisoners and Skeletons: capture(), haulJob(), grab(), jail(), prisonerTick(), restorePrisoner(), side PRISONER. Read before touching kills of heroes, imp hauling or the Skeleton.
 ---
 
 ## When to use this
 
 - You touch `underlord/src/game/prison.js`, `kill()` for heroes, the imps' prisoner job, or the Skeleton
 - You add a state or side that prisoners must ignore (targeting, win check, counts)
-- Keywords: prison, prisoner, captive, knocked out, jailed, skeleton, side 3
+- Keywords: prison, prisoner, captive, knocked out, jailed, skeleton, PRISONER
 
 ## Capture
 
-- `kill(t)` for a hero pays the bounty first, then calls `capture(t)`: with fewer prisoners than Prison tiles (`prisonRoom()`: one per tile), the hero is knocked out instead of slain: `side = 3`, `state = 'out'`, `hp = 1`, `timer = rooms/prison.js` `outTime` (45 s), `guard = false`. Chronicle "A <hero> is knocked out ...".
-- Side 3 (prisoner): `nearestEnemy()` and `fight()` skip sides >= 2, the Heart zap and the win check only look at side 1, so prisoners are never fought and do not stop a win.
+- `kill(t)` for a hero pays the bounty first, then calls `capture(t)`: with fewer prisoners than Prison tiles (`prisonRoom()`: one per tile), the hero is knocked out instead of slain: `side = PRISONER`, `state = 'out'`, `hp = 1`, `timer = rooms/prison.js` `outTime` (45 s), `guard = false`. Chronicle "A <hero> is knocked out ...".
+- `PRISONER` side: `foes()` (constants.js) is false for it, so `nearestEnemy()` and `fight()` skip it; the Heart zap and the win check only look at `HERO`s, so prisoners are never fought and do not stop a win.
 - A knocked-out hero that no imp fetches (`by` = 0) dies when `timer` runs out (death effect, no Skeleton).
 
 ## Hauling (imps)
@@ -35,7 +35,7 @@ description: The Prison, prisoners and Skeletons: capture(), haulJob(), grab(), 
 
 ## Saving
 
-- `cell` is in `SAVE_KEYS`. On load a side-3 unit is `jailed` if its `cell` is a Prison tile, else `out` with 30 s left; `by` and imps' `haul` are not saved.
+- `cell` is in `SAVE_KEYS`. On load `restorePrisoner()` (called by `save.js`) makes a prisoner `jailed` if its `cell` is still a Prison tile, else `out` with `outTime` left; `by` and imps' `haul` are not saved.
 
 ## Drawing
 

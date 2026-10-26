@@ -62,7 +62,7 @@ After the loop: `G.hp` and `G.gold` per tile, then the caverns are populated.
 | 3 and further | Chests of 250 and 150 |
 
 - Chests are `G.loot[i]` gold amounts. Any own unit standing on the tile takes what fits under capacity (`tick()`), so the chest can empty in parts.
-- Neutrals: frozen (`tick()` returns early for side 2), ignored by all targeting, drawn faded with a "?". In `vision()`, a neutral on a seen tile with an own, not-held unit within 3 tiles joins: `side=0`, state `think`. Joining does not touch `G.pool`, and a joined neutral never goes back to it.
+- Neutrals: frozen (`tick()` returns early for `NEUTRAL`), ignored by all targeting, drawn faded with a "?". In `vision()`, a neutral on a seen tile with an own, not-held unit within 3 tiles joins: `side=0`, state `think`. Joining does not touch `G.pool`, and a joined neutral never goes back to it.
 - Guards: see [heroes](heroes.md).
 
 ## Start of a game (`newGame()`)

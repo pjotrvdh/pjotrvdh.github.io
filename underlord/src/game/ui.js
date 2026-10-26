@@ -2,7 +2,7 @@
  * The page around the map: the HUD, the panel (tools, tabs, portal list, Creatures tab), hover info,
  * the Chronicle, banners, the drag tip, the Cheats panel and the header buttons.
  */
-import { CLAIM, GEM, GOLD, H, LAIR, PORTAL, STATE_EN, TILE_EN, W, inb, ix, rand, tx, ty, words } from './constants.js';
+import { CLAIM, GEM, GOLD, H, HERO, LAIR, NEUTRAL, OWN, PORTAL, PRISONER, STATE_EN, TILE_EN, W, inb, ix, rand, tx, ty, words } from './constants.js';
 import { ASSETS, ATTRACT, CFG, ECON, KINDS, PORTAL_LIMIT, ROOMS, SPELLS, WAVES, wage } from './config.js';
 import { activity, affects, pickUp, spellCost } from './actions.js';
 import { isMuted, setMuted } from './audio.js';
@@ -110,8 +110,8 @@ function hoverInfo() {
         }
         if (e) {
             const k = KINDS[e.kind];
-            let h = '<b>' + (e.side === 2 ? 'Unknown creature' : k.n) + '</b>' + (e.side === 1 ? ' · hero' : e.side === 3 ? ' · prisoner' : '') + ' · level ' + e.lvl + '<br>' + Math.ceil(e.hp) + ' / ' + Math.ceil(e.maxhp) + ' health · ' + STATE_EN[e.state];
-            if (e.side === 0 && e.kind !== 'imp') {
+            let h = '<b>' + (e.side === NEUTRAL ? 'Unknown creature' : k.n) + '</b>' + (e.side === HERO ? ' · hero' : e.side === PRISONER ? ' · prisoner' : '') + ' · level ' + e.lvl + '<br>' + Math.ceil(e.hp) + ' / ' + Math.ceil(e.maxhp) + ' health · ' + STATE_EN[e.state];
+            if (e.side === OWN && e.kind !== 'imp') {
                 h += '<br>Wage ' + wage(e.kind) + (KINDS[e.kind].eats ? '' : ' · never eats') + (KINDS[e.kind].eats ? ' · hunger ' + Math.floor(Math.min(100, e.hunger)) + '%' : '');
             }
             if (e.carry) {
@@ -161,7 +161,7 @@ function hoverInfo() {
 
 export function ui() {
     $('sGold').textContent = Math.floor(G.money) + ' / ' + cap();
-    $('sImps').textContent = G.ents.filter((e) => e.kind === 'imp' && e.side === 0).length;
+    $('sImps').textContent = G.ents.filter((e) => e.kind === 'imp' && e.side === OWN).length;
     $('sCre').textContent = creatures().length + ' / ' + G.rc[LAIR];
     $('sRes').textContent = Math.floor(G.research);
     const due = creatures().filter((e) => !e.leaving).reduce((a, e) => a + wage(e.kind), 0);
@@ -216,7 +216,7 @@ export function ui() {
 
 function creaturesTab() {
     let gh = '<span></span><span class="h">Idle</span><span class="h">Working</span><span class="h">Fighting</span>';
-    const mine = G.ents.filter((e) => !e.dead && e.side === 0);
+    const mine = G.ents.filter((e) => !e.dead && e.side === OWN);
     for (const k of CR_ORDER()) {
         const of = mine.filter((e) => e.kind === k && !e.held);
         const held = G.held.filter((e) => e.kind === k).length;
@@ -276,7 +276,7 @@ export function showTab(t) {
 }
 
 function crPick(kind, act, look) {
-    const list = G.ents.filter((e) => !e.dead && !e.held && e.side === 0 && e.kind === kind && (!act || activity(e) === act)).sort((a, b) => b.lvl - a.lvl || a.id - b.id);
+    const list = G.ents.filter((e) => !e.dead && !e.held && e.side === OWN && e.kind === kind && (!act || activity(e) === act)).sort((a, b) => b.lvl - a.lvl || a.id - b.id);
     if (!list.length) {
         return;
     }
@@ -427,7 +427,7 @@ const cheatList = () => [
     ['Defeat heroes', () => {
         let n = 0;
         for (const e of G.ents) {
-            if (e.side === 1 && !e.dead) {
+            if (e.side === HERO && !e.dead) {
                 kill(e);
                 n++;
             }
@@ -618,7 +618,7 @@ export function drawMini() {
         c.fillRect((tx(P) - 0.25) * s, (ty(P) - 0.25) * s, s * 1.5, s * 1.5);
     }
     for (const e of G.ents) {
-        if (e.side === 1 && !e.dead && !e.guard && !G.seen[ti(e)]) {
+        if (e.side === HERO && !e.dead && !e.guard && !G.seen[ti(e)]) {
             c.fillStyle = '#ffffff';
             c.beginPath();
             c.arc(e.x * s, e.y * s, s * 0.45, 0, Math.PI * 2);
@@ -626,10 +626,10 @@ export function drawMini() {
         }
     }
     for (const e of G.ents) {
-        if (e.dead || e.held || (e.side !== 0 && !G.seen[ti(e)])) {
+        if (e.dead || e.held || (e.side !== OWN && !G.seen[ti(e)])) {
             continue;
         }
-        c.fillStyle = e.side === 1 ? '#8fb4ef' : e.side >= 2 ? '#9a928a' : e.kind === 'imp' ? '#ffb070' : '#ffe2a0';
+        c.fillStyle = e.side === HERO ? '#8fb4ef' : e.side === NEUTRAL || e.side === PRISONER ? '#9a928a' : e.kind === 'imp' ? '#ffb070' : '#ffe2a0';
         c.fillRect(e.x * s - s * 0.4, e.y * s - s * 0.4, s * 0.8, s * 0.8);
     }
     // the part of the map the camera sees (a trapezoid when the camera is tilted)

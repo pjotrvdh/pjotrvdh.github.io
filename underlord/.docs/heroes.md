@@ -5,7 +5,7 @@ description: Underlord hero waves, marching/tunnelling, the Heart zap, the hero 
 
 ## When to use this
 
-- You touch `launchWave()`, the spawn queue in `update()`, `march()`, `dijkstra()`/`hcost()`, the Heart zap, `unknownHeroes()`, guards
+- You touch `launchWave()`, the spawn queue in `update()`, `march()`, `dijkstra()`/`hcost()`, the Heart zap, guards
 - You edit `underlord/src/config/waves.js`, `settings/waves.js`, `settings/heart.js` or `heroes/*.js`
 - Keywords: wave, invasion, gate, tunnel, dig, Heart, zap, guard, camp, white dot, Lord of the Land, bounty
 
@@ -21,7 +21,7 @@ description: Underlord hero waves, marching/tunnelling, the Heart zap, the hero 
 - `update()` spawns due entries at the gate with `mult = 1 + heroScalePerWave * (G.wave - 1)` (`settings/waves.js`, 0.12): wave 1 x1.00, wave 6 x1.60 on `hp`, `maxhp`, `atk`. Bounty, speed and dig time are not scaled.
 - HUD "Heroes": `wave N in m:ss`, then `final wave`.
 
-## Marching (`march()`)
+## Marching (`march()`, heroes.js)
 
 - State after spawn and after every `think` (unless `guard`).
 - Standing next to the Heart (`adjHeart`): every `rate` seconds `G.heartHP -= e.atk` (no random spread), Heart flash, Heart alarm that sends nearby imps to defend it ([imps](imps.md)), "Your Dungeon Heart is under attack!" (20 s message cooldown).
@@ -38,7 +38,7 @@ description: Underlord hero waves, marching/tunnelling, the Heart zap, the hero 
 ## The Dungeon Heart
 
 - `settings/heart.js`: `hp` (2500), `zapDamage` (14), `zapInterval` (0.8 s), `zapRange` (2.9 tiles from the Heart centre).
-- `update()`: when `G.zapT <= 0`, the nearest hero (side 1, guards included) within range takes `zapDamage` (can `kill()`), then `zapT = zapInterval`. Without a target the timer stays at or below 0, so the next hero in range is shot at once.
+- `update()`: when `G.zapT <= 0`, the nearest hero (`HERO`, guards included) within range takes `zapDamage` (can `kill()`), then `zapT = zapInterval`. Without a target the timer stays at or below 0, so the next hero in range is shot at once.
 - No regeneration; only the "Restore Heart" cheat refills it. 0 -> loss.
 
 ## The hero camp (guards)

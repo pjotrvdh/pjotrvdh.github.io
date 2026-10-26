@@ -4,7 +4,7 @@
  * combat.js; the state machine that drives them is tick() in world.js.
  */
 import { sound } from './audio.js';
-import { FLOOR, LAIR, hash, inb, ix, tx, ty } from './constants.js';
+import { FLOOR, HERO, LAIR, OWN, hash, inb, ix, tx, ty } from './constants.js';
 import { CFG, KINDS, SPELLS } from './config.js';
 import { bfs } from './path.js';
 import { G } from './state.js';
@@ -15,9 +15,9 @@ import { fx } from './world.js';
 export function spawn(kind, x, y, mult = 1) {
     const k = KINDS[kind];
     const e = {
-        id: G.idc++, kind, side: k.side || 0, x: x + 0.5, y: y + 0.5,
+        id: G.idc++, kind, side: k.side, x: x + 0.5, y: y + 0.5,
         hp: k.hp * mult, maxhp: k.hp * mult, atk: k.atk * mult, lvl: 1, xp: 0,
-        state: k.side ? 'march' : 'think', path: [], next: null, nextT: 0, timer: 0, cd: 0, carry: 0,
+        state: k.side === HERO ? 'march' : 'think', path: [], next: null, nextT: 0, timer: 0, cd: 0, carry: 0,
         hunger: Math.random() * 40, slap: 0, resv: -1, bed: -1, target: null, leaving: '', fromPool: false,
         repath: 0, scan: Math.random() * 0.5, ignoreT: 0, dead: false, held: false, face: 1, task: -1, guard: false,
     };
@@ -143,13 +143,13 @@ export function openTile(j) {
 
 /** Your living creatures (imps excluded, held ones included). */
 export function creatures() {
-    return G.ents.filter((e) => e.side === 0 && e.kind !== 'imp' && !e.dead);
+    return G.ents.filter((e) => e.side === OWN && e.kind !== 'imp' && !e.dead);
 }
 
 // Beds (Dungeon Keeper style): every creature claims one Lair tile as its own bed. Nobody else sleeps there,
 // and the bed is freed when the creature dies or leaves, or when the tile stops being a Lair.
 export function bedOwner(i, except) {
-    return G.ents.find((o) => o !== except && !o.dead && o.side === 0 && o.bed === i);
+    return G.ents.find((o) => o !== except && !o.dead && o.side === OWN && o.bed === i);
 }
 
 export function hasBed(e) {

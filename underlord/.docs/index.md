@@ -37,14 +37,14 @@ description: Hub for the Underlord docs: what the game is, the loop, the source 
 | `underlord/index.html` | Page: header HUD, stage canvas and label layer, overlay card, control panel (`aside`) |
 | `underlord/src/main.js` | Imports styles + `game/index.js`; fills the version label |
 | `underlord/src/game/index.js` | Boot: config, UI, input, model loading, `newGame()`, the frame loop; `?characters` opens the viewer |
-| `underlord/src/game/constants.js` | Map size, tile and room codes, labels, tile-index helpers |
+| `underlord/src/game/constants.js` | Map size, tile, room and side codes (`OWN`, `HERO`, `NEUTRAL`, `PRISONER`, `foes()`), labels, tile-index helpers |
 | `underlord/src/game/state.js` | `G` (the game, replaced by `newGame()`) and `app` (running, speed, tool, hover, drag, tab) |
 | `underlord/src/game/config.js` | `applyConfig()`: `KINDS`, `ROOMS`, `SPELLS`, `ATTRACT`, ... from `src/config` |
 | `underlord/src/game/tiles.js`, `path.js` | Tile questions (`walk`, `diggable`, `solid`, `cap`, ...); `bfs()`, `dijkstra()` |
 | `underlord/src/game/map.js` | `genMap()`, `newGame()`, `vision()` |
 | `underlord/src/game/entities.js` | `spawn()`, movement, reservations, beds, XP, research, gold, leaving |
 | `underlord/src/game/prison.js` | Prison: knocking heroes out, hauling, jailed prisoners rising as Skeletons |
-| `underlord/src/game/imps.js`, `creatures.js`, `combat.js` | Imp work; creature AI, portal, payday; targeting, fights, kills, hero marching |
+| `underlord/src/game/imps.js`, `creatures.js`, `combat.js`, `heroes.js` | Imp work; creature AI, portal, payday; targeting, fights, kills; how heroes move (tunnel, follow, wander, steal) |
 | `underlord/src/game/world.js` | `update()`, `tick()` (the unit state machine), waves, win/loss, `fx()` |
 | `underlord/src/game/actions.js` | Build, sell, mark, cast, pick up, drop, dismiss, slap |
 | `underlord/src/game/cpu.js`, `save.js` | Computer Assistant; save and load |
@@ -72,7 +72,7 @@ description: Hub for the Underlord docs: what the game is, the loop, the source 
 | [map](map.md) | You touch `genMap()`, tile types, caverns, the portal, the gate, fog or vision |
 | [imps](imps.md) | You touch `impThink()`, digging, claiming, reinforcing, gold hauling, imp fleeing or imps defending the Heart |
 | [creatures](creatures.md) | You touch `creatureThink()`, hunger, beds, training, research, wages, leaving, neutrals |
-| [prison](prison.md) | You touch the Prison, prisoners (side 3), imps hauling them, or the Skeleton |
+| [prison](prison.md) | You touch the Prison, prisoners (side `PRISONER`), imps hauling them, or the Skeleton |
 | [hand](hand.md) | You touch pick up / drop / dismiss (`pickUp()`, `dropHeld()`, `dismissHeld()`) or slapping (`slap()`) |
 | [combat](combat.md) | You touch targeting, `fight()`, `attack()`, `kill()`, XP, bounties or line of sight |
 | [heroes](heroes.md) | You touch waves, hero spawning, `march()`, tunnelling, the Heart zap, the hero camp, white dots |

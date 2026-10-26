@@ -65,7 +65,7 @@ A left-click with something in hand still picks up another unit or marks blocks.
 - Held units are in both `G.ents` and `G.held`: count `G.ents`/`creatures()` only, never add `G.held` on top.
 - A leaving creature stays leaving (`e.leaving`): after a drop it walks to the portal again. A creature that decides to leave while in the hand heads out once dropped.
 - Dismiss checks only the top of the stack.
-- `toolValid()` for the Hand with units in hand marks only `CLAIM` and own portals as valid; it does not mirror the unseen-tile drag case.
+- `toolValid()` for the Hand with units in hand uses the same `canDrop()` as a drop, so the outline always matches what a right-click does.
 
 ## See also
 

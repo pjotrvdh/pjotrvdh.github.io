@@ -32,7 +32,7 @@ const RPGTOOLS = 'KayKit/KayKit_RPGToolsBits_1.0_FREE/Assets/gltf';
 const RESTAURANT = 'KayKit/KayKit_Restaurant_Bits_1.0_FREE/Assets/gltf';
 const ANIMS = 'KayKit/KayKit_Character_Animations_1.1/Animations/gltf/Rig_Medium';
 
-/** The Rig_Medium clips the game plays (see CLIPS in src/render/units.js and `clips` in src/config/assets.js), per file. */
+/** The Rig_Medium clips the game plays (see CLIPS in src/render/poses.js and `clips` in src/config/assets.js), per file. */
 const ANIMATIONS = {
     General: ['Idle_A', 'Idle_B', 'Death_A', 'Hit_A', 'Hit_B', 'PickUp', 'Use_Item', 'Interact', 'Throw', 'Spawn_Ground'],
     MovementBasic: ['Walking_A', 'Running_A', 'Jump_Idle'],

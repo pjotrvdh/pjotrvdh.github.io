@@ -3,9 +3,10 @@
  * minutes. SAVE_V is the format version; loadGame() refuses saves of another version.
  */
 import { recount } from './actions.js';
-import { PRISON } from './constants.js';
+import { HERO, NEUTRAL, PRISONER } from './constants.js';
 import { spawn } from './entities.js';
 import { newGame } from './map.js';
+import { restorePrisoner } from './prison.js';
 import { G, app } from './state.js';
 import { clearLog, msg, syncCpu, syncPause } from './ui.js';
 
@@ -30,6 +31,15 @@ function serialize() {
     };
 }
 
+/** States are not saved: a loaded unit starts as its side does. */
+function startState(e) {
+    if (e.side === PRISONER) {
+        restorePrisoner(e);
+    } else {
+        e.state = e.side === NEUTRAL ? 'neutral' : e.guard ? 'guard' : e.side === HERO ? 'march' : 'think';
+    }
+}
+
 function deserialize(s) {
     newGame();
     const A = (C, a) => C.from(a);
@@ -49,14 +59,7 @@ function deserialize(s) {
         const e = spawn(o.kind, 0, 0);
         G.ents.pop();
         Object.assign(e, o);
-        e.state = e.side === 2 ? 'neutral' : e.side === 3 ? (e.cell >= 0 && G.room[e.cell] === PRISON ? 'jailed' : 'out') : e.guard ? 'guard' : e.side === 1 ? 'march' : 'think';
-        if (e.side === 3) {
-            e.timer = e.state === 'out' ? 30 : 0;
-            e.by = 0;
-            if (e.state === 'out') {
-                e.cell = -1;
-            }
-        }
+        startState(e);
         e.path = [];
         if (o.held) {
             e.held = true;

@@ -2,7 +2,7 @@
  * A new dungeon: genMap() digs the random map (Heart, gold, lava, gems, caverns, portal, Hero Gate),
  * newGame() creates the game state around it, and vision() reveals what your units can see.
  */
-import { CLAIM, EARTH, FLOOR, GATE, GEM, GOLD, H, HEART, N, N4, PORTAL, ROCK, W, inb, ix, rand, tx, ty } from './constants.js';
+import { CLAIM, EARTH, FLOOR, GATE, GEM, GOLD, H, HEART, N, N4, NEUTRAL, OWN, PORTAL, ROCK, W, inb, ix, rand, tx, ty } from './constants.js';
 import { ATTRACT, CFG, ECON, HEART_CAP, KINDS } from './config.js';
 import { spawn } from './entities.js';
 import { dijkstra } from './path.js';
@@ -189,7 +189,7 @@ function genMap() {
         } else if (k <= 2) {
             const i = pick();
             const e = spawn(k === 1 ? 'orc' : 'troll', tx(i), ty(i));
-            e.side = 2;
+            e.side = NEUTRAL;
             e.state = 'neutral';
             G.loot[pick()] = 200;
         } else {
@@ -298,7 +298,7 @@ function reveal(i) {
 export function vision() {
     let dirty = false;
     for (const e of G.ents) {
-        if (e.dead || e.held || e.side !== 0) {
+        if (e.dead || e.held || e.side !== OWN) {
             continue;
         }
         const cx = Math.floor(e.x);
@@ -320,11 +320,11 @@ export function vision() {
         }
     }
     for (const n of G.ents) {
-        if (n.side !== 2 || n.dead || !G.seen[ti(n)]) {
+        if (n.side !== NEUTRAL || n.dead || !G.seen[ti(n)]) {
             continue;
         }
-        if (G.ents.some((o) => o.side === 0 && !o.held && !o.dead && Math.hypot(o.x - n.x, o.y - n.y) < 3)) {
-            n.side = 0;
+        if (G.ents.some((o) => o.side === OWN && !o.held && !o.dead && Math.hypot(o.x - n.x, o.y - n.y) < 3)) {
+            n.side = OWN;
             n.state = 'think';
             fx({ type: 'ring', x: n.x, y: n.y, dur: 0.8, col: '#e0483c' });
             msg('A wandering ' + KINDS[n.kind].n + ' joins your dungeon.', 'join' + n.id, 'good');

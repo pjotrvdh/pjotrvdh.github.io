@@ -16,7 +16,7 @@
  * On a touch screen (no right button) a tap with creatures in hand drops them, and the Slap and Look
  * tools stand in for the right button and for dragging the map.
  */
-import { H, HATCH, LAIR, LIB, N, N4, TRAIN, TREAS, W, inb, ix, tx, ty } from './constants.js';
+import { H, HATCH, LAIR, LIB, N, N4, OWN, TRAIN, TREAS, W, inb, ix, tx, ty } from './constants.js';
 import { ROOMS, SPELLS } from './config.js';
 import { applyRect, canDrop, cast, dismissHeld, dropHeld, pickUp, slap } from './actions.js';
 import { G, app } from './state.js';
@@ -32,10 +32,10 @@ let pan = null;
 const EDGE = 16;
 
 /** Your unit under screen point (sx, sy), or null. */
-const ownUnitAt = (sx, sy) => view.pickUnit(sx, sy, (e) => e.side === 0);
+const ownUnitAt = (sx, sy) => view.pickUnit(sx, sy, (e) => e.side === OWN);
 
 function setHover(p) {
-    app.hover = { ...p, in: true, unit: p.x >= 0 ? view.pickUnit(p.sx, p.sy, (e) => e.side === 0 || !!G.seen[ix(Math.floor(e.x), Math.floor(e.y))]) : null };
+    app.hover = { ...p, in: true, unit: p.x >= 0 ? view.pickUnit(p.sx, p.sy, (e) => e.side === OWN || !!G.seen[ix(Math.floor(e.x), Math.floor(e.y))]) : null };
 }
 
 function screen(ev, cv) {
@@ -315,7 +315,7 @@ function onKey(e) {
         const [code] = ROOM_KEYS[e.key];
         jumpToRoom(code, ROOMS[code].n);
     } else if (G && k === 'f') {
-        const f = G.ents.find((u) => !u.dead && !u.held && u.state === 'fight' && (u.side === 0 || G.seen[ix(Math.floor(u.x), Math.floor(u.y))]));
+        const f = G.ents.find((u) => !u.dead && !u.held && u.state === 'fight' && (u.side === OWN || G.seen[ix(Math.floor(u.x), Math.floor(u.y))]));
         if (f) {
             view.centerOn(f.x - 0.5, f.y - 0.5);
         }
