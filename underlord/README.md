@@ -6,10 +6,10 @@ The game is a web page built with [Vite](https://vite.dev) and drawn in 3D with 
 
 ## How to play
 
-- **Dig:** click a block to mark it for digging, or drag a box over blocks. You can mark undiscovered blocks too. Your imps dig the blocks out, carry the gold to the Heart or a Treasury, and claim the new floor.
+- **Dig:** click a block to mark it for digging, or drag a box over blocks. You can mark blocks inside the clouds too. Your imps dig the blocks out, carry the gold to the Heart or a Treasury, and claim the new floor.
 - **Imps defend the Heart:** imps flee from heroes, but when the Dungeon Heart is under attack, the imps nearby rush in to fight.
 - **Walls:** idle imps reinforce the earth walls around your territory. Heroes take much longer to tunnel through a reinforced wall.
-- **Explore:** as in Dungeon Keeper, undiscovered ground looks like plain earth and is black on the minimap. Your units reveal what they can see, and walls block their sight. Gold, gems, caverns and invading heroes only show once discovered. Hidden caverns hold treasure chests, wandering creatures that join you, and a camp of sleeping heroes.
+- **Explore:** the map is hidden in clouds. Your units reveal what they can see, and walls block their sight. Gold seams and the portal near your Dungeon Heart shine through the clouds. Hidden caverns hold treasure chests, wandering creatures that join you, and a camp of sleeping heroes. Invading heroes show as white dots, on the map and the minimap, until they reach ground you have discovered; only then can you see which hero it is.
 - **Build:** you build rooms on claimed ground by clicking a tile, or dragging a box to place a whole room at once (as in Dungeon Keeper 2). The rooms are Treasury, Lair, Hatchery, Training Room, Library and Prison. With a Prison, heroes you defeat are knocked out: your imps carry them to a cell, where they starve and rise as Skeletons that fight for you.
 - **Creatures:** creatures only arrive through a portal you have claimed. Each one claims its own bed (a Lair tile) the first time it needs one; that tile is then locked for the others. Stronger creatures also need rooms of 9 or more tiles. Each map has a limited pool of creatures, and they want their wages on payday.
 - **Hand:** left-click a creature to pick it up (you can hold up to 8), then right-click your territory to drop the one picked up last.
@@ -71,7 +71,7 @@ src/
   assets/               portrait SVGs, logo and favicon (see src/assets/README.md)
   main.js               entry point: styles, game and the version label
   game/                 the game: rules and simulation, input and the panel (one module per part)
-  render/               the 3D view (three.js): camera, terrain, rooms, units, effects, overlay
+  render/               the 3D view (three.js): camera, terrain, rooms, units, effects, clouds
   styles/underlord.css
   config/               all game data, one file per item
     index.js            puts everything together for the game

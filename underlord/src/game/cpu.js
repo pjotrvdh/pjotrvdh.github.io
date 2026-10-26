@@ -75,9 +75,9 @@ function cpuBuild() {
             }
         }
     }
-    // 2. tunnel to the nearest gold seam you have discovered
+    // 2. tunnel to the nearest gold seam (gold glints through the clouds, so the player knows where it is)
     if (G.money < cap() * 0.9 && marksCount() < A.maxMarks / 2) {
-        const p = dijkstra(ix(G.hx + 2, G.hy), (i) => G.seen[i] && (G.t[i] === GOLD || (G.t[i] === GEM && G.money < cap() * 0.5)) && !G.mark[i], (i) => (G.t[i] === GEM ? 6 : hcost(i)));
+        const p = dijkstra(ix(G.hx + 2, G.hy), (i) => (G.t[i] === GOLD || (G.t[i] === GEM && G.money < cap() * 0.5)) && !G.mark[i], (i) => (G.t[i] === GEM ? 6 : hcost(i)));
         if (p) {
             cpuMark(p, true);
         }

@@ -2,7 +2,7 @@
  * The page around the map: the HUD, the panel (tools, tabs, portal list, Creatures tab), hover info,
  * the Chronicle, banners, the drag tip, the Cheats panel and the header buttons.
  */
-import { CLAIM, GOLD, H, LAIR, PORTAL, STATE_EN, TILE_EN, W, inb, ix, rand, tx, ty, words } from './constants.js';
+import { CLAIM, GEM, GOLD, H, LAIR, PORTAL, STATE_EN, TILE_EN, W, inb, ix, rand, tx, ty, words } from './constants.js';
 import { ASSETS, ATTRACT, CFG, ECON, KINDS, PORTAL_LIMIT, ROOMS, SPELLS, WAVES, wage } from './config.js';
 import { activity, affects, pickUp, spellCost } from './actions.js';
 import { kill } from './combat.js';
@@ -105,7 +105,7 @@ function hoverInfo() {
         const i = ix(hover.x, hover.y);
         const e = hover.unit && !hover.unit.dead && !hover.unit.held ? hover.unit : null;
         if (!G.seen[i] && !e) {
-            return '<b>Unexplored</b>' + (G.mark[i] ? '<br>Marked for digging' : '') + '<br>You can mark it for digging. Your imps will find out what is there.';
+            return '<b>Unexplored</b>' + (G.t[i] === GOLD ? ' · gold glints through' : G.t[i] === GEM ? ' · gems glint through' : '') + (G.mark[i] ? '<br>Marked for digging' : '') + '<br>You can mark it for digging. Your imps will find out what is there.';
         }
         if (e) {
             const k = KINDS[e.kind];
@@ -352,6 +352,7 @@ const cheatList = () => [
     }],
     ['Reveal map', () => {
         G.seen.fill(1);
+        G.fogDirty = true;
 
         return 'map revealed';
     }],
@@ -594,12 +595,20 @@ export function drawMini() {
     const col = ['#121116', '#4b3423', '#d6a52a', '#56d6ea', '#2a211b', '#6a2620', '#ff4a3a', '#c24bd6', '#bcd2f0', '#e0561b', '#6b5d55'];
     for (let i = 0; i < G.t.length; i++) {
         const t = G.t[i];
-        c.fillStyle = !G.seen[i] ? '#0c0a0f' : G.room[i] ? ROOMS[G.room[i]].col : col[t];
+        c.fillStyle = !G.seen[i] ? (t === GOLD || t === GEM ? '#5a4416' : '#0c0a0f') : G.room[i] ? ROOMS[G.room[i]].col : col[t];
         c.fillRect(tx(i) * s, ty(i) * s, Math.ceil(s), Math.ceil(s));
     }
     for (const P of G.portals) {
         c.fillStyle = G.pown[P] ? '#ff6ad5' : '#8a6ab0';
         c.fillRect((tx(P) - 0.25) * s, (ty(P) - 0.25) * s, s * 1.5, s * 1.5);
+    }
+    for (const e of G.ents) {
+        if (e.side === 1 && !e.dead && !e.guard && !G.seen[ti(e)]) {
+            c.fillStyle = '#ffffff';
+            c.beginPath();
+            c.arc(e.x * s, e.y * s, s * 0.45, 0, Math.PI * 2);
+            c.fill();
+        }
     }
     for (const e of G.ents) {
         if (e.dead || e.held || (e.side !== 0 && !G.seen[ti(e)])) {

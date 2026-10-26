@@ -7,7 +7,7 @@ description: Underlord map generation (genMap), tile types, caverns, portal, gat
 
 - You touch `genMap()`, `newGame()`, `vision()`, `los()` in `underlord/src/game/map.js`, or the tile helpers in `tiles.js` / `path.js`
 - You add a tile type, change gold/lava/gem placement, caverns, loot, neutrals or the hero camp
-- Keywords: tunnel size, Heart, portal, Hero Gate, seen, fog, shroud, unrevealed
+- Keywords: tunnel size, Heart, portal, Hero Gate, seen, fog, clouds, shroud
 
 ## Grid and tile types
 
@@ -62,16 +62,17 @@ After the loop: `G.hp` and `G.gold` per tile, then the caverns are populated.
 ## Start of a game (`newGame()`)
 
 - Fresh `G` (keeps `G.cpu.on`/`mode` from the previous game), `genMap()`, `settings/imp.js` `startCount` (4) imps on random claimed tiles.
-- Seen at start: tiles within 4.3 of the Heart centre and the 3 x 3 around each portal. Then `vision()`.
+- Seen at start (`reveal()`, so with their ring): tiles within 4.3 of the Heart centre and the 3 x 3 around each portal. Then `vision()`.
 - Three Chronicle tips: claim the portal, mark earth, build a Treasury.
 
 ## Vision and fog
 
 - `G.seen[i]` is permanent: once discovered, a tile stays visible; there is no live line of sight on seen ground. Heroes on seen tiles are always visible.
 - `vision()` (every 0.25 s from `update()`): every own unit that is not held reveals all tiles within its radius (`offsets(R)`, a disc) that pass `los()`. `los()` steps through the line and fails on any non-transparent intermediate tile; the end tile itself is revealed even if solid, so walls show.
+- `reveal(i)`: a tile a unit looks at gets `G.seen` bit 2 (looked at) and, with the 8 tiles around it, bit 1 (shown, out of the shroud). So there is always one tile of clear ground around everything you have discovered; `vision()` skips only looked-at tiles, so a ring tile still spreads its own ring once a unit sees it. Any non-zero `G.seen` counts as seen.
 - Radius: imps `settings/imp.js` `vision` (4), creatures `vision` in their `creatures/*.js` (5). Heroes and neutrals reveal nothing.
-- The shroud works as in Dungeon Keeper 1: undiscovered ground is drawn as plain solid earth (Dungeon Keeper's "unrevealed column"), whatever it hides: gold, gems, caverns, chests, tunnels, heroes and neutrals stay invisible until discovered. The minimap shows it black. Only dig marks show on it (you can mark undiscovered blocks), and the portal, which is discovered at the start.
-- The terrain layer rebuilds on its own when `G.seen` changes (it is part of its `signature()`).
+- New seen tiles set `G.fogDirty`; the cloud layer (`underlord/src/render/fog.js`) then rewrites its W x H mask and clears the flag.
+- Through the clouds the player sees (drawn by `render/fog.js`, `render/terrain.js` and `drawMini()`): gold and gem tiles (glints), dig marks, the portal(s) (always drawn, minimap too) and invading heroes as white dots ([heroes](heroes.md)). Chests, caverns, the gate, lava and neutrals do not show.
 - The Hero Gate (model and light) is drawn only once the gate tile is seen.
 
 ## Pathfinding
@@ -92,4 +93,4 @@ After the loop: `G.hp` and `G.gold` per tile, then the caverns are populated.
 
 - [imps](imps.md) — digging, claiming the portal, reinforcing
 - [heroes](heroes.md) — the gate, tunnelling and the hero camp
-- [rendering-and-ui](rendering-and-ui.md) — how the shroud and the minimap are drawn
+- [rendering-and-ui](rendering-and-ui.md) — how fog, clouds and the minimap are drawn

@@ -188,7 +188,7 @@ export function newGame() {
     }
     for (let i = 0; i < N; i++) {
         if (Math.hypot(tx(i) - G.hx, ty(i) - G.hy) <= 4.3 || G.portals.some((p) => Math.abs(tx(i) - tx(p)) <= 1 && Math.abs(ty(i) - ty(p)) <= 1)) {
-            G.seen[i] = 1;
+            reveal(i);
         }
     }
     vision();
@@ -242,8 +242,26 @@ function los(x0, y0, x1, y1) {
     return true;
 }
 
-/** Marks what your units see as seen (permanently), and lets wandering creatures you meet join you. */
+/** `G.seen` bits: 1 = shown (no shroud), 2 = a unit has looked at it. Every looked-at tile also shows the ring of tiles around it. */
+const LOOKED = 2;
+
+/** Tile i has been looked at: it and the 8 tiles around it come out of the shroud. */
+function reveal(i) {
+    G.seen[i] = 1 | LOOKED;
+    const x = tx(i);
+    const y = ty(i);
+    for (let dy = -1; dy <= 1; dy++) {
+        for (let dx = -1; dx <= 1; dx++) {
+            if (inb(x + dx, y + dy)) {
+                G.seen[ix(x + dx, y + dy)] |= 1;
+            }
+        }
+    }
+}
+
+/** Marks what your units see as seen (permanently), with a ring of one tile around it, and lets wandering creatures you meet join you. */
 export function vision() {
+    let dirty = false;
     for (const e of G.ents) {
         if (e.dead || e.held || e.side !== 0) {
             continue;
@@ -257,11 +275,12 @@ export function vision() {
                 continue;
             }
             const i = ix(x, y);
-            if (G.seen[i]) {
+            if (G.seen[i] & LOOKED) {
                 continue;
             }
             if (los(cx, cy, x, y)) {
-                G.seen[i] = 1;
+                reveal(i);
+                dirty = true;
             }
         }
     }
@@ -275,5 +294,8 @@ export function vision() {
             fx({ type: 'ring', x: n.x, y: n.y, dur: 0.8, col: '#e0483c' });
             msg('A wandering ' + KINDS[n.kind].n + ' joins your dungeon.', 'join' + n.id, 'good');
         }
+    }
+    if (dirty) {
+        G.fogDirty = true;
     }
 }

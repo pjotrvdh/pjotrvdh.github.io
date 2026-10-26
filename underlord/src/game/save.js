@@ -65,6 +65,7 @@ function deserialize(s) {
         G.ents.push(e);
     }
     recount();
+    G.fogDirty = true;
     clearLog();
     msg('Saved game loaded.');
     syncCpu();

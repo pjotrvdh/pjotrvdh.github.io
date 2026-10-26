@@ -12,11 +12,12 @@ import { G, app } from '../game/state.js';
 import { CameraRig } from './camera.js';
 import { Cursor, surface } from './cursor.js';
 import { Effects } from './effects.js';
+import { FOG_Y, Fog } from './fog.js';
 import { loadModels } from './models.js';
 import { Overlay } from './overlay.js';
 import { Rooms } from './rooms.js';
 import { Specials } from './specials.js';
-import { TOP, Terrain } from './terrain.js';
+import { Terrain } from './terrain.js';
 import { Units } from './units.js';
 
 let renderer;
@@ -67,6 +68,7 @@ export const view = {
             specials: new Specials(scene),
             units,
             effects: new Effects(scene),
+            fog: new Fog(scene),
             overlay: new Overlay(labels, rig, units),
             cursor: new Cursor(scene),
         };
@@ -87,13 +89,14 @@ export const view = {
         parts.specials.face(rig.yaw);
         parts.units.update(dt, time, { x: app.hover.fx, z: app.hover.fy });
         parts.effects.update();
+        parts.fog.update(time);
         parts.overlay.update(time);
         parts.cursor.update();
         renderer.render(scene, rig.camera);
     },
 
     /**
-     * The tile under screen point (sx, sy): the first block top or floor the view ray meets.
+     * The tile under screen point (sx, sy): the first block top, cloud or floor the view ray meets.
      * Returns { fx, fy, x, y } in tile coordinates (x, y may be off the map), or null above the horizon.
      */
     pick(sx, sy) {
@@ -104,7 +107,7 @@ export const view = {
         if (r.direction.y >= -1e-4) {
             return null;
         }
-        const t0 = (TOP + 0.01 - r.origin.y) / r.direction.y;
+        const t0 = (FOG_Y + 0.01 - r.origin.y) / r.direction.y;
         const t1 = -r.origin.y / r.direction.y;
         const len = Math.hypot(r.direction.x, r.direction.z) * (t1 - t0);
         const steps = Math.ceil(len * 12) + 1;

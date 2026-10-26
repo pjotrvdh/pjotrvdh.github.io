@@ -74,7 +74,7 @@ description: Hub for the Underlord docs: what the game is, the loop, the source 
 | [prison](prison.md) | You touch the Prison, prisoners (side 3), imps hauling them, or the Skeleton |
 | [hand](hand.md) | You touch pick up / drop / dismiss (`pickUp()`, `dropHeld()`, `dismissHeld()`) or slapping (`slap()`) |
 | [combat](combat.md) | You touch targeting, `fight()`, `attack()`, `kill()`, XP, bounties or line of sight |
-| [heroes](heroes.md) | You touch waves, hero spawning, `march()`, tunnelling, the Heart zap, the hero camp, unseen heroes |
+| [heroes](heroes.md) | You touch waves, hero spawning, `march()`, tunnelling, the Heart zap, the hero camp, white dots |
 | [spells](spells.md) | You touch `cast()`, `spellCost()`, research thresholds or a spell's effect |
 | [computer-assistant](computer-assistant.md) | You touch `cpuTick()` / `cpuBuild()` / `cpuMove()` / `cpuSpells()` or the C button |
 | [saving](saving.md) | You touch `serialize()` / `deserialize()`, localStorage, autosave or add entity/state fields |

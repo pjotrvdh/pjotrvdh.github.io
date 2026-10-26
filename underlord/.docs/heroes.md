@@ -1,13 +1,13 @@
 ---
 name: heroes
-description: Underlord hero waves, marching/tunnelling, the Heart zap, the hero camp, unseen heroes, the Lord. Read before changing invaders.
+description: Underlord hero waves, marching/tunnelling, the Heart zap, the hero camp, white dots, the Lord. Read before changing invaders.
 ---
 
 ## When to use this
 
-- You touch `launchWave()`, the spawn queue in `update()`, `march()`, `dijkstra()`/`hcost()`, the Heart zap, guards
+- You touch `launchWave()`, the spawn queue in `update()`, `march()`, `dijkstra()`/`hcost()`, the Heart zap, `unknownHeroes()`, guards
 - You edit `underlord/src/config/waves.js`, `settings/waves.js`, `settings/heart.js` or `heroes/*.js`
-- Keywords: wave, invasion, gate, tunnel, dig, Heart, zap, guard, camp, unseen, Lord of the Land, bounty
+- Keywords: wave, invasion, gate, tunnel, dig, Heart, zap, guard, camp, white dot, Lord of the Land, bounty
 
 ## Heroes
 
@@ -45,11 +45,13 @@ description: Underlord hero waves, marching/tunnelling, the Heart zap, the hero 
 
 - Placed by `genMap()` in the cavern farthest from the Heart, only if it has at least 3 floor tiles more than 4 tiles from the gate (otherwise there is no camp; no other cavern is used): a Knight and an Archer at strength x1, `guard = true`, state `guard`, plus a 600 chest ([map](map.md)).
 - `guard` does nothing; `think` sends guards back to `guard` instead of `march`. They still scan for enemies (5 tiles) and fight, then stay where the fight ended.
-- Drawn with a pale "z" while guarding. Excluded from the win check, from the assistant's Move targets and from its aggressive spell targets; the Heart, Lightning and own creatures do hit them.
+- Drawn with a pale "z" while guarding. Excluded from white dots, from the win check, from the assistant's Move targets and from its aggressive spell targets; the Heart, Lightning and own creatures do hit them.
 
-## Unseen heroes
+## White dots for unseen heroes
 
-- As in Dungeon Keeper, a hero on undiscovered ground (`G.seen = 0`) is not shown at all, not in the view and not on the minimap. Once it enters discovered ground it is drawn, and hover shows its name; `G.seen` is permanent, so that happens as soon as it walks onto discovered ground, not only within sight of your units.
+- `unknownHeroes()`: living heroes, not guards, on a tile with `G.seen = 0`.
+- `render/fog.js` draws them as pulsing white dots above the clouds; `drawMini()` draws white dots on the minimap.
+- On a seen tile the hero is drawn with its sprite, and hover shows its name. `G.seen` is permanent, so this happens as soon as it enters discovered ground, not only within sight of your units.
 
 ## The Lord of the Land
 
