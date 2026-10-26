@@ -33,7 +33,7 @@ rally {i, until} | null           (until is game time, G.time)
 ents: [{ SAVE_KEYS..., held }]
 ```
 
-- `SAVE_KEYS = ['id','kind','side','x','y','hp','maxhp','atk','lvl','xp','carry','hunger','guard','bed','leaving','fromPool','payDue','cell']`.
+- `SAVE_KEYS = ['id','kind','side','x','y','hp','maxhp','atk','lvl','xp','carry','hunger','guard','bed','leaving','fromPool','payDue','cell','party']`.
 - `ents` is `G.ents` (held units included once, with `held: true`).
 - Not saved (reset on load): `state`, `path`, `next`, `timer`, `cd`, `slap`, `scan`, `ignoreT`, `target`, `resv`, `task`, `work`, `boost`, `after`, `face`, and the render hints `hitT`, `hurtT`, `digging`, `aim`; and on `G`: `res`, `fx`, `msgCd`, `crCycle`, `heartFlash`, `heartAlarm`, `zapT`, `visT`, `rc` (recounted), `over`, the Chronicle. The camera is not saved.
 

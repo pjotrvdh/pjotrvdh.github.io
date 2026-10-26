@@ -49,6 +49,8 @@ export function applyConfig(c) {
         study: v.study || 0,
         likesSlaps: !!v.likesSlaps,
         eats: v.eats !== false,
+        tunnels: !!v.tunnels,
+        steals: v.steals || 0,
         portal: v.portal !== false,
     });
     KINDS = {};

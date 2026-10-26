@@ -25,8 +25,13 @@ description: Underlord hero waves, marching/tunnelling, the Heart zap, the hero 
 
 - State after spawn and after every `think` (unless `guard`).
 - Standing next to the Heart (`adjHeart`): every `rate` seconds `G.heartHP -= e.atk` (no random spread), Heart flash, Heart alarm that sends nearby imps to defend it ([imps](imps.md)), "Your Dungeon Heart is under attack!" (20 s message cooldown).
-- Otherwise: path from `dijkstra(here, adjHeart)`, recomputed every 5 s or when empty. Costs `hcost()`: walkable 1, earth 4, gold 6, reinforced wall 12; rock, gem, lava and Heart impassable.
-- Next step not walkable: if diggable, hit it every `dig` seconds (`G.hp--`, `openTile()` at 0, dust); if not diggable, drop the path and recompute.
+- After Dungeon Keeper, only heroes with `tunnels` (the Tunneller) dig. Each wave is one party (`e.party` = wave number, set at spawn).
+- Tunneller: path from `dijkstra(here, adjHeart)`, recomputed every 5 s or when empty. Costs `hcost()`: walkable 1, earth 4, gold 6, reinforced wall 12; rock, gem, lava and Heart impassable. Next step not walkable: if diggable, hit it every `dig` seconds (`G.hp--`, `openTile()` at 0, dust); if not, drop the path and recompute.
+- Every other hero (repath every 3 s), first match wins:
+  1. A Thief (`steals`), while you have gold and a reachable Treasury: walk there; on a Treasury tile it takes `steals` (200) gold (`e.carry`) and then runs back to the Hero Gate, where it vanishes with the gold ("A Thief got away ..."). Slain or captured, it drops the gold as a pile (`G.pile`) for your imps.
+  2. An open (walkable) way to the Heart: walk it.
+  3. Its party's Tunneller is alive and reachable: follow it through its tunnel.
+  4. Else wander (`wander()`): a random reachable tile 4+ tiles away within `settings/waves.js` `roam` (14) steps, a new one every 4-8 s. A wave whose Tunnellers all died roams the caverns and tunnels until a way opens or your creatures find it.
 - Tunnelling destroys gold: a gold tile opened by a hero becomes floor and its `G.gold` is lost. Dug tiles are unclaimed `FLOOR`; heroes never unclaim territory.
 - Combat interrupts marching ([combat](combat.md)): heroes scan for own units within 5 tiles.
 

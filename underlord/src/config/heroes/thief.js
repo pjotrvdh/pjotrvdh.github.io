@@ -10,8 +10,10 @@ export default {
     rate: 0.6,
     /** Gold for killing it. */
     bounty: 50,
-    /** Seconds per hit when tunnelling. */
+    /** Seconds per hit when it tunnels (only heroes with `tunnels` dig, see tunneller.js). */
     dig: 1.0,
+    /** Gold it steals from a Treasury before it runs back to the Hero Gate with it. */
+    steals: 200,
     /** Fallback colour when the SVG is missing. */
     color: '#5c6470',
 };

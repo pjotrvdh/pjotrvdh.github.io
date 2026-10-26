@@ -274,6 +274,8 @@ export function update(dt) {
     while (G.spawnQ.length && G.spawnQ[0].t <= 0) {
         const q = G.spawnQ.shift();
         const e = spawn(q.k, tx(G.gate), ty(G.gate), 1 + CFG.waves.heroScalePerWave * (G.wave - 1));
+        // one wave is one party: its members follow their Tunneller (march())
+        e.party = G.wave;
         fx({ type: 'ring', x: e.x, y: e.y, dur: 0.6, col: '#bcd2f0' });
     }
     if (anyPortal()) {

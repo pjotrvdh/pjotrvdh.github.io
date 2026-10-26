@@ -73,6 +73,7 @@ Other DK facts per kind:
 
 ## Where Underlord deviates
 
+- **Hero movement** follows DK: only the Tunneller (dwarf) digs, straight for your dungeon; its party follows the tunnel, heroes without a way in wander, and the Thief steals from your Treasury (DK's STEAL_GOLD objective). Parties are simply one per wave.
 - **Attraction**: Orc needs nothing (no Barracks), Troll needs Lair 9 + Hatchery 9 (no Workshop), Dark Mistress needs Training 9 (no Torture Room). The Warlock matches.
 - **Jobs**: there is no Workshop, Torture Room or Guard Post, so Trolls, Mistresses and Orcs train instead. `train` and `study` in `creatures/*.js` follow DK's job values: the Troll trains slowest (7 XP/s vs 9), Orc and Troll never study (`study: 0`), the Warlock studies fastest (4 vs the Mistress's 1.2).
 - **Levelling**: Underlord multiplies `maxhp` by 1.12 and `atk` by 1.1 per level (about 2.8x and 2.4x at level 10); DK adds 35% of the base per level (4.15x at level 10). Wages do not rise with level in Underlord.

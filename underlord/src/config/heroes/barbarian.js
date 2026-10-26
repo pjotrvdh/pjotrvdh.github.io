@@ -10,7 +10,7 @@ export default {
     rate: 1.2,
     /** Gold for killing it. */
     bounty: 150,
-    /** Seconds per hit when tunnelling. */
+    /** Seconds per hit when it tunnels (only heroes with `tunnels` dig, see tunneller.js). */
     dig: 0.7,
     /** Fallback colour when the SVG is missing. */
     color: '#a8683a',
