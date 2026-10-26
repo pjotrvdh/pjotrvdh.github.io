@@ -101,6 +101,8 @@ const IDLE_FUN = 3;
 const IDLE_FUN_CHANCE = 0.25;
 /** Seconds a dropped weapon lies on the floor before it fades. */
 const DROP_LIE = 3;
+/** How high a sleeper lies: on top of the bed's mattress (bed_floor at the Lair's scale), not sunk into it. */
+const SLEEP_LIFT = 0.1;
 /** Attack clips play this much faster than modelled: a swing takes about half a second. */
 const ATTACK_SPEED = 1.8;
 /** Ring colour per side: yours (the keeper colour in assets.js), heroes, wanderers. */
@@ -772,9 +774,11 @@ export class Units {
             f.lastY = e.y;
             f.root.position.set(e.x, 0, e.y);
             if (e.state === 'sleep' && e.bed === ti(e)) {
-                // in the middle of the bed and along it (sleepers still get nudged by their neighbours)
+                // in the middle of the bed, on the mattress, along it: Lie_Idle puts the head towards the
+                // figure's back (-Z), the same end as bed_floor's pillow, so the head lies on the pillow.
+                // It stays there when neighbours nudge the sleeper.
                 f.heading = bedTurn(e.bed);
-                f.root.position.set(tx(e.bed) + 0.5, 0, ty(e.bed) + 0.5);
+                f.root.position.set(tx(e.bed) + 0.5, SLEEP_LIFT, ty(e.bed) + 0.5);
             } else if (e.state === 'hauled') {
                 // carried over the imp's head
                 f.root.position.y = 0.45;
