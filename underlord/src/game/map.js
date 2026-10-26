@@ -12,10 +12,34 @@ import { clearLog, msg, syncCpu } from './ui.js';
 import { fx } from './world.js';
 import { view } from '../render/view.js';
 
-/** Gem seams, hidden caverns and how far each cavern winds (steps of 2 x 2 tiles), for the 80 x 52 map. */
-const GEMS = 6;
-const CAVES = 14;
-const CAVE_STEPS = 18;
+/** A random whole number from lo to hi (both included). */
+const between = (lo, hi) => lo + rand(hi - lo + 1);
+
+/**
+ * A new level every game: where the Heart and the Hero Gate lie (opposite sides of the map, which side at
+ * random), how much gold, gems, rock and how many caverns, all within the ranges in LEVEL. The name is
+ * made up too (`levelName()`).
+ */
+const LEVEL = {
+    /** Gem seams. */
+    gems: [4, 8],
+    /** Hidden caverns, and how far each winds (steps of 2 x 2 tiles). */
+    caves: [10, 18],
+    caveSteps: [12, 24],
+    /** Outcrops of impenetrable rock, and their length (random-walk steps). */
+    rocks: [4, 14],
+    rockSteps: [8, 30],
+    /** Gold veins: `economy.js` `goldVeins`, times a factor in this range. */
+    gold: [0.75, 1.25],
+};
+
+const NAME_A = ['Eversmile', 'Cosyton', 'Waterdream', 'Flowerhat', 'Lushmeadow', 'Snuggledell', 'Wishvale', 'Tickle', 'Moonbrush', 'Nevergrim', 'Blaise End', 'Sleepiburgh', 'Hearth', 'Mirthshire', 'Buttercup', 'Dimmsdale', 'Honeybrook', 'Puddingham'];
+const NAME_B = ['', ' Vale', ' Hollow', ' Downs', ' Meadow', ' Glen', ' on the Water', ' Fields'];
+
+/** A cheerful realm for you to ruin, Dungeon Keeper style. */
+function levelName() {
+    return NAME_A[rand(NAME_A.length)] + NAME_B[rand(NAME_B.length)];
+}
 
 function genMap() {
     let caves = [];
@@ -30,40 +54,60 @@ function genMap() {
             t[ix(0, y)] = ROCK;
             t[ix(W - 1, y)] = ROCK;
         }
-        const blob = (type, n, len) => {
-            for (let k = 0; k < n; k++) {
-                let x = 2 + rand(W - 4);
-                let y = 2 + rand(H - 4);
-                for (let s = 0; s < len; s++) {
-                    if (x > 0 && y > 0 && x < W - 1 && y < H - 1) {
-                        t[ix(x, y)] = type;
-                    }
-                    const [dx, dy] = N4[rand(4)];
-                    x += dx;
-                    y += dy;
-                }
+        // the Heart near one side, the Hero Gate near the opposite one; f points from the Heart into the map, s across
+        const side = rand(4);
+        const [fx, fy] = [[1, 0], [-1, 0], [0, 1], [0, -1]][side];
+        const [sx, sy] = [-fy, fx];
+        const hx = fx > 0 ? between(5, 9) : fx < 0 ? W - 1 - between(5, 9) : between(10, W - 11);
+        const hy = fy > 0 ? between(5, 8) : fy < 0 ? H - 1 - between(5, 8) : between(9, H - 10);
+        const gx = fx > 0 ? W - 4 : fx < 0 ? 3 : between(6, W - 7);
+        const gy = fy > 0 ? H - 4 : fy < 0 ? 3 : between(5, H - 6);
+        const far = (x, y, d) => Math.hypot(x - hx, y - hy) > d && Math.hypot(x - gx, y - gy) > 5;
+        const walkAt = (x, y, len, put) => {
+            for (let s = 0; s < len; s++) {
+                put(x, y);
+                const [dx, dy] = N4[rand(4)];
+                x = Math.max(2, Math.min(W - 3, x + dx));
+                y = Math.max(2, Math.min(H - 3, y + dy));
             }
         };
-        blob(GOLD, ECON.goldVeins, 7);
-        for (let k = 0; k < GEMS; k++) {
-            t[ix(16 + rand(W - 22), 3 + rand(H - 6))] = GEM;
+        // impenetrable rock outcrops, away from the Heart and the gate
+        for (let k = between(...LEVEL.rocks); k > 0; k--) {
+            walkAt(2 + rand(W - 4), 2 + rand(H - 4), between(...LEVEL.rockSteps), (x, y) => {
+                if (far(x, y, 9)) {
+                    t[ix(x, y)] = ROCK;
+                }
+            });
         }
-        const hx = 5;
-        const hy = H >> 1;
+        const veins = Math.round(ECON.goldVeins * (LEVEL.gold[0] + Math.random() * (LEVEL.gold[1] - LEVEL.gold[0])));
+        for (let k = 0; k < veins; k++) {
+            walkAt(2 + rand(W - 4), 2 + rand(H - 4), 7, (x, y) => {
+                t[ix(x, y)] = GOLD;
+            });
+        }
+        for (let k = between(...LEVEL.gems); k > 0; k--) {
+            const x = 3 + rand(W - 6);
+            const y = 3 + rand(H - 6);
+            if (far(x, y, 11)) {
+                t[ix(x, y)] = GEM;
+            }
+        }
         // hidden caverns
-        for (let k = 0; k < CAVES; k++) {
+        const steps = between(...LEVEL.caveSteps);
+        for (let k = between(...LEVEL.caves); k > 0; k--) {
             let cx = 0;
             let cy = 0;
             let ok = false;
             for (let a = 0; a < 30 && !ok; a++) {
-                cx = 13 + rand(W - 20);
-                cy = 3 + rand(H - 6);
-                ok = caves.every((c) => Math.hypot(c.x - cx, c.y - cy) > 9);
+                cx = 3 + rand(W - 7);
+                cy = 3 + rand(H - 7);
+                ok = far(cx, cy, 11) && caves.every((c) => Math.hypot(c.x - cx, c.y - cy) > 9);
+            }
+            if (!ok) {
+                continue;
             }
             const cells = [];
-            let x = cx;
-            let y = cy;
-            for (let s = 0; s < CAVE_STEPS; s++) {
+            walkAt(cx, cy, steps, (x, y) => {
                 for (const [dx, dy] of [[0, 0], [1, 0], [0, 1], [1, 1]]) {
                     const a = x + dx;
                     const b = y + dy;
@@ -72,39 +116,30 @@ function genMap() {
                         cells.push(ix(a, b));
                     }
                 }
-                const [dx, dy] = N4[rand(4)];
-                x = Math.max(2, Math.min(W - 4, x + dx));
-                y = Math.max(2, Math.min(H - 4, y + dy));
-            }
+            });
             caves.push({ x: cx, y: cy, cells });
         }
         for (let dy = -4; dy <= 4; dy++) {
             for (let dx = -4; dx <= 4; dx++) {
-                const x = hx + dx;
-                const y = hy + dy;
-                if (x > 0 && y > 0 && x < W - 1 && y < H - 1) {
-                    t[ix(x, y)] = EARTH;
-                }
+                t[ix(hx + dx, hy + dy)] = EARTH;
             }
         }
         for (let dy = -3; dy <= 3; dy++) {
             for (let dx = -3; dx <= 3; dx++) {
-                const x = hx + dx;
-                const y = hy + dy;
-                if (x > 0 && y > 0) {
-                    t[ix(x, y)] = Math.abs(dx) <= 1 && Math.abs(dy) <= 1 ? HEART : CLAIM;
-                }
+                t[ix(hx + dx, hy + dy)] = Math.abs(dx) <= 1 && Math.abs(dy) <= 1 ? HEART : CLAIM;
             }
         }
-        for (let y = hy - 2; y <= hy + 1; y++) {
-            t[ix(hx + 5, y)] = GOLD;
+        // the starter gold seam, one earth tile past the territory, facing into the map
+        for (let k = -2; k <= 1; k++) {
+            t[ix(hx + fx * 5 + sx * k, hy + fy * 5 + sy * k)] = GOLD;
         }
-        // One portal, a short tunnel from the Heart: above or below it, just past the gold seam.
-        const up = Math.random() < 0.5;
+        // One portal, a short tunnel from the Heart: to one side of it, just past the gold seam.
         const portals = [];
         {
-            const x = 12 + rand(3);
-            const y = hy + (up ? -1 : 1) * (4 + rand(3));
+            const a = 7 + rand(3);
+            const b = (Math.random() < 0.5 ? -1 : 1) * (4 + rand(3));
+            const x = hx + fx * a + sx * b;
+            const y = hy + fy * a + sy * b;
             for (let dy = -1; dy <= 1; dy++) {
                 for (let dx = -1; dx <= 1; dx++) {
                     t[ix(x + dx, y + dy)] = FLOOR;
@@ -113,8 +148,6 @@ function genMap() {
             t[ix(x, y)] = PORTAL;
             portals.push(ix(x, y));
         }
-        const gx = W - 4;
-        const gy = 4 + rand(H - 8);
         for (let dy = -2; dy <= 2; dy++) {
             for (let dx = -2; dx <= 2; dx++) {
                 t[ix(gx + dx, gy + dy)] = FLOOR;
@@ -131,6 +164,7 @@ function genMap() {
             break;
         }
     }
+    G.level = levelName();
     for (let i = 0; i < N; i++) {
         G.hp[i] = G.t[i] === GOLD ? 5 : 3;
         G.gold[i] = G.t[i] === GOLD ? ECON.seamGold : 0;
@@ -196,6 +230,7 @@ export function newGame() {
     msg('A portal glows in the dark near your Heart. Dig a tunnel and claim it to attract creatures.');
     msg('Click or drag a box over earth to mark it for digging. Right-click drops and slaps.');
     msg('Build a Treasury: your Heart holds only ' + HEART_CAP + ' gold.');
+    msg('Welcome to ' + G.level + '. Its heroes do not know you are here yet.');
     view.centerOn(G.hx, G.hy);
     syncCpu();
 }

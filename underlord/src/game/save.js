@@ -17,7 +17,7 @@ function serialize() {
         v: SAVE_V, savedAt: Date.now(),
         t: Array.from(G.t), room: Array.from(G.room), mark: Array.from(G.mark), hp: Array.from(G.hp), gold: Array.from(G.gold), seen: Array.from(G.seen), loot: Array.from(G.loot), pile: Array.from(G.pile),
         money: G.money, heartHP: G.heartHP, heartMax: G.heartMax, time: G.time, nextWave: G.nextWave, wave: G.wave, spawnQ: G.spawnQ, research: G.research,
-        cpu: G.cpu, payT: G.payT, pown: Array.from(G.pown), pool: G.pool, portals: G.portals, portalT: G.portalT, idc: G.idc, hx: G.hx, hy: G.hy, portal: G.portal, gate: G.gate, rally: G.rally,
+        cpu: G.cpu, payT: G.payT, pown: Array.from(G.pown), pool: G.pool, portals: G.portals, level: G.level, portalT: G.portalT, idc: G.idc, hx: G.hx, hy: G.hy, portal: G.portal, gate: G.gate, rally: G.rally,
         ents: G.ents.filter((e) => !e.dead).map((e) => {
             const o = {};
             for (const k of SAVE_KEYS) {
@@ -36,7 +36,7 @@ function deserialize(s) {
     Object.assign(G, {
         t: A(Uint8Array, s.t), room: A(Uint8Array, s.room), mark: A(Uint8Array, s.mark), hp: A(Uint8Array, s.hp), gold: A(Int16Array, s.gold), seen: A(Uint8Array, s.seen), loot: A(Int16Array, s.loot), pile: A(Int16Array, s.pile ?? s.loot.map(() => 0)),
         money: s.money, heartHP: s.heartHP, heartMax: s.heartMax, time: s.time, nextWave: s.nextWave, wave: s.wave, spawnQ: s.spawnQ || [], research: s.research,
-        cpu: s.cpu || G.cpu, payT: s.payT, pown: A(Uint8Array, s.pown), pool: { ...G.pool, ...s.pool }, portals: s.portals, portalT: s.portalT, idc: s.idc, hx: s.hx, hy: s.hy, portal: s.portal, gate: s.gate, rally: s.rally,
+        cpu: s.cpu || G.cpu, payT: s.payT, pown: A(Uint8Array, s.pown), pool: { ...G.pool, ...s.pool }, portals: s.portals, level: s.level || 'your realm', portalT: s.portalT, idc: s.idc, hx: s.hx, hy: s.hy, portal: s.portal, gate: s.gate, rally: s.rally,
         ents: [], held: [], fx: [], res: new Map(), msgCd: {}, over: null,
     });
     // Saves made before held units stopped being written twice list them twice: keep the first copy of each id.

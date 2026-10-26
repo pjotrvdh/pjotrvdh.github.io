@@ -31,16 +31,22 @@ description: Underlord map generation (genMap), tile types, caverns, portal, gat
 
 ## genMap()
 
-Up to 40 attempts; an attempt is kept as soon as a hero path exists (`dijkstra(G.gate, adjHeart)`); after 40 failures the last attempt is kept anyway. Steps per attempt, in order (later steps overwrite earlier ones):
+Every game is a new level, made up from the ranges in `LEVEL` (`map.js`) and given a made-up name (`levelName()`, `G.level`, saved; "Welcome to <name>" in the Chronicle).
+
+Steps per attempt, in order (later steps overwrite earlier ones):
 
 1. Fill with earth; border ring of rock.
-2. `blob(GOLD, economy.goldVeins, 7)`: 48 random walks of 7 steps (`economy.js` `goldVeins`). No lava for now: `LAVA` still exists (older saves have it, and it is drawn and blocks everyone), but `genMap()` places none.
-3. `GEMS` (6) single gem tiles at x 16..W-7, y 3..H-4.
-4. `CAVES` (14) hidden caverns: centre x 13..W-8, y 3..H-4, up to 30 tries to keep > 9 tiles from earlier centres; each a `CAVE_STEPS` (18) step random walk stamping 2 x 2 `FLOOR` squares (kept inside x/y 2..W-3/H-3).
-5. Heart area at `hx=5`, `hy=H>>1` (26): a 9 x 9 earth square (clears anything there), then a 7 x 7 `CLAIM` square with the 3 x 3 `HEART` in the middle. That is the starting territory (40 claimed tiles).
-6. Starter gold seam: x = `hx+5` (10), y = `hy-2..hy+1` (4 tiles), one earth tile past the territory.
-7. The single portal (exactly one creature portal per map): x 12-14, y = `hy ± (4..6)` (above or below at random), a 3 x 3 `FLOOR` patch with `PORTAL` in the centre. `G.portals = [i]`, `G.portal = i`.
-8. Hero Gate: x = `W-4` (76), y 4..H-5, a 5 x 5 `FLOOR` patch with `GATE` in the centre.
+2. Pick a side at random: the Heart lies near it, the Hero Gate near the opposite side. `f` points from the Heart into the map, `s` across it. Heart 5-9 tiles from its edge (anywhere along it, at least 9-10 from the corners); gate 3 tiles from the opposite edge.
+3. `LEVEL.rocks` (4-14) outcrops of impenetrable `ROCK`, random walks of `rockSteps` (8-30), never within 9 tiles of the Heart or 5 of the gate.
+4. Gold: `economy.js` `goldVeins` (48) times 0.75-1.25 random walks of 7 steps. No lava for now: `LAVA` still exists (older saves have it, and it is drawn and blocks everyone), but `genMap()` places none.
+5. `LEVEL.gems` (4-8) single gem tiles, more than 11 tiles from the Heart.
+6. `LEVEL.caves` (10-18) hidden caverns, more than 11 tiles from the Heart and 9 from each other (30 tries each, else skipped); each a random walk of `caveSteps` (12-24, the same for the whole level) stamping 2 x 2 `FLOOR` squares.
+7. Heart area: a 9 x 9 earth square, then a 7 x 7 `CLAIM` square with the 3 x 3 `HEART` in the middle (40 claimed tiles).
+8. Starter gold seam: 4 tiles across `s`, 5 tiles from the Heart along `f` (one earth tile past the territory).
+9. The single portal: 7-9 tiles along `f` and 4-6 to either side, a 3 x 3 `FLOOR` patch with `PORTAL` in the centre. `G.portals = [i]`, `G.portal = i`.
+10. Hero Gate: a 5 x 5 `FLOOR` patch with `GATE` in the centre.
+
+Up to 40 attempts; an attempt is kept as soon as a hero path exists (`dijkstra(G.gate, adjHeart)`; rock blocks it), after 40 failures the last one is kept anyway.
 
 After the loop: `G.hp` and `G.gold` per tile, then the caverns are populated.
 

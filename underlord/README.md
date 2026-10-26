@@ -1,6 +1,6 @@
 # Underlord
 
-A browser game in the spirit of *Dungeon Keeper*. You are an evil overlord deep underground: dig into a cloud-covered map, claim territory, build rooms, attract creatures through portals and defend your Dungeon Heart against six invasions from the surface.
+A browser game in the spirit of *Dungeon Keeper*. You are an evil overlord deep underground: dig into a cloud-covered map (a new, randomly made level every game), claim territory, build rooms, attract creatures through portals and defend your Dungeon Heart against six invasions from the surface.
 
 The game is a web page built with [Vite](https://vite.dev) and drawn in 3D with [three.js](https://threejs.org), with models from Kenney and KayKit (see [`src/assets/README.md`](src/assets/README.md)). All game data (settings, creatures, heroes, rooms, spells and waves) lives in plain JavaScript files under [`src/config`](src/config). Play it at [pjotrvdh.github.io/underlord](https://pjotrvdh.github.io/underlord/). It is one of the games in the [Arcade](../README.md).
 
