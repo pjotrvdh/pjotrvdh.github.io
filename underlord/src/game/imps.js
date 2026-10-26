@@ -182,7 +182,7 @@ export function doDig(e, dt) {
         e.carry += 20;
     }
     sound(t === GOLD ? 'gold' : t === GEM ? 'gem' : 'dig', tx(j) + 0.5, ty(j) + 0.5);
-    fx({ type: 'dust', x: (e.x + tx(j) + 0.5) / 2, y: (e.y + ty(j) + 0.5) / 2, dur: 0.35, col: t === EARTH ? '#8a6446' : t === WALL ? '#9a8a80' : t === GEM ? ASSETS.gemColor : '#f2cb55' });
+    fx({ type: 'dust', x: (e.x + tx(j) + 0.5) / 2, y: (e.y + ty(j) + 0.5) / 2, dur: 0.35, col: t === EARTH ? '#8a6446' : t === WALL ? '#9a8a80' : t === GEM ? ASSETS.gemColor : ASSETS.goldColor });
     // full: haul it (earth and walls), or for gold keep mining the seam out unless the treasuries are full
     const full = G.money >= cap();
     if (e.carry >= IMP_POCKET && (t === GOLD ? full : !full || t !== EARTH)) {

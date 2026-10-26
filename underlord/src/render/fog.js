@@ -50,8 +50,7 @@ function starTexture() {
 }
 /** Most glints and hero dots drawn at once (a big map has a few hundred gold tiles). */
 const MAX_DOTS = 1024;
-const GOLD_GLINT = new THREE.Color(1, 0.78, 0.18);
-const gemGlint = new THREE.Color();
+const glint = new THREE.Color();
 
 export class Fog {
     constructor(scene) {
@@ -126,7 +125,7 @@ export class Fog {
                 continue;
             }
             gp.setXYZ(n, x + 0.3 + hash(x, y, 11) * 0.4, FOG_Y + 0.05, y + 0.3 + hash(x, y, 21) * 0.4);
-            const c = t === GOLD ? GOLD_GLINT : gemGlint.set(ASSETS.gemColor).multiplyScalar(1.6);
+            const c = glint.set(t === GOLD ? ASSETS.goldColor : ASSETS.gemColor).multiplyScalar(t === GOLD ? 1.15 : 1.6);
             gc.setXYZ(n, c.r * tw, c.g * tw, c.b * tw);
             n++;
         }

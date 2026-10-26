@@ -41,125 +41,157 @@ function levelName() {
     return NAME_A[rand(NAME_A.length)] + NAME_B[rand(NAME_B.length)];
 }
 
+/**
+ * Where this level's Heart and Hero Gate lie: near opposite sides, which side at random. `f` points from
+ * the Heart into the map, `s` across it; `far(x, y, d)` is true for a tile more than `d` from the Heart
+ * and clear of the gate.
+ */
+function layout() {
+    const [fx, fy] = [[1, 0], [-1, 0], [0, 1], [0, -1]][rand(4)];
+    const hx = fx > 0 ? between(5, 9) : fx < 0 ? W - 1 - between(5, 9) : between(10, W - 11);
+    const hy = fy > 0 ? between(5, 8) : fy < 0 ? H - 1 - between(5, 8) : between(9, H - 10);
+    const gx = fx > 0 ? W - 4 : fx < 0 ? 3 : between(6, W - 7);
+    const gy = fy > 0 ? H - 4 : fy < 0 ? 3 : between(5, H - 6);
+
+    return {
+        f: [fx, fy], s: [-fy, fx], hx, hy, gx, gy,
+        far: (x, y, d) => Math.hypot(x - hx, y - hy) > d && Math.hypot(x - gx, y - gy) > 5,
+    };
+}
+
+/** A random walk of `len` steps from (x, y), kept off the border; `put(x, y)` at every step. */
+function walkAt(x, y, len, put) {
+    for (let s = 0; s < len; s++) {
+        put(x, y);
+        const [dx, dy] = N4[rand(4)];
+        x = Math.max(2, Math.min(W - 3, x + dx));
+        y = Math.max(2, Math.min(H - 3, y + dy));
+    }
+}
+
+/** The border ring of impenetrable rock. */
+function border(t) {
+    for (let x = 0; x < W; x++) {
+        t[ix(x, 0)] = ROCK;
+        t[ix(x, H - 1)] = ROCK;
+    }
+    for (let y = 0; y < H; y++) {
+        t[ix(0, y)] = ROCK;
+        t[ix(W - 1, y)] = ROCK;
+    }
+}
+
+/** Rock outcrops (away from the Heart and the gate), gold veins and gem seams, as many as LEVEL allows. */
+function scatter(t, L) {
+    for (let k = between(...LEVEL.rocks); k > 0; k--) {
+        walkAt(2 + rand(W - 4), 2 + rand(H - 4), between(...LEVEL.rockSteps), (x, y) => {
+            if (L.far(x, y, 9)) {
+                t[ix(x, y)] = ROCK;
+            }
+        });
+    }
+    const veins = Math.round(ECON.goldVeins * (LEVEL.gold[0] + Math.random() * (LEVEL.gold[1] - LEVEL.gold[0])));
+    for (let k = 0; k < veins; k++) {
+        walkAt(2 + rand(W - 4), 2 + rand(H - 4), 7, (x, y) => {
+            t[ix(x, y)] = GOLD;
+        });
+    }
+    for (let k = between(...LEVEL.gems); k > 0; k--) {
+        const x = 3 + rand(W - 6);
+        const y = 3 + rand(H - 6);
+        if (L.far(x, y, 11)) {
+            t[ix(x, y)] = GEM;
+        }
+    }
+}
+
+/** The hidden caverns, apart from each other and from the Heart: winding 2 x 2 floor. Returns them with their cells. */
+function digCaves(t, L) {
+    const caves = [];
+    const steps = between(...LEVEL.caveSteps);
+    for (let k = between(...LEVEL.caves); k > 0; k--) {
+        let cx = 0;
+        let cy = 0;
+        let ok = false;
+        for (let a = 0; a < 30 && !ok; a++) {
+            cx = 3 + rand(W - 7);
+            cy = 3 + rand(H - 7);
+            ok = L.far(cx, cy, 11) && caves.every((c) => Math.hypot(c.x - cx, c.y - cy) > 9);
+        }
+        if (!ok) {
+            continue;
+        }
+        const cells = [];
+        walkAt(cx, cy, steps, (x, y) => {
+            for (const [dx, dy] of [[0, 0], [1, 0], [0, 1], [1, 1]]) {
+                const a = x + dx;
+                const b = y + dy;
+                if (a > 1 && b > 1 && a < W - 2 && b < H - 2) {
+                    t[ix(a, b)] = FLOOR;
+                    cells.push(ix(a, b));
+                }
+            }
+        });
+        caves.push({ x: cx, y: cy, cells });
+    }
+
+    return caves;
+}
+
+/** Your start: the Heart in its claimed square inside solid earth, and the starter gold seam facing into the map. */
+function heartArea(t, L) {
+    const { hx, hy, f, s } = L;
+    for (let dy = -4; dy <= 4; dy++) {
+        for (let dx = -4; dx <= 4; dx++) {
+            t[ix(hx + dx, hy + dy)] = EARTH;
+        }
+    }
+    for (let dy = -3; dy <= 3; dy++) {
+        for (let dx = -3; dx <= 3; dx++) {
+            t[ix(hx + dx, hy + dy)] = Math.abs(dx) <= 1 && Math.abs(dy) <= 1 ? HEART : CLAIM;
+        }
+    }
+    // one earth tile past the territory
+    for (let k = -2; k <= 1; k++) {
+        t[ix(hx + f[0] * 5 + s[0] * k, hy + f[1] * 5 + s[1] * k)] = GOLD;
+    }
+}
+
+/** The one portal, a short tunnel from the Heart: to one side of it, just past the gold seam. Returns its tile. */
+function digPortal(t, L) {
+    const a = 7 + rand(3);
+    const b = (Math.random() < 0.5 ? -1 : 1) * (4 + rand(3));
+    const x = L.hx + L.f[0] * a + L.s[0] * b;
+    const y = L.hy + L.f[1] * a + L.s[1] * b;
+    openSquare(t, x, y, 1);
+    t[ix(x, y)] = PORTAL;
+
+    return ix(x, y);
+}
+
+/** Opens the square of radius `r` around (x, y) to floor. */
+function openSquare(t, x, y, r) {
+    for (let dy = -r; dy <= r; dy++) {
+        for (let dx = -r; dx <= r; dx++) {
+            t[ix(x + dx, y + dy)] = FLOOR;
+        }
+    }
+}
+
+/** Up to 40 levels until heroes have a way from the gate to the Heart (rock blocks it); the last is kept anyway. */
 function genMap() {
     let caves = [];
     for (let tries = 0; tries < 40; tries++) {
         const t = new Uint8Array(N).fill(EARTH);
-        caves = [];
-        for (let x = 0; x < W; x++) {
-            t[ix(x, 0)] = ROCK;
-            t[ix(x, H - 1)] = ROCK;
-        }
-        for (let y = 0; y < H; y++) {
-            t[ix(0, y)] = ROCK;
-            t[ix(W - 1, y)] = ROCK;
-        }
-        // the Heart near one side, the Hero Gate near the opposite one; f points from the Heart into the map, s across
-        const side = rand(4);
-        const [fx, fy] = [[1, 0], [-1, 0], [0, 1], [0, -1]][side];
-        const [sx, sy] = [-fy, fx];
-        const hx = fx > 0 ? between(5, 9) : fx < 0 ? W - 1 - between(5, 9) : between(10, W - 11);
-        const hy = fy > 0 ? between(5, 8) : fy < 0 ? H - 1 - between(5, 8) : between(9, H - 10);
-        const gx = fx > 0 ? W - 4 : fx < 0 ? 3 : between(6, W - 7);
-        const gy = fy > 0 ? H - 4 : fy < 0 ? 3 : between(5, H - 6);
-        const far = (x, y, d) => Math.hypot(x - hx, y - hy) > d && Math.hypot(x - gx, y - gy) > 5;
-        const walkAt = (x, y, len, put) => {
-            for (let s = 0; s < len; s++) {
-                put(x, y);
-                const [dx, dy] = N4[rand(4)];
-                x = Math.max(2, Math.min(W - 3, x + dx));
-                y = Math.max(2, Math.min(H - 3, y + dy));
-            }
-        };
-        // impenetrable rock outcrops, away from the Heart and the gate
-        for (let k = between(...LEVEL.rocks); k > 0; k--) {
-            walkAt(2 + rand(W - 4), 2 + rand(H - 4), between(...LEVEL.rockSteps), (x, y) => {
-                if (far(x, y, 9)) {
-                    t[ix(x, y)] = ROCK;
-                }
-            });
-        }
-        const veins = Math.round(ECON.goldVeins * (LEVEL.gold[0] + Math.random() * (LEVEL.gold[1] - LEVEL.gold[0])));
-        for (let k = 0; k < veins; k++) {
-            walkAt(2 + rand(W - 4), 2 + rand(H - 4), 7, (x, y) => {
-                t[ix(x, y)] = GOLD;
-            });
-        }
-        for (let k = between(...LEVEL.gems); k > 0; k--) {
-            const x = 3 + rand(W - 6);
-            const y = 3 + rand(H - 6);
-            if (far(x, y, 11)) {
-                t[ix(x, y)] = GEM;
-            }
-        }
-        // hidden caverns
-        const steps = between(...LEVEL.caveSteps);
-        for (let k = between(...LEVEL.caves); k > 0; k--) {
-            let cx = 0;
-            let cy = 0;
-            let ok = false;
-            for (let a = 0; a < 30 && !ok; a++) {
-                cx = 3 + rand(W - 7);
-                cy = 3 + rand(H - 7);
-                ok = far(cx, cy, 11) && caves.every((c) => Math.hypot(c.x - cx, c.y - cy) > 9);
-            }
-            if (!ok) {
-                continue;
-            }
-            const cells = [];
-            walkAt(cx, cy, steps, (x, y) => {
-                for (const [dx, dy] of [[0, 0], [1, 0], [0, 1], [1, 1]]) {
-                    const a = x + dx;
-                    const b = y + dy;
-                    if (a > 1 && b > 1 && a < W - 2 && b < H - 2) {
-                        t[ix(a, b)] = FLOOR;
-                        cells.push(ix(a, b));
-                    }
-                }
-            });
-            caves.push({ x: cx, y: cy, cells });
-        }
-        for (let dy = -4; dy <= 4; dy++) {
-            for (let dx = -4; dx <= 4; dx++) {
-                t[ix(hx + dx, hy + dy)] = EARTH;
-            }
-        }
-        for (let dy = -3; dy <= 3; dy++) {
-            for (let dx = -3; dx <= 3; dx++) {
-                t[ix(hx + dx, hy + dy)] = Math.abs(dx) <= 1 && Math.abs(dy) <= 1 ? HEART : CLAIM;
-            }
-        }
-        // the starter gold seam, one earth tile past the territory, facing into the map
-        for (let k = -2; k <= 1; k++) {
-            t[ix(hx + fx * 5 + sx * k, hy + fy * 5 + sy * k)] = GOLD;
-        }
-        // One portal, a short tunnel from the Heart: to one side of it, just past the gold seam.
-        const portals = [];
-        {
-            const a = 7 + rand(3);
-            const b = (Math.random() < 0.5 ? -1 : 1) * (4 + rand(3));
-            const x = hx + fx * a + sx * b;
-            const y = hy + fy * a + sy * b;
-            for (let dy = -1; dy <= 1; dy++) {
-                for (let dx = -1; dx <= 1; dx++) {
-                    t[ix(x + dx, y + dy)] = FLOOR;
-                }
-            }
-            t[ix(x, y)] = PORTAL;
-            portals.push(ix(x, y));
-        }
-        for (let dy = -2; dy <= 2; dy++) {
-            for (let dx = -2; dx <= 2; dx++) {
-                t[ix(gx + dx, gy + dy)] = FLOOR;
-            }
-        }
-        t[ix(gx, gy)] = GATE;
-        G.t = t;
-        G.hx = hx;
-        G.hy = hy;
-        G.portals = portals;
-        G.portal = portals[0];
-        G.gate = ix(gx, gy);
+        const L = layout();
+        border(t);
+        scatter(t, L);
+        caves = digCaves(t, L);
+        heartArea(t, L);
+        const portal = digPortal(t, L);
+        openSquare(t, L.gx, L.gy, 2);
+        t[ix(L.gx, L.gy)] = GATE;
+        Object.assign(G, { t, hx: L.hx, hy: L.hy, portals: [portal], portal, gate: ix(L.gx, L.gy) });
         if (dijkstra(G.gate, (i) => adjHeart(i))) {
             break;
         }
@@ -169,7 +201,11 @@ function genMap() {
         G.hp[i] = G.t[i] === GOLD ? 5 : 3;
         G.gold[i] = G.t[i] === GOLD ? ECON.seamGold : 0;
     }
-    // populate the caverns (hero camp in the one farthest from the heart)
+    populateCaves(caves);
+}
+
+/** The caverns' contents: the hero camp in the one farthest from the Heart, two wanderers, the rest chests. */
+function populateCaves(caves) {
     caves.sort((a, b) => Math.hypot(b.x - G.hx, b.y - G.hy) - Math.hypot(a.x - G.hx, a.y - G.hy));
     caves.forEach((c, k) => {
         const cells = [...new Set(c.cells)].filter((i) => G.t[i] === FLOOR && Math.hypot(tx(i) - tx(G.gate), ty(i) - ty(G.gate)) > 4);

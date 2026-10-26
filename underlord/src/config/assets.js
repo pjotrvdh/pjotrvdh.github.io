@@ -20,7 +20,10 @@ export default {
     /** Your colour as the keeper: claimed floor, the emblem on it, the jewels on reinforced walls, your units' rings. */
     keeper: '#e0483c',
 
-    /** Ruby purple: the gems in gem seams (the gold of the gold block, recoloured), their glints and the minimap. */
+    /** Gold seams on the minimap, their glints and the dust when imps mine them. */
+    goldColor: '#e2ad2c',
+
+    /** Ruby purple: the gems in gem seams (the gold of the gold block, recoloured), their glints, dust and the minimap. */
     gemColor: '#a32a9c',
 
     /** Panel portraits per unit kind. */

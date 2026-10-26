@@ -21,7 +21,8 @@ import { ROOMS, SPELLS } from './config.js';
 import { applyRect, canDrop, cast, dismissHeld, dropHeld, pickUp, slap } from './actions.js';
 import { G, app } from './state.js';
 import { diggable, ownPortal } from './tiles.js';
-import { cheatKey, cheatsUnlocked, dragRect, msg, setSpeed, setTool, showTab, syncPause, toggleCheats, toggleSound, updateTip } from './ui.js';
+import { cheatKey, cheatsUnlocked, toggleCheats } from './cheats.js';
+import { dragRect, msg, setSpeed, setTool, showTab, syncPause, toggleSound, updateTip } from './ui.js';
 import { view } from '../render/view.js';
 
 const keys = new Set();

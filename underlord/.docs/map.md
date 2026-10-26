@@ -33,7 +33,7 @@ description: Underlord map generation (genMap), tile types, caverns, portal, gat
 
 Every game is a new level, made up from the ranges in `LEVEL` (`map.js`) and given a made-up name (`levelName()`, `G.level`, saved; "Welcome to <name>" in the Chronicle).
 
-Steps per attempt, in order (later steps overwrite earlier ones):
+Steps per attempt (`genMap()` calls one function per step: `layout()`, `border()`, `scatter()`, `digCaves()`, `heartArea()`, `digPortal()`, `openSquare()` for the gate), in order (later steps overwrite earlier ones):
 
 1. Fill with earth; border ring of rock.
 2. Pick a side at random: the Heart lies near it, the Hero Gate near the opposite side. `f` points from the Heart into the map, `s` across it. Heart 5-9 tiles from its edge (anywhere along it, at least 9-10 from the corners); gate 3 tiles from the opposite edge.
@@ -50,7 +50,7 @@ Up to 40 attempts; an attempt is kept as soon as a hero path exists (`dijkstra(G
 
 After the loop: `G.hp` and `G.gold` per tile, then the caverns are populated.
 
-## Cavern contents
+## Cavern contents (`populateCaves()`)
 
 - Caverns sorted by centre distance from the Heart, farthest first. Usable cells: still `FLOOR` and > 4 tiles from the gate. A cavern with < 3 usable cells gets nothing.
 

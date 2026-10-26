@@ -45,11 +45,12 @@ description: Hub for the Underlord docs: what the game is, the loop, the source 
 | `underlord/src/game/entities.js` | `spawn()`, movement, reservations, beds, XP, research, gold, leaving |
 | `underlord/src/game/prison.js` | Prison: knocking heroes out, hauling, jailed prisoners rising as Skeletons |
 | `underlord/src/game/imps.js`, `creatures.js`, `combat.js`, `heroes.js` | Imp work; creature AI, portal, payday; targeting, fights, kills; how heroes move (tunnel, follow, wander, steal) |
-| `underlord/src/game/world.js` | `update()`, `tick()` (the unit state machine), waves, win/loss, `fx()` |
+| `underlord/src/game/world.js` | `update()`, waves, win/loss, `fx()` |
+| `underlord/src/game/states.js` | `tick()`: the unit state machine (timers, treasure, hunger, lookout, then the `STATES` table) |
 | `underlord/src/game/actions.js` | Build, sell, mark, cast, pick up, drop, dismiss, slap |
 | `underlord/src/game/cpu.js`, `save.js` | Computer Assistant; save and load |
 | `underlord/src/game/audio.js` | Sound effects and the cave ambience (Web Audio, no files) |
-| `underlord/src/game/ui.js`, `input.js` | HUD, panel, Chronicle, minimap, cheats; mouse, touch and keys |
+| `underlord/src/game/ui.js`, `minimap.js`, `cheats.js`, `input.js` | HUD, panel, Chronicle; the minimap; the Cheats panel; mouse, touch and keys |
 | `underlord/src/render/` | The 3D view (three.js), see [rendering-and-ui](rendering-and-ui.md) |
 | `underlord/src/styles/underlord.css` | Layout, colours, system font stacks, labels over the map |
 | `underlord/src/config/index.js` | Combines all config into the object `applyConfig()` reads |

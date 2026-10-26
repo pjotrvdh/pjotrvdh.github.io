@@ -6,7 +6,7 @@ description: Underlord's 3D view (three.js: camera, picking, terrain, rooms, uni
 ## When to use this
 
 - You touch `underlord/src/render/` (`view.js`, `camera.js`, `terrain.js`, `rooms.js`, `specials.js`, `units.js`, `figure-parts.js`, `poses.js`, `effects.js`, `fog.js`, `overlay.js`, `cursor.js`, `models.js`, `instances.js`, `gallery.js`)
-- You touch `underlord/src/game/input.js` or `ui.js` (HUD, panel, tabs, minimap, cheats), `underlord/index.html`, `underlord/src/styles/underlord.css`
+- You touch `underlord/src/game/input.js` `ui.js` (HUD, panel, tabs), `minimap.js` or `cheats.js`, `underlord/index.html`, `underlord/src/styles/underlord.css`
 - You change `underlord/src/config/assets.js`, a model in `underlord/models` or an SVG
 - Keywords: three.js, camera, rotate, zoom, pick, raycast, instanced, model, glb, KayKit, Kenney, animation, clouds, fog, minimap, overlay, label, HUD, tab, Chronicle, character viewer
 
@@ -79,7 +79,7 @@ description: Underlord's 3D view (three.js: camera, picking, terrain, rooms, uni
 - Tabs (`showTab()`, remembered in `localStorage['underlord-tab']`): Info (payday and research gauges, portal pool list), Rooms, Spells, Creatures (idle/working/fighting per kind with SVG portraits from `assets.js` `icons`, list by kind and level).
 - `#info`: hover details for the unit (`app.hover.unit`) or tile under the pointer, or help for the current tool.
 - Chronicle `#log`: `msg(text, key, cls)` prepends, keeps 7; the same `key` is muted for 20 s of game time. Banner for waves; overlay card for intro and end.
-- Minimap (`drawMini()`): one cell per tile (unseen = cloud colour, or dark gold for unseen gold/gem; rooms in their colour), portals, white dots, units, and the camera's view trapezoid. Click or drag it to look there.
+- Minimap (`drawMini()`, minimap.js): one cell per tile (unseen = cloud colour, or dark gold / dark ruby for unseen gold / gems; seams in `assets.js` `goldColor` / `gemColor`; rooms in their colour), portals, white dots, units, and the camera's view trapezoid. Click or drag it to look there.
 - Version label `#version` (`src/main.js`, `__BUILD_VERSION__`).
 
 ## Input (`game/input.js`)
@@ -107,8 +107,8 @@ description: Underlord's 3D view (three.js: camera, picking, terrain, rooms, uni
 
 ## Cheats
 
-- Typing `iliketocheat` unlocks the Cheats panel (`cheatKey()` in `ui.js`); keys that continue the code from its third letter on are swallowed, so its E's do not turn the view. Not stored: a reload locks it again.
-- `cheatList()`: +500 / +5000 gold, Reveal map, Finish research, Restore Heart, Free imp, + Orc / Warlock / Troll / Dark Mistress (at an owned portal, or next to the Heart without one; ignoring pool and limit), Level up all, Next wave now, Payday now (`G.payT = 0`), Pause / Resume waves (toggles `app.wavesHeld`: the wave countdown in `update()` stands still and the HUD adds `(paused)`; not saved, a reload clears it), Defeat heroes. A cheat label can be a function, re-read after each click.
+- Typing `iliketocheat` unlocks the Cheats panel (`cheatKey()` in `cheats.js`); keys that continue the code from its third letter on are swallowed, so its E's do not turn the view. Not stored: a reload locks it again.
+- `cheatList()` (cheats.js): +500 / +5000 gold, Reveal map, Finish research, Restore Heart, Free imp, + Orc / Warlock / Troll / Dark Mistress (at an owned portal, or next to the Heart without one; ignoring pool and limit), Level up all, Next wave now, Payday now (`G.payT = 0`), Pause / Resume waves (toggles `app.wavesHeld`: the wave countdown in `update()` stands still and the HUD adds `(paused)`; not saved, a reload clears it), Defeat heroes. A cheat label can be a function, re-read after each click.
 
 ## Gotchas
 
