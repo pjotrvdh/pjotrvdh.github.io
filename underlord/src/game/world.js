@@ -167,8 +167,10 @@ function tick(e, dt) {
                 e.state = 'think';
                 break;
             }
+            // asleep until healed, and for a nap at least `timer` seconds
             e.hp = Math.min(e.maxhp, e.hp + e.maxhp * 0.06 * dt);
-            if (e.hp >= e.maxhp) {
+            e.timer -= dt;
+            if (e.hp >= e.maxhp && e.timer <= 0) {
                 e.state = 'think';
             }
             break;

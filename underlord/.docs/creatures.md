@@ -27,7 +27,7 @@ Runs from state `think`, after `release(e)`. Random rolls happen every think.
 5. Training Room exists, gold > 20, level < 10, 60%: -> `train` (8 s).
 6. 35%: explore: walk (<= 40 steps) towards a tile next to unseen ground or a chest, idle 1.5 s.
 7. Kind has `study` > 0, Library exists, 50%: -> `study` (8 s). Orc and Troll never study.
-8. `toBed()`: walk to its bed and idle 2-5 s (this is where most creatures first claim a bed).
+8. `toBed()`: walk to its bed and nap there (`sleep` for `NAP_TIME`-2x`NAP_TIME`, 6-12 s), as in Dungeon Keeper; this is where most creatures first claim a bed. Without a bed: idle 2-5 s on claimed ground.
 9. Else wander to a claimed tile within 5 steps, idle 2-5 s; or idle 2 s.
 
 Enemy scanning in `tick()` interrupts all of this: see [combat](combat.md).
@@ -44,7 +44,7 @@ Enemy scanning in `tick()` interrupts all of this: see [combat](combat.md).
 - A bed is one Lair tile, stored as `e.bed`. `hasBed(e)`: `e.bed >= 0` and that tile is still a Lair.
 - `toBed(e)`: if the bed is gone, `e.bed = -1`. With a bed: path to it. Without: BFS to the nearest Lair tile no other living own unit has as `bed` (`bedOwner(i, e)`); the bed is claimed as soon as the path is found, before arriving.
 - Nobody else sleeps on a claimed bed. It frees when the owner dies, leaves or is dismissed (`bedOwner()` skips dead units), or when the tile is no longer a Lair (sold).
-- `sleep`: only on its own bed tile; heals 6% of `maxhp` per second; ends at full health. Being hit wakes a sleeper (`attack()`).
+- `sleep`: only on its own bed tile; heals 6% of `maxhp` per second; ends at full health once its `timer` (the nap length, 0 when it came to heal) has run out. Being hit wakes a sleeper (`attack()`).
 - Lair tiles with an owner show a bed and a dot in the owner's `color`; the owner sleeps along it ([rendering-and-ui](rendering-and-ui.md)).
 - Dropping a creature on a free Lair tile moves its bed there ([hand](hand.md)).
 

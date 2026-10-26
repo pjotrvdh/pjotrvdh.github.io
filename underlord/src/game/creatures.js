@@ -88,10 +88,14 @@ export function creatureThink(e) {
             return;
         }
     }
+    // nothing to do: a nap in its own bed (as in Dungeon Keeper), else loiter on your ground
     p = toBed(e);
-    if (!p) {
-        p = bfs(here, (i) => G.t[i] === CLAIM, 8, walk, 5);
+    if (p) {
+        go(e, p, 'sleep', NAP_TIME + Math.random() * NAP_TIME);
+
+        return;
     }
+    p = bfs(here, (i) => G.t[i] === CLAIM, 8, walk, 5);
     if (p) {
         go(e, p, 'idle', 2 + Math.random() * 3);
     } else {
@@ -126,6 +130,9 @@ export function tryAttract() {
     sound('portal', e.x, e.y);
     msg('A ' + KINDS[k].n + ' steps through the portal.', 'arr' + e.id, 'good');
 }
+
+/** Seconds an idle creature at least naps in its bed (up to twice as long). */
+const NAP_TIME = 6;
 
 /** Seconds a creature spends at the Treasury collecting its wage, and cheering afterwards. */
 const COLLECT_TIME = 0.8;
