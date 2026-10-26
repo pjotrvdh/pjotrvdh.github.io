@@ -24,8 +24,31 @@ const std = (color, extra = {}) => new THREE.MeshStandardMaterial({ color, rough
 /** Which way a Lair bed on tile `i` lies, in quarter turns: its pillow points 0 up, 1 left, 2 down, 3 right (camera not turned). */
 export const bedQuarter = (i) => Math.floor(hash(tx(i), ty(i), 12) * 4);
 
-/** How a Lair bed on tile `i` is turned: its sleeper turns the same way (units.js, `SLEEP_FIX`). */
+/** How a Lair bed on tile `i` is turned. */
 export const bedTurn = (i) => bedQuarter(i) * Math.PI / 2;
+
+/**
+ * How a sleeper lies on its bed. Lie_Idle puts the head towards the figure's back (-Z), the end where
+ * bed_floor has its pillow, so it turns with the bed. `lift`: tiles up, onto the mattress instead of in
+ * it. `fix`, per bed direction (`bedQuarter()`): `turn` extra degrees, `x` / `z` tiles to move it on the
+ * map (x to the right, z down the screen).
+ */
+const SLEEPER = {
+    lift: 0.1,
+    fix: [
+        { turn: 0, x: -0.1, z: 0.2 }, // pillow up
+        { turn: 0, x: 0.2, z: 0.1 }, // pillow left
+        { turn: 0, x: 0.1, z: -0.2 }, // pillow down
+        { turn: 0, x: -0.2, z: 0 }, // pillow right
+    ],
+};
+
+/** Where and which way a sleeper lies on the Lair bed on tile `i` (map coordinates, heading in radians). */
+export function sleepSpot(i) {
+    const f = SLEEPER.fix[bedQuarter(i)];
+
+    return { x: tx(i) + 0.5 + f.x, y: SLEEPER.lift, z: ty(i) + 0.5 + f.z, heading: bedTurn(i) + THREE.MathUtils.degToRad(f.turn) };
+}
 
 export class Rooms {
     constructor(scene) {

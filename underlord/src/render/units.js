@@ -10,7 +10,7 @@ import { ASSETS, KINDS } from '../game/config.js';
 import { G, app } from '../game/state.js';
 import { ti } from '../game/tiles.js';
 import { animations, clone, modelHeight, ownAnimations } from './models.js';
-import { bedQuarter, bedTurn } from './rooms.js';
+import { sleepSpot } from './rooms.js';
 
 /** Which clip plays for which activity, per rig. */
 export const CLIPS = {
@@ -101,8 +101,6 @@ const IDLE_FUN = 3;
 const IDLE_FUN_CHANCE = 0.25;
 /** Seconds a dropped weapon lies on the floor before it fades. */
 const DROP_LIE = 3;
-/** How high a sleeper lies: on top of the bed's mattress (bed_floor at the Lair's scale), not sunk into it. */
-const SLEEP_LIFT = 0.1;
 /** Attack clips play this much faster than modelled: a swing takes about half a second. */
 const ATTACK_SPEED = 1.8;
 /** Ring colour per side: yours (the keeper colour in assets.js), heroes, wanderers. */
@@ -616,18 +614,6 @@ export class Figure {
 }
 
 /**
- * Corrections for sleepers, per bed direction (`bedQuarter()` in rooms.js: where the pillow points with
- * the camera not turned). `turn`: extra degrees the sleeper turns around; `x`, `z`: tiles it moves on the
- * map (x to the right, z down the screen). Pillow right is correct as it is.
- */
-const SLEEP_FIX = [
-    { turn: 0, x: -0.1, z: 0.2 }, // pillow up
-    { turn: 0, x: 0.2, z: 0.1 }, // pillow left
-    { turn: 0, x: 0.1, z: -0.2 }, // pillow down
-    { turn: 0, x: -0.2, z: 0 }, // pillow right
-];
-
-/**
  * The props a unit holds for one activity, in place of its own things: an open book to study, a steak
  * to eat, a pick to dig (units with a tool of their own dig with that). `turn` (radians, x y z), `at`
  * (a shift from the hand, in the hand's own units) and `scale` fit the model in the hand.
@@ -786,12 +772,10 @@ export class Units {
             f.lastY = e.y;
             f.root.position.set(e.x, 0, e.y);
             if (e.state === 'sleep' && e.bed === ti(e)) {
-                // in the middle of the bed, on the mattress, along it: Lie_Idle puts the head towards the
-                // figure's back (-Z), the same end as bed_floor's pillow, so the head lies on the pillow.
-                // It stays there when neighbours nudge the sleeper.
-                const fix = SLEEP_FIX[bedQuarter(e.bed)];
-                f.heading = bedTurn(e.bed) + THREE.MathUtils.degToRad(fix.turn);
-                f.root.position.set(tx(e.bed) + 0.5 + fix.x, SLEEP_LIFT, ty(e.bed) + 0.5 + fix.z);
+                // on its bed (rooms.js sleepSpot()), also when neighbours nudge the sleeper
+                const spot = sleepSpot(e.bed);
+                f.heading = spot.heading;
+                f.root.position.set(spot.x, spot.y, spot.z);
             } else if (e.state === 'hauled') {
                 // carried over the imp's head
                 f.root.position.y = 0.45;
