@@ -164,7 +164,7 @@ export function newGame() {
     const old = G;
     setG({
         t: null, room: new Uint8Array(N), mark: new Uint8Array(N), hp: new Uint8Array(N), gold: new Int16Array(N), seen: new Uint8Array(N), loot: new Int16Array(N), pile: new Int16Array(N),
-        res: new Map(), rc: [0, 0, 0, 0, 0, 0], ents: [], fx: [], money: ECON.startGold, heartHP: CFG.heart.hp, heartMax: CFG.heart.hp, heartFlash: 0, heartAlarm: 0,
+        res: new Map(), rc: [0, 0, 0, 0, 0, 0, 0], ents: [], fx: [], money: ECON.startGold, heartHP: CFG.heart.hp, heartMax: CFG.heart.hp, heartFlash: 0, heartAlarm: 0,
         time: 0, nextWave: CFG.waves.first, zapT: 0, wave: 0, spawnQ: [], research: 0, payT: ECON.payInterval, pown: new Uint8Array(N),
         pool: Object.fromEntries(Object.keys(ATTRACT).map((k) => [k, KINDS[k].pool])), portalT: CFG.portal.firstArrival, idc: 1,
         held: [], over: null, rally: null, msgCd: {}, visT: 0,

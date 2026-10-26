@@ -9,6 +9,7 @@ import { bfs } from './path.js';
 import { G } from './state.js';
 import { adjHeart, cap, diggable, nb, ti, walk } from './tiles.js';
 import { msg } from './ui.js';
+import { drop, haulJob } from './prison.js';
 import { fx } from './world.js';
 
 /** A marked, diggable block next to tile i that fewer than two imps work on (the least busy one), or -1. */
@@ -59,6 +60,7 @@ export function pickUpPile(e) {
 
 export function impThink(e) {
     release(e);
+    drop(e);
     const here = ti(e);
     const full = G.money >= cap();
     if (e.carry >= 100 && !full) {
@@ -68,6 +70,10 @@ export function impThink(e) {
 
             return;
         }
+    }
+    // a knocked-out hero, to carry to the Prison
+    if (haulJob(e)) {
+        return;
     }
     let p = bfs(here, claimable, 1, walk, 2);
     if (p) {

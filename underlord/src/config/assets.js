@@ -21,7 +21,7 @@ export default {
     keeper: '#e0483c',
 
     /** Panel portraits per unit kind. */
-    icons: Object.fromEntries(['imp', 'orc', 'warlock', 'troll', 'mistress', 'tunneller', 'archer', 'wizard', 'knight', 'lord'].map((k) => [k, icon(k)])),
+    icons: Object.fromEntries(['imp', 'orc', 'warlock', 'troll', 'mistress', 'skeleton', 'tunneller', 'thief', 'archer', 'wizard', 'barbarian', 'knight', 'lord'].map((k) => [k, icon(k)])),
 
     /**
      * Unit figures, all KayKit Adventurers (they share one skeleton, animated with the Rig_Medium clips
@@ -131,6 +131,16 @@ export default {
             },
             right: 'whip',
         },
+        skeleton: {
+            clips: {
+                attack: 'Melee_1H_Attack_Chop'
+            },
+            model: 'kaykit/Skeleton_Warrior.glb',
+            rig: 'kaykit',
+            height: 0.78,
+            hide: ['Cloak'],
+            right: 'kaykit/Skeleton_Blade.glb',
+        },
         tunneller: {
             clips: {
                 attack: 'Melee_2H_Attack_Chop'
@@ -154,6 +164,16 @@ export default {
             },
             right: 'mattock',
         },
+        thief: {
+            clips: {
+                attack: 'Melee_1H_Attack_Slice_Horizontal'
+            },
+            model: 'kaykit/Rogue_Hooded.glb',
+            rig: 'kaykit',
+            height: 0.7,
+            tint: '#8c94a0',
+            right: 'kaykit/dagger.glb',
+        },
         archer: {
             clips: {
                 attack: 'Ranged_Bow_Release'
@@ -172,6 +192,16 @@ export default {
             rig: 'kaykit',
             height: 0.82,
             right: 'kaykit/staff.glb',
+        },
+        barbarian: {
+            clips: {
+                attack: 'Melee_2H_Attack_Chop'
+            },
+            model: 'kaykit/Barbarian.glb',
+            rig: 'kaykit',
+            height: 0.84,
+            width: 1.15,
+            right: 'kaykit/axe_2handed.glb',
         },
         knight: {
             clips: {
@@ -242,18 +272,27 @@ export default {
         coinsSmall: 'kaykit/coin_stack_small.glb',
         coinsMedium: 'kaykit/coin_stack_medium.glb',
         coinsLarge: 'kaykit/coin_stack_large.glb',
-        dummy: 'mini/wood-support.glb',
-        shield: 'mini/shield-round.glb',
-        sword: 'mini/weapon-sword.glb',
-        spear: 'mini/weapon-spear.glb',
+        /** Training Room: archery targets and racks of weapons (KayKit Mini-Game Variety Pack, Dungeon Pack 1.0). */
+        target: 'kaykit/targetStand.glb',
+        weaponRack: 'kaykit/weaponRack.glb',
+        /** Lair: a bed on the floor for every creature that has claimed one (KayKit Dungeon Pack 1.1). */
+        bed: 'kaykit/bed_floor.glb',
+        /** Library: filled bookcases (KayKit Dungeon Pack 1.0). */
+        bookcase: 'kaykit/bookcaseWideFilled.glb',
+        /** On your reinforced walls, facing your rooms and territory (KayKit Dungeon Pack 1.1). */
+        torch: 'kaykit/torch_mounted.glb',
         table: 'mini/table.glb',
         chair: 'mini/chair.glb',
         potion: 'mini/potion.glb',
         /** Held while eating (KayKit Restaurant Bits). */
         steak: 'kaykit/steak.glb',
+        /** Held while reinforcing a wall (KayKit RPG Tools Bits). */
+        hammer: 'kaykit/hammer.glb',
         /** Held open while studying (KayKit Adventurers). */
         book: 'kaykit/spellbook_open.glb',
         banner: 'mini/banner.glb',
+        /** Prison: iron bars along the room's outline (Kenney Graveyard Kit). */
+        bars: 'graveyard/iron-fence.glb',
         heartColumn: 'dungeon/template-detail.glb',
         portalArch: 'cave/gate.glb',
         heroGate: 'dungeon/gate-metal-bars.glb',

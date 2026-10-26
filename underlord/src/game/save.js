@@ -3,13 +3,14 @@
  * minutes. SAVE_V is the format version; loadGame() refuses saves of another version.
  */
 import { recount } from './actions.js';
+import { PRISON } from './constants.js';
 import { spawn } from './entities.js';
 import { newGame } from './map.js';
 import { G, app } from './state.js';
 import { clearLog, msg, syncCpu, syncPause } from './ui.js';
 
 const SAVE_V = 2;
-const SAVE_KEYS = ['id', 'kind', 'side', 'x', 'y', 'hp', 'maxhp', 'atk', 'lvl', 'xp', 'carry', 'hunger', 'guard', 'bed', 'leaving', 'fromPool', 'payDue'];
+const SAVE_KEYS = ['id', 'kind', 'side', 'x', 'y', 'hp', 'maxhp', 'atk', 'lvl', 'xp', 'carry', 'hunger', 'guard', 'bed', 'leaving', 'fromPool', 'payDue', 'cell'];
 
 function serialize() {
     return {
@@ -48,7 +49,14 @@ function deserialize(s) {
         const e = spawn(o.kind, 0, 0);
         G.ents.pop();
         Object.assign(e, o);
-        e.state = e.side === 2 ? 'neutral' : e.guard ? 'guard' : e.side === 1 ? 'march' : 'think';
+        e.state = e.side === 2 ? 'neutral' : e.side === 3 ? (e.cell >= 0 && G.room[e.cell] === PRISON ? 'jailed' : 'out') : e.guard ? 'guard' : e.side === 1 ? 'march' : 'think';
+        if (e.side === 3) {
+            e.timer = e.state === 'out' ? 30 : 0;
+            e.by = 0;
+            if (e.state === 'out') {
+                e.cell = -1;
+            }
+        }
         e.path = [];
         if (o.held) {
             e.held = true;

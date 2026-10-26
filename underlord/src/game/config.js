@@ -9,7 +9,7 @@ export let CFG;
 export let ECON;
 /** Every unit kind (creatures and heroes): name, stats and needs, keyed by config key. */
 export let KINDS;
-/** Rooms by code (1..5): name, cost, colour, tip. */
+/** Rooms by code (1..6): name, cost, colour, tip, and `cfg`: the room's whole config file. */
 export let ROOMS;
 export let SPELLS;
 export let WAVES;
@@ -48,6 +48,8 @@ export function applyConfig(c) {
         train: v.train || 0,
         study: v.study || 0,
         likesSlaps: !!v.likesSlaps,
+        eats: v.eats !== false,
+        portal: v.portal !== false,
     });
     KINDS = {};
     for (const [k, v] of Object.entries(c.creatures)) {
@@ -60,7 +62,7 @@ export function applyConfig(c) {
     ROOMS = {};
     ROOM_IDS.forEach((id, n) => {
         const r = c.rooms[id];
-        ROOMS[n + 1] = { id, n: r.name, cost: r.cost, col: r.color, tip: id === 'treasury' ? 'Stores ' + TREAS_CAP + ' gold per tile' : r.tip };
+        ROOMS[n + 1] = { id, n: r.name, cost: r.cost, col: r.color, tip: id === 'treasury' ? 'Stores ' + TREAS_CAP + ' gold per tile' : r.tip, cfg: r };
     });
     SPELLS = {};
     for (const [k, v] of Object.entries(c.spells)) {
@@ -69,7 +71,7 @@ export function applyConfig(c) {
     WAVES = c.waves;
     ATTRACT = {};
     for (const [k, v] of Object.entries(KINDS)) {
-        if (v.side || k === 'imp') {
+        if (v.side || k === 'imp' || !v.portal) {
             continue;
         }
         const req = Object.entries(v.attract);

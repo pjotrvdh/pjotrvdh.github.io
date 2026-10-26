@@ -11,7 +11,7 @@ description: Underlord hero waves, marching/tunnelling, the Heart zap, the hero 
 
 ## Heroes
 
-`underlord/src/config/heroes/` (order in `index.js`): Tunneller, Archer, Wizard, Knight, Lord of the Land. Per hero: `hp`, `attack`, `speed`, `range`, `rate`, `bounty`, `dig` (seconds per hit when tunnelling), `color`; the Lord has `big: true` (drawn larger). Only Dungeon Keeper (1997) heroes.
+`underlord/src/config/heroes/` (order in `index.js`): Tunneller, Thief, Archer, Wizard, Barbarian, Knight, Lord of the Land (Thief: fast and weak; Barbarian: a hard-hitting brawler). Per hero: `hp`, `attack`, `speed`, `range`, `rate`, `bounty`, `dig` (seconds per hit when tunnelling), `color`; the Lord has `big: true` (drawn larger). Only Dungeon Keeper (1997) heroes.
 
 ## Waves
 

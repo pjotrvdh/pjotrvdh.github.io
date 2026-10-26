@@ -10,11 +10,12 @@ import { ASSETS, KINDS } from '../game/config.js';
 import { G, app } from '../game/state.js';
 import { ti } from '../game/tiles.js';
 import { animations, clone, modelHeight, ownAnimations } from './models.js';
+import { bedTurn } from './rooms.js';
 
 /** Which clip plays for which activity, per rig. */
 export const CLIPS = {
-    kaykit: { idle: 'Idle_A', guard: 'Idle_B', walk: 'Walking_A', run: 'Running_A', attack: 'Melee_Unarmed_Attack_Punch_A', dig: 'Pickaxing', claim: 'Working_A', reinforce: 'Hammering', train: 'Melee_1H_Attack_Chop', study: 'Holding_A', eat: 'Use_Item', sleep: 'Lie_Idle', stun: 'Hit_B', hurt: 'Hit_A', held: 'Jump_Idle', cheer: 'Cheering', wave: 'Waving', die: 'Death_A' },
-    kenney: { idle: 'idle', guard: 'idle', walk: 'walk', run: 'sprint', attack: 'attack-melee-right', dig: 'interact-right', claim: 'interact-right', reinforce: 'interact-right', train: 'attack-melee-left', study: 'interact-left', eat: 'pick-up', sleep: 'sit', stun: 'crouch', hurt: 'crouch', held: 'fall', cheer: 'emote-yes', wave: 'emote-yes', die: 'die' },
+    kaykit: { idle: 'Idle_A', guard: 'Idle_B', walk: 'Walking_A', run: 'Running_A', attack: 'Melee_Unarmed_Attack_Punch_A', dig: 'Pickaxing', claim: 'Working_A', reinforce: 'Hammering', train: 'Melee_1H_Attack_Chop', study: 'Holding_A', eat: 'Use_Item', sleep: 'Lie_Idle', sit: 'Sit_Floor_Idle', stun: 'Hit_B', hurt: 'Hit_A', held: 'Jump_Idle', cheer: 'Cheering', wave: 'Waving', die: 'Death_A' },
+    kenney: { idle: 'idle', guard: 'idle', walk: 'walk', run: 'sprint', attack: 'attack-melee-right', dig: 'interact-right', claim: 'interact-right', reinforce: 'interact-right', train: 'attack-melee-left', study: 'interact-left', eat: 'pick-up', sleep: 'sit', sit: 'sit', stun: 'crouch', hurt: 'crouch', held: 'fall', cheer: 'emote-yes', wave: 'emote-yes', die: 'die' },
 };
 const ONCE = new Set(['die']);
 const mirrors = new Map();
@@ -412,9 +413,10 @@ export class Figure {
             model.scale.set(s * w, s, s * w);
             this.attach(model, cfg.right, 'handslot.r');
             this.attach(model, cfg.left, 'handslot.l');
-            // what any unit holds while studying, eating or digging (a pick only when it has no tool of its own)
+            // what any unit holds while studying, eating, reinforcing or digging (a pick only when it has no tool of its own)
             this.attach(model, ASSETS.props.book, 'handslot.r', 'book');
             this.attach(model, ASSETS.props.steak, 'handslot.r', 'steak');
+            this.attach(model, ASSETS.props.hammer, 'handslot.r', 'hammer');
             if (!this.items.some((item) => item.use === 'tool')) {
                 this.attach(model, 'pickaxe', 'handslot.r', 'pickaxe');
             }
@@ -629,6 +631,11 @@ const PROPS = {
         at: [0.2, 0, -0.1],
         scale: 0.45
     },
+    hammer: {
+        during: 'reinforce',
+        turn: [0, Math.PI, 0],
+        scale: 1.1
+    },
     pickaxe: {
         during: 'dig',
         turn: [0, Math.PI, 0],
@@ -638,14 +645,14 @@ const PROPS = {
 
 /**
  * Is a held item in view during this activity? A unit always holds its own weapon, shield or tool,
- * except asleep (a death drops it, see `dropItems()`) and while it studies, eats or digs:
+ * except asleep or sitting in a cell (a death drops it, see `dropItems()`) and while it studies, eats, reinforces or digs:
  * then it holds that activity's prop instead (a unit's own tool stays in hand for digging).
  */
 function itemShown(item, what) {
     if (item.prop) {
         return PROPS[item.prop].during === what;
     }
-    if (what === 'sleep' || what === 'study' || what === 'eat') {
+    if (what === 'sleep' || what === 'sit' || what === 'study' || what === 'eat' || what === 'reinforce') {
         return false;
     }
     if (what === 'dig') {
@@ -667,6 +674,11 @@ function activityOf(e, moving) {
         return 'dig';
     }
     switch (e.state) {
+        case 'out':
+        case 'hauled':
+            return 'sleep';
+        case 'jailed':
+            return 'sit';
         case 'dig':
         case 'claim':
         case 'reinforce':
@@ -759,6 +771,14 @@ export class Units {
             f.lastX = e.x;
             f.lastY = e.y;
             f.root.position.set(e.x, 0, e.y);
+            if (e.state === 'sleep' && e.bed === ti(e)) {
+                // in the middle of the bed and along it (sleepers still get nudged by their neighbours)
+                f.heading = bedTurn(e.bed);
+                f.root.position.set(tx(e.bed) + 0.5, 0, ty(e.bed) + 0.5);
+            } else if (e.state === 'hauled') {
+                // carried over the imp's head
+                f.root.position.y = 0.45;
+            }
             let r = f.body.rotation.y;
             let d = f.heading - r;
             d = Math.atan2(Math.sin(d), Math.cos(d));

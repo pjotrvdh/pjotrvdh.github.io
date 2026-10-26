@@ -9,6 +9,7 @@ import { bfs, dijkstra } from './path.js';
 import { G } from './state.js';
 import { adjHeart, diggable, ti, transp, walk } from './tiles.js';
 import { msg } from './ui.js';
+import { capture } from './prison.js';
 import { fx } from './world.js';
 
 /** A shot from a to b only crosses open tiles (and does not squeeze between two solid corners). */
@@ -37,12 +38,12 @@ export function clearShot(a, b) {
     return true;
 }
 
-/** The nearest enemy of e within R tiles that it has a clear shot at (neutrals never count). */
+/** The nearest enemy of e within R tiles that it has a clear shot at (neutrals and prisoners never count). */
 export function nearestEnemy(e, R) {
     let best = null;
     let bd = R * R;
     for (const o of G.ents) {
-        if (o.dead || o.held || o.side === e.side || o.side === 2) {
+        if (o.dead || o.held || o.side === e.side || o.side >= 2) {
             continue;
         }
         const dx = o.x - e.x;
@@ -107,13 +108,19 @@ export function attack(e, t) {
     }
 }
 
+/** A unit's health ran out: slain, or (a hero, with room in your Prison) knocked out and taken prisoner. */
 export function kill(t) {
-    t.dead = true;
-    release(t);
     if (t.side === 1) {
         const k = KINDS[t.kind];
         const a = addGold(Math.round(k.bounty * ECON.bountyMul));
         fx({ type: 'text', x: t.x, y: t.y, dur: 1.2, txt: '+' + a, col: '#e3b23c' });
+        if (capture(t)) {
+            return;
+        }
+    }
+    t.dead = true;
+    release(t);
+    if (t.side === 1) {
         if (t.kind === 'lord') {
             msg('The Lord of the Land has fallen!', 'lord', 'good');
         }
@@ -126,7 +133,7 @@ export function kill(t) {
 /** State `fight`: chase the target and attack it when in range. */
 export function fight(e, dt) {
     const t = e.target;
-    if (!t || t.dead || t.held || t.side === e.side) {
+    if (!t || t.dead || t.held || t.side === e.side || t.side >= 2) {
         e.state = 'think';
         e.target = null;
 

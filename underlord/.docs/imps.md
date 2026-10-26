@@ -17,10 +17,11 @@ description: Imp AI in Underlord (impThink): digging, gold hauling, claiming, re
 
 ## impThink(e) priority
 
-Runs from state `think`. First `release(e)` drops any reservation. `full = G.money >= cap()`.
+Runs from state `think`. First `release(e)` drops any reservation and `drop(e)` any prisoner it carried. `full = G.money >= cap()`.
 
 1. Carrying >= 100 and not full: walk to the nearest `depositGoal` tile (Treasury tile or walkable tile next to the Heart) -> `deposit`.
    - After an adjacent claim (step 2), not full and pocket not full: a gold pile (`G.pile`) within 20 steps -> walk onto it (`pickup`, 0.3 s; `pickUpPile()` takes as much as the pocket holds).
+   - Then `haulJob()`: a knocked-out hero to carry to a free Prison tile (`grab`, `jail`; see [prison](prison.md)).
 2. Claim nearby: a `FLOOR` tile or unowned `PORTAL`, not reserved, next to a `CLAIM` tile, path length <= 2 -> reserve it, `claim` with 1.2 s.
 3. Dig: nearest walkable tile next to a marked diggable block (`digTarget()`), -> reserve the block, `dig` with 0.15 s first hit.
    - `allowGold = !(full && carry >= 100)`: when full and loaded, only marked `EARTH` counts (no gold, gem or wall).

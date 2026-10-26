@@ -1,10 +1,11 @@
 /**
  * Room furnishings on top of the room floors (terrain.js): a coloured trim around each room, gold in
- * the Treasury (more as it fills), nests on claimed Lair beds with the owner's colour, straw and
- * chickens in the Hatchery, dummies and weapons in the Training Room, shelves and tables in the Library.
+ * the Treasury (more as it fills), beds on claimed Lair tiles with the owner's colour, straw and
+ * chickens in the Hatchery, targets and weapon racks in the Training Room, bookcases and tables in the Library,
+ * iron bars around the Prison.
  */
 import * as THREE from 'three';
-import { HATCH, LAIR, LIB, N, N4, TRAIN, TREAS, hash, inb, ix, tx, ty } from '../game/constants.js';
+import { HATCH, LAIR, LIB, N, N4, PRISON, TRAIN, TREAS, hash, inb, ix, tx, ty } from '../game/constants.js';
 import { ASSETS, HEART_CAP, KINDS, ROOMS, TREAS_CAP } from '../game/config.js';
 import { hasBed } from '../game/entities.js';
 import { G } from '../game/state.js';
@@ -12,9 +13,16 @@ import { Instances, place } from './instances.js';
 
 const m = new THREE.Matrix4();
 const col = new THREE.Color();
-const BOOKS = ['#7a2b2b', '#2d5a7a', '#6b5a2a', '#3d6b3a', '#5a3a7a'];
+const bars = new THREE.Matrix4();
+const v = new THREE.Vector3();
+const scl = new THREE.Vector3();
+const q = new THREE.Quaternion();
+const UP = new THREE.Vector3(0, 1, 0);
 
 const std = (color, extra = {}) => new THREE.MeshStandardMaterial({ color, roughness: 0.9, flatShading: true, ...extra });
+
+/** How a Lair bed on tile `i` lies: its sleeper turns the same way (units.js). */
+export const bedTurn = (i) => Math.floor(hash(tx(i), ty(i), 12) * 4) * Math.PI / 2;
 
 export class Rooms {
     constructor(scene) {
@@ -23,8 +31,7 @@ export class Rooms {
         const P = ASSETS.props;
         this.trim = new Instances(this.group, [{ geometry: new THREE.BoxGeometry(1, 0.05, 0.07), material: std('#ffffff', { emissive: '#222222' }) }]);
         this.coins = [P.coinsSmall, P.coinsMedium, P.coinsLarge].map((file) => new Instances(this.group, file));
-        this.nests = new Instances(this.group, [{ geometry: new THREE.TorusGeometry(0.27, 0.09, 5, 10).rotateX(Math.PI / 2), material: std('#9a7a3e') }]);
-        this.nestBeds = new Instances(this.group, [{ geometry: new THREE.CylinderGeometry(0.24, 0.24, 0.04, 10), material: std('#3a2a20') }]);
+        this.beds = new Instances(this.group, P.bed);
         this.flags = new Instances(this.group, [{ geometry: new THREE.SphereGeometry(0.07, 8, 6), material: std('#ffffff', { emissive: '#333333' }) }]);
         this.straw = new Instances(this.group, [{ geometry: new THREE.CylinderGeometry(0.02, 0.03, 0.22, 4).rotateZ(1.2), material: std('#d8b04a') }]);
         this.chickens = new Instances(this.group, [
@@ -32,16 +39,14 @@ export class Rooms {
             { geometry: new THREE.SphereGeometry(0.05, 6, 4).translate(0.1, 0.19, 0), material: std('#f2ece0') },
             { geometry: new THREE.BoxGeometry(0.03, 0.05, 0.02).translate(0.11, 0.25, 0), material: std('#d23b2b') },
         ]);
-        this.dummies = new Instances(this.group, P.dummy);
-        this.shields = new Instances(this.group, P.shield);
-        this.swords = new Instances(this.group, P.sword);
-        this.spears = new Instances(this.group, P.spear);
+        this.targets = new Instances(this.group, P.target);
+        this.racks = new Instances(this.group, P.weaponRack);
         this.tables = new Instances(this.group, P.table);
         this.chairs = new Instances(this.group, P.chair);
         this.potions = new Instances(this.group, P.potion);
-        this.shelves = new Instances(this.group, [{ geometry: new THREE.BoxGeometry(0.82, 0.9, 0.26).translate(0, 0.45, 0), material: std('#5a3a24') }]);
-        this.books = new Instances(this.group, [{ geometry: new THREE.BoxGeometry(0.12, 0.22, 0.2), material: std('#ffffff') }]);
+        this.bookcases = new Instances(this.group, P.bookcase);
         this.banners = new Instances(this.group, P.banner);
+        this.bars = new Instances(this.group, P.bars);
         this.key = '';
         this.hatch = [];
     }
@@ -82,7 +87,7 @@ export class Rooms {
     }
 
     rebuild() {
-        const parts = [this.trim, ...this.coins, this.nests, this.nestBeds, this.flags, this.straw, this.dummies, this.shields, this.swords, this.spears, this.tables, this.chairs, this.potions, this.shelves, this.books, this.banners];
+        const parts = [this.trim, ...this.coins, this.beds, this.flags, this.straw, this.targets, this.racks, this.tables, this.chairs, this.potions, this.bookcases, this.banners, this.bars];
         for (const p of parts) {
             p.begin();
         }
@@ -107,6 +112,11 @@ export class Rooms {
                     continue;
                 }
                 this.trim.add(place(x + 0.5 + dx * 0.46, 0.04, y + 0.5 + dy * 0.46, dx ? Math.PI / 2 : 0, 1, m), col);
+                if (r === PRISON) {
+                    // the fence model stands 0.32 behind its origin: turn that side to the edge, at 0.7 height
+                    bars.compose(v.set(x + 0.5 + dx * 0.15, 0, y + 0.5 + dy * 0.15), q.setFromAxisAngle(UP, Math.atan2(-dx, -dy)), scl.set(1, 0.7, 1));
+                    this.bars.add(bars);
+                }
             }
             if (r === TREAS) {
                 // flat coin stacks: up to four per tile, bigger as the Treasury fills (a tile's own share
@@ -120,8 +130,7 @@ export class Rooms {
                 }
             } else if (r === LAIR) {
                 if (beds.has(i)) {
-                    this.nestBeds.add(place(x + 0.5, 0.02, y + 0.5, 0, 1, m));
-                    this.nests.add(place(x + 0.5, 0.05, y + 0.5, h(3) * 6, 1, m));
+                    this.beds.add(place(x + 0.5, 0, y + 0.5, bedTurn(i), 0.3, m));
                     col.set(KINDS[beds.get(i)].col);
                     this.flags.add(place(x + 0.82, 0.12, y + 0.18, 0, 1, m), col);
                 }
@@ -132,25 +141,14 @@ export class Rooms {
                 this.hatch.push(i);
             } else if (r === TRAIN) {
                 if ((x + y) % 2 === 0) {
-                    this.dummies.add(place(x + 0.5, 0, y + 0.5, turn, 0.9, m));
-                    this.shields.add(place(x + 0.5, 0.45, y + 0.5, turn, 0.8, m));
+                    this.targets.add(place(x + 0.5, 0, y + 0.5, turn, 0.42, m));
                 } else if (h(14) < 0.35) {
-                    (h(15) < 0.5 ? this.swords : this.spears).add(place(x + 0.5, 0, y + 0.5, turn, 0.9, m));
+                    this.racks.add(place(x + 0.5, 0, y + 0.5, turn, 0.6, m));
                 }
             } else if (r === LIB) {
                 const v = h(16);
                 if (v < 0.4) {
-                    this.shelves.add(place(x + 0.5, 0, y + 0.5, turn, 1, m));
-                    const c = Math.cos(turn);
-                    const s = Math.sin(turn);
-                    for (let row = 0; row < 3; row++) {
-                        for (let b = 0; b < 5; b++) {
-                            const lx = -0.3 + b * 0.15;
-                            const lz = 0.04;
-                            col.set(BOOKS[(b + row + x + y) % 5]);
-                            this.books.add(place(x + 0.5 + lx * c + lz * s, 0.15 + row * 0.28, y + 0.5 - lx * s + lz * c, turn, 1, m), col);
-                        }
-                    }
+                    this.bookcases.add(place(x + 0.5, 0, y + 0.5, turn, 0.42, m));
                 } else if (v < 0.75) {
                     this.tables.add(place(x + 0.5, 0, y + 0.5, turn, 1, m));
                     this.chairs.add(place(x + 0.5 + Math.sin(turn + Math.PI / 2) * 0.32, 0, y + 0.5 + Math.cos(turn + Math.PI / 2) * 0.32, turn + Math.PI, 0.9, m));

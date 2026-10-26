@@ -30,7 +30,7 @@ description: Underlord combat: enemy scanning, line of sight (clearShot), fight/
 
 ## attack(e, t)
 
-- Damage `e.atk * (0.85..1.15)`. Ranged (`range > 1.5`: Warlock, Archer, Wizard) shows a projectile; damage is instant.
+- Damage `e.atk * (0.85..1.15)`. Prisoners (side 3) and neutrals are never targets. Ranged (`range > 1.5`: Warlock, Archer, Wizard) shows a projectile; damage is instant.
 - Own attackers (imps included) gain `damage * 0.4` XP ([creatures](creatures.md)).
 - Hitting an own sleeping creature wakes it (`think`).
 - `t.hp <= 0` -> `kill(t)`.

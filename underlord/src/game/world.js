@@ -9,6 +9,7 @@ import { cpuTick } from './cpu.js';
 import { addGold, arrive, gainXP, go, hasBed, leave, release, research, spawn, step, toPool } from './entities.js';
 import { fight, heartFoe, joy, kill, march, nearestEnemy } from './combat.js';
 import { doClaim, doDig, doReinforce, impThink, pickUpPile } from './imps.js';
+import { grab, jail, prisonerTick } from './prison.js';
 import { newGame, vision } from './map.js';
 import { bfs } from './path.js';
 import { loadGame } from './save.js';
@@ -30,6 +31,11 @@ export function unknownHeroes() {
 /** One unit's state machine for one step. */
 function tick(e, dt) {
     if (e.side === 2) {
+        return;
+    }
+    if (e.side === 3) {
+        prisonerTick(e, dt);
+
         return;
     }
     e.cd -= dt;
@@ -57,7 +63,7 @@ function tick(e, dt) {
             }
         }
     }
-    if (e.side === 0 && e.kind !== 'imp') {
+    if (e.side === 0 && e.kind !== 'imp' && KINDS[e.kind].eats) {
         e.hunger += dt * 1.5;
         if (e.hunger >= 200 && !e.leaving) {
             e.hunger = 0;
@@ -164,6 +170,12 @@ function tick(e, dt) {
             if (e.hp >= e.maxhp) {
                 e.state = 'think';
             }
+            break;
+        case 'grab':
+            grab(e);
+            break;
+        case 'jail':
+            jail(e);
             break;
         case 'pickup':
             if ((e.timer -= dt) <= 0) {

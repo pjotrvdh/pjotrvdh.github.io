@@ -5,8 +5,8 @@
  * Usage, from the repository root, with the packs unzipped in ./downloads/KayKit and ./downloads/Kenney (ignored by git):
  *     node underlord/tools/import-models.mjs
  *
- * The packs (all CC0): Kenney Mini Dungeon, Modular Dungeon Kit and Modular Cave Kit (kenney.nl),
- * KayKit Adventurers 2.0, Block Bits 1.0, Dungeon Pack 1.1, Restaurant Bits 1.0 and Character Animations 1.1 (kaylousberg.itch.io). See
+ * The packs (all CC0): Kenney Mini Dungeon, Modular Dungeon Kit, Modular Cave Kit and Graveyard Kit (kenney.nl),
+ * KayKit Adventurers 2.0, Skeletons 1.1, Block Bits 1.0, Dungeon Pack 1.0 and 1.1, Mini-Game Variety Pack 1.2, Restaurant Bits 1.0, RPG Tools Bits 1.0 and Character Animations 1.1 (kaylousberg.itch.io). See
  * underlord/src/assets/README.md.
  *
  * Animation files keep only the clips listed in ANIMATIONS, and no mesh: the game plays them on its own
@@ -20,10 +20,15 @@ const TARGET = 'underlord/models';
 
 const MINI = 'Kenney/kenney_mini-dungeon/Models/GLB format';
 const DUNGEON = 'Kenney/kenney_modular-dungeon-kit_1.0/Models/GLB format';
+const GRAVEYARD = 'Kenney/kenney_graveyard-kit_5.0/Models/GLB format';
+const SKELETONS = 'KayKit/KayKit_Skeletons_1.1_FREE';
 const CAVE = 'Kenney/kenney_modular-cave-kit_1.0/Models/GLB format';
 const KAYKIT = 'KayKit/KayKit_Adventurers_2.0_FREE';
 const BLOCKS = 'KayKit/KayKit_BlockBits_1.0_FREE/Assets/gltf';
 const DUNGEON11 = 'KayKit/KayKit_Dungeon_Pack_1.1_FREE/Assets/gltf';
+const DUNGEON10 = 'KayKit/KayKit Dungeon Pack 1.0/Models/gltf';
+const MINIGAME = 'KayKit/KayKit Mini-Game Variety Pack 1.2/Models/gltf';
+const RPGTOOLS = 'KayKit/KayKit_RPGToolsBits_1.0_FREE/Assets/gltf';
 const RESTAURANT = 'KayKit/KayKit_Restaurant_Bits_1.0_FREE/Assets/gltf';
 const ANIMS = 'KayKit/KayKit_Character_Animations_1.1/Animations/gltf/Rig_Medium';
 
@@ -39,7 +44,7 @@ const ANIMATIONS = {
 
 /** [target name, source file] */
 const MODELS = [
-    ...['coin', 'chest', 'table', 'chair', 'banner', 'potion', 'wood-support', 'weapon-sword', 'weapon-spear', 'shield-round']
+    ...['coin', 'chest', 'table', 'chair', 'banner', 'potion']
         .map((name) => [`mini/${name}.glb`, `${MINI}/${name}.glb`]),
     ...['template-detail', 'gate-metal-bars']
         .map((name) => [`dungeon/${name}.glb`, `${DUNGEON}/${name}.glb`]),
@@ -51,7 +56,14 @@ const MODELS = [
         .map((name) => [`kaykit/${name}.glb`, `${KAYKIT}/Characters/gltf/${name}.glb`]),
     ['kaykit/steak.glb', `${RESTAURANT}/food_ingredient_steak.gltf`],
     ...['small', 'medium', 'large'].map((size) => [`kaykit/coin_stack_${size}.glb`, `${DUNGEON11}/coin_stack_${size}.gltf`]),
-    ...['sword_1handed', 'sword_2handed_color', 'shield_badge_color', 'bow_withString', 'staff', 'axe_1handed', 'dagger', 'spellbook_open', 'spellbook_closed']
+    ...['bed_floor', 'torch_mounted'].map((name) => [`kaykit/${name}.glb`, `${DUNGEON11}/${name}.gltf`]),
+    ...['bookcaseWideFilled', 'weaponRack'].map((name) => [`kaykit/${name}.glb`, `${DUNGEON10}/${name}.gltf.glb`]),
+    ['kaykit/targetStand.glb', `${MINIGAME}/targetStand.gltf.glb`],
+    ['kaykit/hammer.glb', `${RPGTOOLS}/hammer.gltf`],
+    ['graveyard/iron-fence.glb', `${GRAVEYARD}/iron-fence.glb`],
+    ['kaykit/Skeleton_Warrior.glb', `${SKELETONS}/characters/gltf/Skeleton_Warrior.glb`],
+    ['kaykit/Skeleton_Blade.glb', `${SKELETONS}/assets/gltf/Skeleton_Blade.gltf`],
+    ...['sword_1handed', 'sword_2handed_color', 'shield_badge_color', 'bow_withString', 'staff', 'axe_1handed', 'dagger', 'axe_2handed', 'spellbook_open', 'spellbook_closed']
         .map((name) => [`kaykit/${name}.glb`, `${KAYKIT}/Assets/gltf/${name}.gltf`]),
 ];
 

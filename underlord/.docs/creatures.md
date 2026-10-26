@@ -11,7 +11,7 @@ description: Underlord creature AI (creatureThink): hunger, Lair beds, training,
 
 ## Entities
 
-- `spawn(kind, x, y, mult=1)` creates every unit: `id`, `kind`, `side` (0 own, 1 hero, 2 neutral), `x/y` (tile centre +0.5), `hp/maxhp/atk` (x `mult`), `lvl` 1, `xp`, `state`, `path`, `hunger` (random 0-40), `slap`, `bed` -1, `guard`, ...
+- `spawn(kind, x, y, mult=1)` creates every unit: `id`, `kind`, `side` (0 own, 1 hero, 2 neutral, 3 prisoner; see [prison](prison.md)), `x/y` (tile centre +0.5), `hp/maxhp/atk` (x `mult`), `lvl` 1, `xp`, `state`, `path`, `hunger` (random 0-40), `slap`, `bed` -1, `guard`, ...
 - `KINDS[k]` is built in `applyConfig()` from `creatures/*.js` and `heroes/*.js`: `n` name, `hp`, `atk`, `spd`, `range`, `rate`, `wage`, `col`, `vision` (default 5), `pool`, `attract`, `train`, `study` (default 0), `likesSlaps`, plus hero `bounty`, `dig`, `big`.
 - `creatures()` = own, living, non-imp entities (held ones included).
 - States and their labels: `STATE_EN` in `underlord/src/game/constants.js`. Code: AI in `creatures.js`, the state machine `tick()` in `world.js`, beds, XP and leaving in `entities.js`.
@@ -22,7 +22,7 @@ Runs from state `think`, after `release(e)`. Random rolls happen every think.
 
 1. Call to Arms active (`G.time < G.rally.until`): walk to the rally tile, idle 1 s, repeat.
 2. Health < 50%: `toBed()` -> `sleep`.
-3. `hunger >= 100` and a Hatchery exists: one of the 6 nearest Hatchery tiles -> `eat` (2.5 s).
+3. `hunger >= 100` and a Hatchery exists (a kind with `eats: false`, the Skeleton, never gets hungry): one of the 6 nearest Hatchery tiles -> `eat` (2.5 s).
 4. Warlock, Library exists, 80%: Library -> `study` (8 s).
 5. Training Room exists, gold > 20, level < 10, 60%: -> `train` (8 s).
 6. 35%: explore: walk (<= 40 steps) towards a tile next to unseen ground or a chest, idle 1.5 s.
@@ -45,7 +45,7 @@ Enemy scanning in `tick()` interrupts all of this: see [combat](combat.md).
 - `toBed(e)`: if the bed is gone, `e.bed = -1`. With a bed: path to it. Without: BFS to the nearest Lair tile no other living own unit has as `bed` (`bedOwner(i, e)`); the bed is claimed as soon as the path is found, before arriving.
 - Nobody else sleeps on a claimed bed. It frees when the owner dies, leaves or is dismissed (`bedOwner()` skips dead units), or when the tile is no longer a Lair (sold).
 - `sleep`: only on its own bed tile; heals 6% of `maxhp` per second; ends at full health. Being hit wakes a sleeper (`attack()`).
-- Lair tiles with an owner show a nest and a dot in the owner's `color` ([rendering-and-ui](rendering-and-ui.md)).
+- Lair tiles with an owner show a bed and a dot in the owner's `color`; the owner sleeps along it ([rendering-and-ui](rendering-and-ui.md)).
 - Dropping a creature on a free Lair tile moves its bed there ([hand](hand.md)).
 
 ## Training

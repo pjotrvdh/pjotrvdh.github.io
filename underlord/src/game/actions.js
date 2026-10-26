@@ -12,7 +12,7 @@ import { msg } from './ui.js';
 import { fx } from './world.js';
 
 export function recount() {
-    G.rc = [0, 0, 0, 0, 0, 0];
+    G.rc = [0, 0, 0, 0, 0, 0, 0];
     for (let i = 0; i < N; i++) {
         if (G.room[i]) {
             G.rc[G.room[i]]++;

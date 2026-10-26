@@ -109,9 +109,9 @@ function hoverInfo() {
         }
         if (e) {
             const k = KINDS[e.kind];
-            let h = '<b>' + (e.side === 2 ? 'Unknown creature' : k.n) + '</b>' + (e.side === 1 ? ' · hero' : '') + ' · level ' + e.lvl + '<br>' + Math.ceil(e.hp) + ' / ' + Math.ceil(e.maxhp) + ' health · ' + STATE_EN[e.state];
+            let h = '<b>' + (e.side === 2 ? 'Unknown creature' : k.n) + '</b>' + (e.side === 1 ? ' · hero' : e.side === 3 ? ' · prisoner' : '') + ' · level ' + e.lvl + '<br>' + Math.ceil(e.hp) + ' / ' + Math.ceil(e.maxhp) + ' health · ' + STATE_EN[e.state];
             if (e.side === 0 && e.kind !== 'imp') {
-                h += '<br>Wage ' + wage(e.kind) + ' · hunger ' + Math.floor(Math.min(100, e.hunger)) + '%';
+                h += '<br>Wage ' + wage(e.kind) + (KINDS[e.kind].eats ? '' : ' · never eats') + (KINDS[e.kind].eats ? ' · hunger ' + Math.floor(Math.min(100, e.hunger)) + '%' : '');
             }
             if (e.carry) {
                 h += '<br>Carrying ' + e.carry + ' gold';
@@ -614,7 +614,7 @@ export function drawMini() {
         if (e.dead || e.held || (e.side !== 0 && !G.seen[ti(e)])) {
             continue;
         }
-        c.fillStyle = e.side === 1 ? '#8fb4ef' : e.side === 2 ? '#9a928a' : e.kind === 'imp' ? '#ffb070' : '#ffe2a0';
+        c.fillStyle = e.side === 1 ? '#8fb4ef' : e.side >= 2 ? '#9a928a' : e.kind === 'imp' ? '#ffb070' : '#ffe2a0';
         c.fillRect(e.x * s - s * 0.4, e.y * s - s * 0.4, s * 0.8, s * 0.8);
     }
     // the part of the map the camera sees (a trapezoid when the camera is tilted)

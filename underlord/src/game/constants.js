@@ -21,13 +21,14 @@ export const GATE = 8;
 export const LAVA = 9;
 export const WALL = 10;
 
-// Room codes (G.room), 1..5 in the order of ROOM_IDS.
+// Room codes (G.room), 1..6 in the order of ROOM_IDS. Saved games store these codes: only add new ones at the end.
 export const TREAS = 1;
 export const LAIR = 2;
 export const HATCH = 3;
 export const TRAIN = 4;
 export const LIB = 5;
-export const ROOM_IDS = ['treasury', 'lair', 'hatchery', 'training', 'library'];
+export const PRISON = 6;
+export const ROOM_IDS = ['treasury', 'lair', 'hatchery', 'training', 'library', 'prison'];
 
 /** What a unit is doing, as shown in the hover info and the creature list. */
 export const STATE_EN = {
@@ -48,6 +49,14 @@ export const STATE_EN = {
     flee: 'fleeing',
     guard: 'guarding',
     neutral: 'wandering, unaligned',
+    collect: 'collecting its wage',
+    cheer: 'cheering',
+    pickup: 'picking up gold',
+    out: 'knocked out',
+    hauled: 'carried to the Prison',
+    jailed: 'imprisoned',
+    grab: 'fetching a prisoner',
+    jail: 'taking a prisoner to the Prison',
 };
 
 /** Tile names for the hover info (the portal has its own text). */
