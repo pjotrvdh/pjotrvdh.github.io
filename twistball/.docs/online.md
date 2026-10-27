@@ -5,7 +5,7 @@ description: Twistball online play over PeerJS: host/guest roles, message protoc
 
 ## When to use this
 
-- Editing `twistball/src/game/net.js`, or `sessionHandlers()`, `sendState()`, `applyState()`, `openReady()`, `readyUp()`, `pauseOnline()`, `startCountdown()` in `twistball/src/game/game.js`.
+- Editing `twistball/src/game/net.js`, or `sessionHandlers()`, `sendState()`, `applyState()`, `openReady()`, `readyUp()`, `pauseOnline()` in `twistball/src/game/online.js`, or `startCountdown()` in `screens.js`.
 - Online games disconnect, freeze, or show different states on both sides.
 
 ## Rooms (`net.js`)
@@ -14,7 +14,7 @@ description: Twistball online play over PeerJS: host/guest roles, message protoc
 - The host creates a peer with ID `twistball-arcade-<CODE>`; the guest connects to it with `serialization: 'json', reliable: true`. One guest per room; extra connections are closed.
 - Codes are 5 characters from an alphabet without look-alikes (no 0/O, 1/I). A link `?room=CODE` joins at once.
 - Under the room link (with **Copy link** next to it) the host gets share options (`fillShare()`): the link prefilled for WhatsApp (`wa.me`), Telegram (`t.me/share`), Messages (`sms:`), E-mail (`mailto:`), **More…** for the device's own share menu where the browser has the Web Share API, and a QR code of the link (`drawQr()`, an SVG drawn with `qrcode-generator`) for a friend next to you to scan.
-- `net.js` only moves messages; every game rule lives in `game.js`.
+- `net.js` only moves messages; `online.js` runs rooms, the ready check, state sync and pausing; every game rule lives in `game.js` (events both sides play go through `playEvent()` there).
 
 ## Who runs what
 

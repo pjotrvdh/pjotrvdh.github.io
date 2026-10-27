@@ -19,7 +19,13 @@ description: Hub of the Twistball wiki (3D tunnel pong). Read first when working
 | File | What it owns |
 |---|---|
 | `twistball/index.html` | the page: HUD, canvas, every screen (title, online, ready, resume, pause, level cleared, end) |
-| `twistball/src/game/game.js` | game flow, modes, physics, computer players, online protocol, input, palettes |
+| `twistball/src/game/game.js` | the rules (starting, serving, hits, points, levels, the end of a game), pause and menu, the frame loop, wiring the buttons |
+| `twistball/src/game/context.js` | what every part shares: config, renderer, the paddles `near` / `far`, `state`, `clock`, `sideKey()` |
+| `twistball/src/game/physics.js` | paddles (human and computer), the ball, sparks |
+| `twistball/src/game/online.js` | online play: rooms, ready check, host state, guest mirroring, pause, heartbeat |
+| `twistball/src/game/screens.js` | HUD, calls, screens, high score lists, hint, the serve and resume countdowns, title screen settings |
+| `twistball/src/game/input.js` | pointer, drag, keys, leaving the page |
+| `twistball/src/game/share.js`, `palette-menu.js`, `wake.js` | sharing a room (links, QR); the palette choice; the screen wake lock |
 | `twistball/src/game/render.js` | three.js renderer, explosions |
 | `twistball/src/game/net.js` | PeerJS rooms: create, join, send |
 | `twistball/src/game/audio.js` | laser sounds (Web Audio, no files) |
@@ -32,7 +38,7 @@ description: Hub of the Twistball wiki (3D tunnel pong). Read first when working
 - [rules.md](rules.md) — modes, lives, levels, serving, scoring and the end of a game. Read before changing how a game is played or won.
 - [physics.md](physics.md) — coordinates, ball movement, spin, walls, paddle hits and paddle input. Read before touching `moveBall()`, `launch()` or `moveHuman()`.
 - [computer-players.md](computer-players.md) — how the CPU reads the ball and serves. Read before changing difficulty or `moveCpu()`.
-- [online.md](online.md) — host/guest model, message protocol, ready check, pause and countdown, heartbeat. Read before touching `net.js` or online code in `game.js`.
+- [online.md](online.md) — host/guest model, message protocol, ready check, pause and countdown, heartbeat. Read before touching `net.js` or `online.js`.
 - [rendering.md](rendering.md) — the three.js scene, camera, palettes, sparks and exploding paddles. Read before touching `render.js` or `palettes.js`.
 - [audio.md](audio.md) — the laser "pew" sounds and when each one plays. Read before touching `audio.js`.
 

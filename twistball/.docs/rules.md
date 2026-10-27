@@ -6,7 +6,7 @@ description: Twistball's rules: modes, lives, levels, auto-serve countdown, scor
 ## When to use this
 
 - Changing lives, levels, serving, scoring or what happens when a side runs out of lives.
-- Editing `startGame()`, `startLevel()`, `startMatch()`, `toServe()`, `missed()`, `levelCleared()`, `endSolo()`, `endMatch()` in `twistball/src/game/game.js`.
+- Editing `startGame()`, `startLevel()`, `startMatch()`, `toServe()`, `missed()`, `levelCleared()`, `endSolo()`, `endMatch()` in `twistball/src/game/game.js` (shared state in `context.js`).
 - Editing `twistball/src/config/rules.js`, `scoring.js` or `levels.js`.
 
 ## Modes (`state.kind`)

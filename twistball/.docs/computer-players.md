@@ -5,7 +5,7 @@ description: How Twistball's computer players track the ball, move and serve. Re
 
 ## When to use this
 
-- Editing `moveCpu()` or `movePaddles()` in `twistball/src/game/game.js`.
+- Editing `moveCpu()` or `movePaddles()` in `twistball/src/game/physics.js`.
 - Tuning `opponentSpeed`, `opponentAim` or `opponentSpin` in `twistball/src/config/levels.js`, or a kind of computer in `twistball/src/config/cpus.js`.
 - CPU vs CPU matches last forever or end too fast.
 

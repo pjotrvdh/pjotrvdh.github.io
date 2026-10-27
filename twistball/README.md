@@ -26,8 +26,16 @@ cover.svg               the game's tile on the Arcade index (16:9)
 vite.config.js          builds one self-contained HTML file (see ../tools/vite.js)
 src/
   main.js               entry point: styles, game and the version label
-  game/game.js          game flow, physics, computer players and online play
-  game/render.js        draws the tunnel, paddles and ball (2D canvas, perspective)
+  game/game.js          the rules (serving, hits, points, levels) and the frame loop
+  game/context.js       what every part shares: config, renderer, paddles, game state
+  game/physics.js       paddles (also the computer players) and the ball
+  game/online.js        online play: rooms, ready check, sync, pause
+  game/screens.js       the HUD, calls, screens and countdowns
+  game/input.js         pointer, drag and keys
+  game/share.js         sharing a room: links and QR code
+  game/palette-menu.js  the palette choice
+  game/wake.js          keeps the screen on during a game
+  game/render.js        draws the tunnel, paddles and ball (three.js)
   game/net.js           online rooms over PeerJS
   game/audio.js         the laser sounds
   game/highscores.js    the local high score list

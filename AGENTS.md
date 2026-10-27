@@ -20,7 +20,7 @@ Arcade is the owner's collection of browser games, published at https://pjotrvdh
 
 ## Twistball (`twistball/`)
 
-3D pong down a tunnel: move the paddle while hitting to curve the ball. `twistball/src/game/game.js` holds the game flow and physics; `render.js` draws it with three.js, `net.js` does online play over PeerJS, `audio.js` makes the laser sounds with the Web Audio API (no sound files).
+3D pong down a tunnel: move the paddle while hitting to curve the ball. `twistball/src/game/game.js` holds the rules and the frame loop, `context.js` the shared state, `physics.js` the paddles and ball, `online.js` online play, `screens.js` the HUD and screens; `render.js` draws it with three.js, `net.js` does online play over PeerJS, `audio.js` makes the laser sounds with the Web Audio API (no sound files).
 
 - Modes: 1 player (ten levels, pick a start level, local high scores), Play online (host-authoritative: the host simulates, the guest sends its paddle and draws the host's state mirrored) and CPU vs CPU. There is no local two-player mode.
 - All tuning lives in `twistball/src/config`: `tunnel.js`, `rules.js`, `scoring.js`, `levels.js`, `cpus.js` (the kinds of computer) and `palettes.js`. Every palette must keep text at WCAG AA contrast.

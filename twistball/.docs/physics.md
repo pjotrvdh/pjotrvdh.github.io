@@ -5,7 +5,7 @@ description: Twistball's coordinates, ball movement, spin, wall bounces, paddle 
 
 ## When to use this
 
-- Editing `moveBall()`, `launch()`, `hits()`, `moveHuman()`, `update()` in `twistball/src/game/game.js`.
+- Editing `moveBall()`, `hits()`, `moveHuman()` in `twistball/src/game/physics.js`, or `launch()`, `update()` in `game.js`.
 - Editing `twistball/src/config/tunnel.js` or the spin values in `rules.js`.
 - A fast ball passes through a paddle, or curves feel wrong.
 
