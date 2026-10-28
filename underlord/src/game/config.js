@@ -52,6 +52,8 @@ export function applyConfig(c) {
         tunnels: !!v.tunnels,
         steals: v.steals || 0,
         portal: v.portal !== false,
+        worker: !!v.worker,
+        studyChance: v.studyChance || 0,
     });
     KINDS = {};
     for (const [k, v] of Object.entries(c.creatures)) {
@@ -73,7 +75,7 @@ export function applyConfig(c) {
     WAVES = c.waves;
     ATTRACT = {};
     for (const [k, v] of Object.entries(KINDS)) {
-        if (v.side === HERO || k === 'imp' || !v.portal) {
+        if (v.side === HERO || !v.portal) {
             continue;
         }
         const req = Object.entries(v.attract);
@@ -84,6 +86,9 @@ export function applyConfig(c) {
     }
     ASSETS = c.assets;
 }
+
+/** Does this unit work (dig, claim, haul) instead of fighting for wages? Imps do. */
+export const isWorker = (e) => KINDS[e.kind].worker;
 
 /** The wage of a creature kind, after the global multiplier. */
 export const wage = (k) => Math.round(KINDS[k].wage * ECON.wageMul);

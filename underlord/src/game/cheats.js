@@ -3,7 +3,7 @@
  * only. Gold, the map, research, the Heart, free units, levels, waves, payday and beating the heroes.
  */
 import { CLAIM, HERO, ix, rand, tx, ty } from './constants.js';
-import { KINDS, SPELLS, WAVES } from './config.js';
+import { ATTRACT, KINDS, SPELLS, WAVES } from './config.js';
 import { kill } from './combat.js';
 import { creatures, gainXP, need, research, spawn } from './entities.js';
 import { G, app } from './state.js';
@@ -52,7 +52,7 @@ const cheatList = () => [
 
         return 'free imp';
     }],
-    ...['orc', 'warlock', 'troll', 'mistress'].map((k) => ['+ ' + KINDS[k].n, () => {
+    ...Object.keys(ATTRACT).map((k) => ['+ ' + KINDS[k].n, () => {
         const p = G.portals.find((q) => G.pown[q]);
         const i = p !== undefined ? p : ix(G.hx + 2, G.hy);
         const e = spawn(k, tx(i), ty(i));

@@ -11,7 +11,7 @@ description: Imp AI in Underlord (impThink): digging, gold hauling, claiming, re
 
 ## Stats and sources
 
-- `underlord/src/config/creatures/imp.js`: `hp` 40, `speed` 3.0, `wage` 0. `attack` (3), `range`, `rate` are only used when defending the Heart.
+- `underlord/src/config/creatures/imp.js`: `hp` 40, `speed` 3.0, `wage` 0. `attack` (3), `range`, `rate` are only used when defending the Heart. `worker: true` is what the game checks (`isWorker(e)` in `config.js`), not the key: workers run `impThink` instead of `creatureThink`, never get hungry, have no bed or wage, are left out of `creatures()` and the creature list, and can be dropped on unclaimed ground. `portal: false`: imps come from Create Imp only.
 - `underlord/src/config/settings/imp.js`: `startCount` (4), `vision` (4, overrides the creature default), `baseCost`/`perImp` for Create Imp ([spells](spells.md)), `defendTime` (5 s) and `defendRange` (10 tiles) for defending the Heart.
 - Imps never eat, sleep, train, study, get paid or leave; they are not in `creatures()`.
 

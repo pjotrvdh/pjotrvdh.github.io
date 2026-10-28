@@ -3,7 +3,7 @@
  * the Chronicle, banners, the drag tip and the header buttons. The Cheats panel is cheats.js, the minimap minimap.js.
  */
 import { GEM, GOLD, HERO, LAIR, NEUTRAL, OWN, PORTAL, PRISONER, STATE_EN, TILE_EN, inb, ix, words } from './constants.js';
-import { ASSETS, ATTRACT, CFG, ECON, KINDS, PORTAL_LIMIT, ROOMS, SPELLS, WAVES, wage } from './config.js';
+import { ASSETS, ATTRACT, CFG, ECON, KINDS, PORTAL_LIMIT, ROOMS, SPELLS, WAVES, isWorker, wage } from './config.js';
 import { activity, affects, pickUp, spellCost } from './actions.js';
 import { isMuted, setMuted } from './audio.js';
 import { initCheats } from './cheats.js';
@@ -110,7 +110,7 @@ function hoverInfo() {
         if (e) {
             const k = KINDS[e.kind];
             let h = '<b>' + (e.side === NEUTRAL ? 'Unknown creature' : k.n) + '</b>' + (e.side === HERO ? ' · hero' : e.side === PRISONER ? ' · prisoner' : '') + ' · level ' + e.lvl + '<br>' + Math.ceil(e.hp) + ' / ' + Math.ceil(e.maxhp) + ' health · ' + STATE_EN[e.state];
-            if (e.side === OWN && e.kind !== 'imp') {
+            if (e.side === OWN && !isWorker(e)) {
                 h += '<br>Wage ' + wage(e.kind) + (KINDS[e.kind].eats ? '' : ' · never eats') + (KINDS[e.kind].eats ? ' · hunger ' + Math.floor(Math.min(100, e.hunger)) + '%' : '');
             }
             if (e.carry) {
@@ -237,7 +237,7 @@ function creaturesTab() {
     if (g.innerHTML !== gh) {
         g.innerHTML = gh;
     }
-    const list = mine.concat().filter((e) => e.kind !== 'imp').sort((a, b) => CR_ORDER().indexOf(a.kind) - CR_ORDER().indexOf(b.kind) || b.lvl - a.lvl);
+    const list = mine.concat().filter((e) => !isWorker(e)).sort((a, b) => CR_ORDER().indexOf(a.kind) - CR_ORDER().indexOf(b.kind) || b.lvl - a.lvl);
     const lh = list.map((e) => '<li><button type="button" data-id="' + e.id + '" title="Look at this creature"><span class="nm">' + KINDS[e.kind].n + ' <small>' + (e.held ? 'in your hand' : STATE_EN[e.state === 'walk' ? e.next || 'walk' : e.state] || e.state) + '</small></span><span class="lv">' + e.lvl + '</span><span class="hp"><i style="width:' + Math.round(100 * Math.max(0, e.hp / e.maxhp)) + '%;background:' + (e.hp < e.maxhp * 0.35 ? '#e0483c' : '#5fcf6a') + '"></i></span></button></li>').join('');
     const l = $('crList');
     if (l.innerHTML !== lh) {

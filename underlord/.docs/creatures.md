@@ -23,7 +23,7 @@ Runs from state `think`, after `release(e)`. Random rolls happen every think.
 1. Call to Arms active (`G.time < G.rally.until`): walk to the rally tile, idle 1 s, repeat.
 2. Health < 50%: `toBed()` -> `sleep`.
 3. `hunger >= 100` and a Hatchery exists (a kind with `eats: false`, the Skeleton, never gets hungry): one of the 6 nearest Hatchery tiles -> `eat` (2.5 s).
-4. Warlock, Library exists, 80%: Library -> `study` (8 s).
+4. Library exists, roll under the kind's `studyChance` (Warlock 0.8, others 0): Library -> `study` (8 s).
 5. Training Room exists, gold > 20, level < 10, 60%: -> `train` (8 s).
 6. 35%: explore: walk (<= 40 steps) towards a tile next to unseen ground or a chest, idle 1.5 s.
 7. Kind has `study` > 0, Library exists, 50%: -> `study` (8 s). Orc and Troll never study.
@@ -76,7 +76,7 @@ Enemy scanning in `tick()` interrupts all of this: see [combat](combat.md).
 
 1. Add `underlord/src/config/creatures/<key>.js` with every field documented (copy `orc.js`), list it in `creatures/index.js`.
 2. Add `units.<key>` (its KayKit figure) and its portrait to `icons` in `underlord/src/config/assets.js`, and the SVG under `underlord/src/assets/units/`. Check it in the character viewer (`?characters`).
-3. It is attractable automatically. Set `train` and `study` (0 = never studies). Per-kind logic is hard-coded by key: the Warlock's Library preference, the cheat list (`orc`, `warlock`, `troll`, `mistress`), the neutrals in `genMap()` (`orc`, `troll`).
+3. It is attractable automatically. Set `train` and `study` (0 = never studies). Set `studyChance` for a Library preference; `portal: false` keeps it out of the portals and the cheat list (which lists every attractable kind). Still hard-coded by key: the neutrals in `genMap()` (`orc`, `troll`).
 4. Only Dungeon Keeper (1997) creatures.
 
 ## Gotchas

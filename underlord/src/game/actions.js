@@ -4,7 +4,7 @@
  */
 import { sound } from './audio.js';
 import { CLAIM, HATCH, HERO, LAIR, LIB, N, OWN, ROCK, TRAIN, ix, rand, tx, ty } from './constants.js';
-import { CFG, KINDS, ROOMS, SPELLS } from './config.js';
+import { CFG, KINDS, ROOMS, SPELLS, isWorker } from './config.js';
 import { bedOwner, creatures, release, spawn, toPool } from './entities.js';
 import { kill } from './combat.js';
 import { G, app } from './state.js';
@@ -108,7 +108,7 @@ export function applyRect(mode, R) {
  * portal), imps also on any discovered open ground, claimed or not.
  */
 export function canDrop(i, d) {
-    return G.t[i] === CLAIM || ownPortal(i) || (d.kind === 'imp' && !!G.seen[i] && walk(i));
+    return G.t[i] === CLAIM || ownPortal(i) || (isWorker(d) && !!G.seen[i] && walk(i));
 }
 
 /** Is the current tool usable on tile i (the hover outline: light = yes, red = no)? `ent` is the unit under the pointer. */
@@ -244,7 +244,7 @@ export function dropHeld(i) {
     d.scan = 0;
     d.target = null;
     const r = G.room[i];
-    const k = d.kind !== 'imp' && !d.leaving;
+    const k = !isWorker(d) && !d.leaving;
     // Dropped on a free Lair tile, a creature moves its bed there; another creature's bed stays locked.
     const bed = k && r === LAIR && !bedOwner(i, d);
     if (bed) {
@@ -286,7 +286,7 @@ export function slap(e) {
 
         return;
     }
-    if (e.kind !== 'imp' && e.state !== 'fight') {
+    if (!isWorker(e) && e.state !== 'fight') {
         release(e);
         e.state = 'think';
     }
