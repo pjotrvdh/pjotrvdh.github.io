@@ -7,6 +7,13 @@
  */
 export default [
     {
+        slug: 'pro-skater',
+        title: "Phony Bonk's Pro Skater",
+        description: 'Arcade skateboarding in a low-poly park: push, carve, ollie over rails and fly out of quarter pipes, with keyboard or gamepad.',
+        tags: ['Sports', 'Arcade'],
+        added: '2026-10-28',
+    },
+    {
         slug: 'twistball',
         title: 'Twistball',
         description: 'Pong, but with a twist: down a neon tunnel. Move your paddle as you hit the ball to curve it past the opponent, through ten levels that get faster and wilder.',

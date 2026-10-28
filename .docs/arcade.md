@@ -12,7 +12,7 @@ description: How the Arcade repository is laid out and how a game is added to th
 ## Layout
 
 - The repository is `pjotrvdh/pjotrvdh.github.io`; GitHub Pages serves it at the root, `https://pjotrvdh.github.io/`.
-- The root is the Arcade index. Every game is a folder named after its slug (`underlord/`, `twistball/`), served at `/<slug>/`.
+- The root is the Arcade index. Every game is a folder named after its slug (`underlord/`, `twistball/`, `pro-skater/`), served at `/<slug>/`.
 - Every game folder is an npm workspace listed in the root `package.json` (`workspaces`), with its own `package.json`, `vite.config.js`, `index.html`, `cover.svg`, `README.md` and `.docs/`.
 
 ## The index page

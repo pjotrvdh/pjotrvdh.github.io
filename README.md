@@ -4,6 +4,7 @@ Browser games by pjotrvdh, at [pjotrvdh.github.io](https://pjotrvdh.github.io/).
 
 | Game | Play | Source |
 |---|---|---|
+| Phony Bonk's Pro Skater: arcade skateboarding in a low-poly park; push, ollie and fly out of quarter pipes | [pjotrvdh.github.io/pro-skater](https://pjotrvdh.github.io/pro-skater/) | [`pro-skater/`](pro-skater) |
 | Twistball: pong, but with a twist; curve the ball down a neon tunnel past the computer or a friend online | [pjotrvdh.github.io/twistball](https://pjotrvdh.github.io/twistball/) | [`twistball/`](twistball) |
 | Underlord: dig a dungeon, attract creatures and defend your Dungeon Heart, in the spirit of Dungeon Keeper | [pjotrvdh.github.io/underlord](https://pjotrvdh.github.io/underlord/) | [`underlord/`](underlord) |
 
@@ -46,6 +47,7 @@ public/404.html         GitHub Pages' "not found" page; also sends old /Underlor
 tools/vite.js           shared Vite setup: every page builds to one self-contained HTML file
 vite.config.js          builds the index and copies every game's build into dist/<game>
 .ddev/                  DDEV: config.yaml and start-vite.sh, which runs the Vite dev server
+pro-skater/             a game: its own npm workspace, see pro-skater/README.md
 twistball/              a game: its own npm workspace, see twistball/README.md
 underlord/              a game: its own npm workspace, see underlord/README.md
 ```

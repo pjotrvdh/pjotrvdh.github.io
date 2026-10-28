@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Phony Bonk's Pro Skater</title>
+  <meta name="description" content="Arcade skateboarding in a low-poly park: ollies, quarter pipes and big air, with keyboard or gamepad.">
+  <link rel="icon" type="image/svg+xml" href="./src/favicon.svg">
+  <script type="module" src="./src/main.js"></script>
+</head>
+<body>
+  <canvas id="stage" aria-label="The skate park. Arrow keys or WASD to push, brake and steer, Space to ollie."></canvas>
+
+  <p id="loading" class="loading" role="status">Loading the park…</p>
+  <p id="error" class="screen error" role="alert" hidden></p>
+
+  <section id="title" class="screen" hidden aria-labelledby="titleName">
+    <div class="card">
+      <h1 id="titleName" class="logo"><span>Phony Bonk's</span> Pro Skater</h1>
+      <p class="lead">Free skate. Push, carve, ollie and fly out of the quarter pipes.</p>
+      <button id="start" type="button" class="primary">Skate</button>
+      <p class="hint">Or press Enter, Space or A on a gamepad.</p>
+      <dl class="controls">
+        <div><dt>Push / brake</dt><dd><kbd>↑</kbd> <kbd>↓</kbd> or <kbd>W</kbd> <kbd>S</kbd> · stick or d-pad</dd></div>
+        <div><dt>Steer / spin</dt><dd><kbd>←</kbd> <kbd>→</kbd> or <kbd>A</kbd> <kbd>D</kbd> · stick or d-pad</dd></div>
+        <div><dt>Ollie</dt><dd>hold and let go <kbd>Space</kbd> · <kbd>A</kbd> / <kbd>✕</kbd></dd></div>
+        <div><dt>Pause</dt><dd><kbd>Esc</kbd> or <kbd>P</kbd> · Start</dd></div>
+        <div><dt>Back to the start</dt><dd><kbd>R</kbd> · Back / Select</dd></div>
+      </dl>
+      <p class="pad-status" aria-live="polite"></p>
+      <p class="credits">3D models: <a href="https://kenney.nl/assets/mini-skate" target="_blank" rel="noopener">Kenney Mini Skate</a> (CC0). <span id="version" hidden></span></p>
+    </div>
+  </section>
+
+  <section id="pause" class="screen" hidden aria-labelledby="pauseName">
+    <div class="card">
+      <h2 id="pauseName">Paused</h2>
+      <div class="buttons">
+        <button id="resume" type="button" class="primary">Resume</button>
+        <button id="reset" type="button">Back to the start</button>
+      </div>
+      <p class="pad-status" aria-live="polite"></p>
+    </div>
+  </section>
+
+  <div id="hud" class="hud" hidden>
+    <p id="message" class="message" aria-live="polite"></p>
+    <p class="corner">Esc: pause</p>
+  </div>
+</body>
+</html>

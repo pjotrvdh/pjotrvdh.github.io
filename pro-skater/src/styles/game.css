@@ -1,0 +1,256 @@
+/* Phony Bonk's Pro Skater: bright Kenney-style panels over the 3D park. System fonts only. */
+:root {
+    --ink: #2b1d3a;
+    --paper: #fffaf0;
+    --orange: #ff7a2f;
+    --orange-dark: #b2400a;
+    --yellow: #ffd23f;
+    --muted: #5b4d6b;
+    --heading: "Arial Rounded MT Bold", "Arial Black", "Segoe UI Black", "Trebuchet MS", system-ui, sans-serif;
+    --text: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    color-scheme: light;
+}
+
+* {
+    box-sizing: border-box;
+}
+
+html,
+body {
+    margin: 0;
+    height: 100%;
+    overflow: hidden;
+    background: #8fd3ff;
+    color: var(--ink);
+    font-family: var(--text);
+}
+
+#stage {
+    display: block;
+    width: 100%;
+    height: 100%;
+}
+
+.loading {
+    position: fixed;
+    inset: 0;
+    display: grid;
+    place-items: center;
+    margin: 0;
+    font: 700 1.4rem var(--heading);
+}
+
+.screen {
+    position: fixed;
+    inset: 0;
+    display: grid;
+    place-items: center;
+    padding: 16px;
+    margin: 0;
+    background: rgb(43 29 58 / 45%);
+    overflow: auto;
+}
+
+.screen[hidden],
+.loading[hidden] {
+    display: none;
+}
+
+.card {
+    width: min(560px, 100%);
+    padding: 28px 32px;
+    border: 4px solid var(--ink);
+    border-radius: 18px;
+    background: var(--paper);
+    box-shadow: 0 8px 0 var(--ink);
+    text-align: center;
+}
+
+.error {
+    color: var(--paper);
+    font-weight: 700;
+}
+
+.logo {
+    margin: 0 0 8px;
+    color: var(--orange-dark);
+    font: 900 clamp(2rem, 6vw, 3.1rem) / 1 var(--heading);
+    letter-spacing: -0.01em;
+    text-transform: uppercase;
+}
+
+.logo span {
+    display: block;
+    color: var(--ink);
+    font-size: 0.5em;
+    letter-spacing: 0.08em;
+}
+
+h2 {
+    margin: 0 0 16px;
+    font: 900 2rem var(--heading);
+    text-transform: uppercase;
+}
+
+.lead {
+    margin: 0 0 20px;
+    font-size: 1.05rem;
+}
+
+button {
+    padding: 10px 22px;
+    border: 3px solid var(--ink);
+    border-radius: 12px;
+    background: var(--paper);
+    color: var(--ink);
+    font: 800 1.05rem var(--heading);
+    box-shadow: 0 4px 0 var(--ink);
+    cursor: pointer;
+}
+
+button:active {
+    transform: translateY(3px);
+    box-shadow: 0 1px 0 var(--ink);
+}
+
+button:focus-visible {
+    outline: 3px solid var(--orange);
+    outline-offset: 3px;
+}
+
+button.primary {
+    background: var(--yellow);
+    font-size: 1.3rem;
+    padding: 12px 40px;
+}
+
+.buttons {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 12px;
+}
+
+.hint,
+.pad-status,
+.credits {
+    margin: 10px 0 0;
+    color: var(--muted);
+    font-size: 0.9rem;
+}
+
+.credits a {
+    color: var(--orange-dark);
+}
+
+.controls {
+    display: grid;
+    gap: 6px;
+    margin: 20px 0 0;
+    text-align: left;
+}
+
+.controls div {
+    display: grid;
+    grid-template-columns: 9.5em 1fr;
+    gap: 8px;
+}
+
+.controls dt {
+    font-weight: 700;
+}
+
+.controls dd {
+    margin: 0;
+}
+
+kbd {
+    display: inline-block;
+    min-width: 1.6em;
+    padding: 0 5px;
+    border: 2px solid var(--ink);
+    border-radius: 6px;
+    background: #fff;
+    font: 700 0.85em var(--text);
+    text-align: center;
+}
+
+.hud {
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+}
+
+.message {
+    position: absolute;
+    top: 18%;
+    left: 0;
+    right: 0;
+    margin: 0;
+    color: var(--paper);
+    font: 900 clamp(1.8rem, 5vw, 3rem) var(--heading);
+    text-align: center;
+    text-transform: uppercase;
+    -webkit-text-stroke: 2px var(--ink);
+    paint-order: stroke fill;
+    text-shadow: 0 4px 0 var(--ink);
+    opacity: 0;
+    transform: scale(0.8);
+    transition: opacity 0.15s, transform 0.15s;
+}
+
+.message.show {
+    opacity: 1;
+    transform: scale(1);
+}
+
+.message.bad {
+    color: #ff5a5a;
+}
+
+.corner {
+    position: absolute;
+    right: 14px;
+    bottom: 10px;
+    margin: 0;
+    padding: 4px 10px;
+    border-radius: 8px;
+    background: rgb(255 250 240 / 85%);
+    font-size: 0.85rem;
+}
+
+.tune {
+    position: fixed;
+    top: 8px;
+    left: 8px;
+    max-height: calc(100% - 16px);
+    width: 280px;
+    padding: 10px 12px;
+    overflow: auto;
+    border: 2px solid var(--ink);
+    border-radius: 10px;
+    background: rgb(255 250 240 / 92%);
+    font-size: 0.8rem;
+}
+
+.tune h2 {
+    margin: 8px 0 4px;
+    font-size: 0.95rem;
+}
+
+.tune label {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    margin-bottom: 4px;
+}
+
+.tune input {
+    grid-column: 1 / -1;
+    width: 100%;
+}
+
+.tune button {
+    margin-top: 8px;
+    padding: 4px 12px;
+    font-size: 0.85rem;
+}

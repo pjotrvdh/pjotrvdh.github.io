@@ -14,14 +14,14 @@ description: The shared Vite setup that builds every page to one self-contained 
 
 - `npm run build` (root) runs `npm run build --workspaces` (every game builds `<slug>/dist/index.html`), then `vite build` for the index, whose `collectGames()` plugin copies each `<slug>/dist` to `dist/<slug>`.
 - `singleFilePage({ copy })` in `tools/vite.js` is the shared config: `base: './'`, `assetsInlineLimit: () => true`, no CSS code splitting, no modulepreload polyfill, the `singleFile()` plugin, the DDEV dev server settings and `__BUILD_VERSION__`.
-- `copy` lists folders copied unchanged next to the page (`copyFolders()`): Underlord passes `['models']`, its 3D models, which the page loads at run time with relative URLs (`./models/...`), the same in the dev server and the build. `collectGames()` copies the whole `<slug>/dist`, so they end up in `dist/underlord/models`.
+- `copy` lists folders copied unchanged next to the page (`copyFolders()`): Underlord and Pro Skater pass `['models']`, their 3D models, which the page loads at run time with relative URLs (`./models/...`), the same in the dev server and the build. `collectGames()` copies the whole `<slug>/dist`, so they end up in `dist/<slug>/models`.
 - `singleFile()` writes the bundled JS and CSS into the HTML and turns files the page links to (such as the favicon) into data URIs. Any other emitted file fails the build on purpose.
 - `__BUILD_VERSION__` is `{ hash, time }` of the current commit (`git log -1`, time in Europe/Amsterdam), or `null` without git; pages show it as a small version label.
 - The `github pages` workflow runs `npm ci && npm run build` on every push to `main` and publishes `dist/`. `build.yml` builds every pull request; `security.yml` runs `npm audit`.
 
 ## Size
 
-- Pages are inlined, so every dependency and asset lands in the HTML. Prefer system fonts (no font files) and SVG, and check `dist/index.html` sizes in the build output after adding a dependency. Underlord's page holds three.js (about 850 kB, 220 kB gzipped); its models (about 5 MB) are the separate `models/` folder.
+- Pages are inlined, so every dependency and asset lands in the HTML. Prefer system fonts (no font files) and SVG, and check `dist/index.html` sizes in the build output after adding a dependency. Underlord's page holds three.js (about 850 kB, 220 kB gzipped); its models (about 5 MB) are the separate `models/` folder. Pro Skater's page is about 650 kB (170 kB gzipped), its models about 1 MB.
 
 ## Gotchas
 

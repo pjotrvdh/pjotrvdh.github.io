@@ -7,7 +7,8 @@
     "type": "module",
     "workspaces": [
         "underlord",
-        "twistball"
+        "twistball",
+        "pro-skater"
     ],
     "scripts": {
         "dev": "vite",

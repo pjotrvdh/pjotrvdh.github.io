@@ -19,6 +19,7 @@ description: Index of the root .docs wiki and of every game's wiki. Read when yo
 
 - [../underlord/.docs/index.md](../underlord/.docs/index.md) — Underlord, the Dungeon Keeper-style game: rules, map, creatures, heroes, spells, saving and rendering.
 - [../twistball/.docs/index.md](../twistball/.docs/index.md) — Twistball, tunnel pong: rules, physics, computer players, online play, rendering and audio.
+- [../pro-skater/.docs/index.md](../pro-skater/.docs/index.md) — Phony Bonk's Pro Skater, arcade skateboarding: skating physics, camera, parks and the collision grid.
 
 ## See also
 
