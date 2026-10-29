@@ -1,33 +1,36 @@
+import { existsSync, rmSync } from 'node:fs';
 import { defineConfig } from 'vite';
-import laravel from 'laravel-vite-plugin';
-import { bunny } from 'laravel-vite-plugin/fonts';
-import tailwindcss from '@tailwindcss/vite';
+import games from './src/games.js';
+import { copyFolder, singleFilePage } from './tools/vite.js';
 
-export default defineConfig({
-    server: {
-        watch: {
-            ignored: ['**/storage/framework/views/**'],
+/**
+ * Copies every game's own build (<slug>/dist, made by `npm run build --workspaces`) into dist/<slug>,
+ * next to the Arcade index.
+ *
+ * @returns {import('vite').Plugin}
+ */
+function collectGames() {
+    return {
+        name: 'arcade-collect-games',
+        apply: 'build',
+        closeBundle() {
+            for (const { slug } of games) {
+                if (!existsSync(`${slug}/dist/index.html`)) {
+                    throw new Error(`${slug} has not been built yet: run \`npm run build\` in the root.`);
+                }
+
+                rmSync(`dist/${slug}`, { recursive: true, force: true });
+                copyFolder(`${slug}/dist`, `dist/${slug}`);
+            }
         },
-        // `ddev npm run dev`: serve Vite from the DDEV container with HMR over the project hostname.
-        ...(process.env.IS_DDEV_PROJECT ? {
-            strictPort: true,
-            host: true,
-            hmr: {
-                host: process.env.DDEV_HOSTNAME.split(',')[0],
-                protocol: 'wss',
-            },
-        } : {}),
-    },
-    plugins: [
-        laravel({
-            input: ['resources/css/app.css', 'resources/js/app.js', 'resources/css/underlord.css', 'resources/js/underlord.js', 'resources/css/filament/admin/theme.css'],
-            refresh: true,
-            fonts: [
-                bunny('Instrument Sans', {
-                    weights: [400, 500, 600],
-                }),
-            ],
-        }),
-        tailwindcss(),
-    ],
+    };
+}
+
+const page = singleFilePage();
+
+// The Arcade index builds to one self-contained dist/index.html; `npm run dev` also serves every game
+// at /<slug>/.
+export default defineConfig({
+    ...page,
+    plugins: [...page.plugins, collectGames()],
 });

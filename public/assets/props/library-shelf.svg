@@ -1,6 +1,0 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
-  <!-- Bookshelf in the Library. -->
-  <rect x="8" y="10" width="48" height="36" fill="#2a1c14" stroke="#120b08" stroke-width="2.5"/>
-  <rect x="11" y="14" width="6" height="28" fill="#7a2b2b"/><rect x="19" y="16" width="6" height="26" fill="#2d5a7a"/><rect x="27" y="14" width="6" height="28" fill="#6b5a2a"/><rect x="35" y="17" width="6" height="25" fill="#3d6b3a"/><rect x="43" y="14" width="6" height="28" fill="#5a3a7a"/>
-  <path d="M8 46 L56 46" stroke="#4a3426" stroke-width="3"/>
-</svg>

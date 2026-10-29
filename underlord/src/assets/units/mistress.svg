@@ -1,0 +1,88 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <!-- Plants vs. Zombies style (thin dark-brown outlines, muted colours with soft airbrushed shading,
+       slouched pose, heavy eyelids, flat feet), drawn after the Dungeon Keeper 1 dark mistress:
+       tall and slender in glossy dark bronze leather from head to toe, red hair in a high top-knot,
+       red lips, a curved whip in each hand. Faces right; feet near y=58. -->
+  <defs>
+    <linearGradient id="leather" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#8a6a4e"/>
+      <stop offset=".5" stop-color="#4f3a2a"/>
+      <stop offset="1" stop-color="#241812"/>
+    </linearGradient>
+    <linearGradient id="leatherDark" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#4a3627"/>
+      <stop offset="1" stop-color="#1c120d"/>
+    </linearGradient>
+    <radialGradient id="face" cx=".38" cy=".3" r=".85">
+      <stop offset="0" stop-color="#a27a58"/>
+      <stop offset=".6" stop-color="#6c4c34"/>
+      <stop offset="1" stop-color="#3a271a"/>
+    </radialGradient>
+    <radialGradient id="hair" cx=".4" cy=".3" r=".8">
+      <stop offset="0" stop-color="#e2604a"/>
+      <stop offset="1" stop-color="#8f2618"/>
+    </radialGradient>
+    <linearGradient id="whip" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#d2b48e"/>
+      <stop offset="1" stop-color="#6b4f33"/>
+    </linearGradient>
+  </defs>
+
+  <g stroke="#2b1b12" stroke-width="1.3" stroke-linejoin="round" stroke-linecap="round">
+
+    <!-- far whip curling back behind her -->
+    <path d="M18.5 44 Q8 44 5 34 Q3.5 28 7.5 24" fill="none" stroke="#2b1b12" stroke-width="2.4"/>
+    <path d="M18.5 44 Q8 44 5 34 Q3.5 28 7.5 24" fill="none" stroke="url(#whip)" stroke-width="1.1"/>
+
+    <!-- long slender legs and pointed boots -->
+    <path d="M28 46 L26 55.8" fill="none" stroke-width="3.6"/>
+    <path d="M28 46 L26 55.8" fill="none" stroke="#4f3a2a" stroke-width="2"/>
+    <path d="M35.5 46 L37.5 55.8" fill="none" stroke-width="3.6"/>
+    <path d="M35.5 46 L37.5 55.8" fill="none" stroke="#4f3a2a" stroke-width="2"/>
+    <path d="M20.5 58.3 Q22 55.4 27.4 55.6 L27.6 58.3 Z" fill="url(#leatherDark)"/>
+    <path d="M36.2 55.6 Q42 55.4 44.5 58.3 L36.6 58.3 Z" fill="url(#leatherDark)"/>
+
+    <!-- slim body in glossy leather, slouched forward -->
+    <path d="M24.5 40 Q23.5 31 29.5 28.5 L36 28.5 Q42 31 40.5 40 Q39.5 47.5 32.3 48 Q25.5 47.5 24.5 40 Z" fill="url(#leather)"/>
+    <path d="M27.5 31.5 Q28.5 30 30.5 29.8" fill="none" stroke="#c9a47c" stroke-width="1.3"/>
+    <path d="M25.5 41 Q32.3 44.6 39.6 41" fill="none" stroke="#1c120d" stroke-width="1.6"/>
+    <path d="M30.6 40.8 L34 40.8 L34 43.2 L30.6 43.2 Z" fill="#c4a35a" stroke-width=".8"/>
+
+    <!-- bat-wing collar -->
+    <path d="M24 31 Q18 27 14.5 22 Q20 23.5 26.5 28.5 Z M40.5 31 Q46.5 27 50 22 Q44.5 23.5 38 28.5 Z" fill="url(#leatherDark)"/>
+
+    <!-- long thin arms -->
+    <path d="M25.5 32 Q20.5 37 19.5 43.5" fill="none" stroke-width="3.2"/>
+    <path d="M25.5 32 Q20.5 37 19.5 43.5" fill="none" stroke="#5a4330" stroke-width="1.6"/>
+    <path d="M17.6 43 Q19.6 41.6 21.4 43.2 Q21.4 45.8 19.5 46.2 Q17.6 45.8 17.6 43 Z" fill="url(#leatherDark)"/>
+    <path d="M39 32 Q44.5 36 46 42" fill="none" stroke-width="3.2"/>
+    <path d="M39 32 Q44.5 36 46 42" fill="none" stroke="#5a4330" stroke-width="1.6"/>
+    <path d="M44.2 41.6 Q46.2 40.2 48 41.8 Q48 44.4 46.1 44.8 Q44.2 44.4 44.2 41.6 Z" fill="url(#leatherDark)"/>
+
+    <!-- near whip lashing forward -->
+    <path d="M47 43.5 Q56 45 59 38 Q61.5 31 57 26.5 Q54 24 51.5 26" fill="none" stroke="#2b1b12" stroke-width="2.4"/>
+    <path d="M47 43.5 Q56 45 59 38 Q61.5 31 57 26.5 Q54 24 51.5 26" fill="none" stroke="url(#whip)" stroke-width="1.1"/>
+
+    <!-- red hair in a high top-knot, falling down the back -->
+    <path d="M22.5 14 Q22 4 31 3.4 Q34 -0.2 37.4 1.6 Q36.6 4 35.4 4.6 Q42 6 42.8 13 Q38 9 31.5 9.4 Q25.5 9.8 22.5 14 Z" fill="url(#hair)"/>
+    <path d="M23 13.5 Q19 19 20 28 Q22.6 24.5 24.4 22 Z" fill="url(#hair)"/>
+
+    <!-- slender face with a leather cowl framing it -->
+    <path d="M22.8 18.5 Q22.5 9.5 32.5 9.2 Q42.5 9.5 42 18.5 Q42 25.5 37 28.6 Q32.5 30.6 28 28.6 Q23 25.5 22.8 18.5 Z" fill="url(#leatherDark)"/>
+    <path d="M25.6 18.6 Q25.6 12.2 32.8 12 Q40 12.2 39.8 18.6 Q39.8 24 36.3 26.4 Q32.8 28 29.3 26.4 Q25.6 24 25.6 18.6 Z" fill="url(#face)"/>
+    <path d="M28.5 13.6 Q31 12.8 33.6 13.2" fill="none" stroke="#c9a47c" stroke-width="1"/>
+
+    <!-- narrowed eyes under heavy, made-up lids -->
+    <ellipse cx="36" cy="18.2" rx="2.3" ry="1.6" fill="#f1e6d0"/>
+    <ellipse cx="29" cy="18.4" rx="2" ry="1.4" fill="#f1e6d0"/>
+    <circle cx="36.8" cy="18.4" r=".85" fill="#1a1110" stroke="none"/>
+    <circle cx="29.7" cy="18.6" r=".75" fill="#1a1110" stroke="none"/>
+    <path d="M33.4 17.8 Q36 15.2 38.8 17.4 Q36 16.6 33.4 17.8 Z M26.6 18 Q29 15.6 31.4 17.6 Q29 16.8 26.6 18 Z" fill="#3a2016"/>
+    <path d="M33.4 16 Q36 14.4 39 15.6 M26.4 16.2 Q29 14.8 31.6 15.8" fill="none" stroke="#2b1b12" stroke-width="1"/>
+
+    <!-- small nose and red lips in a sly smile -->
+    <path d="M33 19 Q35.6 20.6 34.8 22.8 Q33.4 23 32.6 22" fill="none" stroke-width="1"/>
+    <path d="M30 24.6 Q33.4 23.6 37 24.4 Q34 27.2 30 24.6 Z" fill="#b8263a"/>
+    <path d="M30.6 24.8 Q33.6 25.4 36.4 24.6" fill="none" stroke="#5e0f1c" stroke-width=".8"/>
+  </g>
+</svg>

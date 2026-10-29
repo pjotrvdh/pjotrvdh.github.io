@@ -1,0 +1,33 @@
+name: "build"
+
+# Checks that every pull request still builds.
+on:
+  pull_request:
+    branches: [
+      "main",
+    ]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    name: Build
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v5
+
+      - name: Setup Node
+        uses: actions/setup-node@v5
+        with:
+          node-version: 24
+          cache: npm
+
+      - name: Build
+        run: npm ci && npm run build

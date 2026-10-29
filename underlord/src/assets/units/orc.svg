@@ -1,0 +1,100 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <!-- Plants vs. Zombies style (thin dark-brown outlines, muted colours with soft airbrushed shading,
+       hunched pose with no neck, heavy eyelids, flat feet), drawn after the Dungeon Keeper 1 orc:
+       magenta-pink skin, beefy with a pot belly, bushy brown hair, heavy brow over small yellow eyes,
+       two tusks from the lower jaw, round wooden shield and a big stone hammer. Faces right; feet near y=58. -->
+  <defs>
+    <radialGradient id="skin" cx=".38" cy=".28" r=".85">
+      <stop offset="0" stop-color="#df8db2"/>
+      <stop offset=".55" stop-color="#b0507e"/>
+      <stop offset="1" stop-color="#6f2a4c"/>
+    </radialGradient>
+    <radialGradient id="skinDark" cx=".4" cy=".3" r=".9">
+      <stop offset="0" stop-color="#a84a77"/>
+      <stop offset="1" stop-color="#5e2240"/>
+    </radialGradient>
+    <radialGradient id="hair" cx=".4" cy=".3" r=".8">
+      <stop offset="0" stop-color="#a68559"/>
+      <stop offset="1" stop-color="#5b4426"/>
+    </radialGradient>
+    <radialGradient id="eye" cx=".4" cy=".35" r=".7">
+      <stop offset="0" stop-color="#fff2a8"/>
+      <stop offset="1" stop-color="#d4a630"/>
+    </radialGradient>
+    <linearGradient id="tusk" x1="0" y1="1" x2="0" y2="0">
+      <stop offset="0" stop-color="#c9c08a"/>
+      <stop offset="1" stop-color="#f6f1d6"/>
+    </linearGradient>
+    <radialGradient id="shield" cx=".4" cy=".35" r=".7">
+      <stop offset="0" stop-color="#a77a48"/>
+      <stop offset="1" stop-color="#5e3d1f"/>
+    </radialGradient>
+    <linearGradient id="stone" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#e2ddcc"/>
+      <stop offset="1" stop-color="#8f8a78"/>
+    </linearGradient>
+    <linearGradient id="wood" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#9a6a3c"/>
+      <stop offset="1" stop-color="#5f3c1f"/>
+    </linearGradient>
+    <linearGradient id="cloth" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#7a5a3a"/>
+      <stop offset="1" stop-color="#4a3420"/>
+    </linearGradient>
+  </defs>
+
+  <g stroke="#2b1b12" stroke-width="1.3" stroke-linejoin="round" stroke-linecap="round">
+
+    <!-- round wooden shield on the far arm, behind the body -->
+    <circle cx="13" cy="40" r="10" fill="url(#shield)"/>
+    <circle cx="13" cy="40" r="6.6" fill="none" stroke="#3d2814" stroke-width="1"/>
+    <circle cx="13" cy="40" r="2.6" fill="#c9b27a"/>
+    <path d="M7.5 34.5 Q10 32 13.5 31.6" fill="none" stroke="#d6aa72" stroke-width="1.1"/>
+
+    <!-- stout legs and broad flat feet -->
+    <path d="M26 49 L24.5 55.5" fill="none" stroke-width="5"/>
+    <path d="M26 49 L24.5 55.5" fill="none" stroke="#9c4470" stroke-width="3.2"/>
+    <path d="M38 49 L39.5 55.5" fill="none" stroke-width="5"/>
+    <path d="M38 49 L39.5 55.5" fill="none" stroke="#9c4470" stroke-width="3.2"/>
+    <path d="M17.5 58.3 Q18 54.8 26 55 L26.6 58.3 Z" fill="url(#skinDark)"/>
+    <path d="M37.6 55 Q45.5 54.8 46.5 58.3 L38.2 58.3 Z" fill="url(#skinDark)"/>
+
+    <!-- beefy body with a pot belly and a small loincloth -->
+    <path d="M17 41 Q16 29 27 27.5 L38 27.5 Q48 29 47 41 Q46 51.5 32 52 Q18 51.5 17 41 Z" fill="url(#skin)"/>
+    <path d="M24 39 Q32 50 41 39 Q41 48.5 32.5 49.5 Q24 48.5 24 39 Z" fill="#c9689a" stroke="none" opacity=".6"/>
+    <path d="M23 33 Q27 35 31 33 M33 33 Q37 35 41 33" fill="none" stroke="#6f2a4c" stroke-width=".9"/>
+    <path d="M23.5 48 Q32 51.5 40.5 48 L39 53.5 L35 51.8 L32.2 54.4 L29.4 51.8 L25.4 53.5 Z" fill="url(#cloth)"/>
+
+    <!-- near arm swinging a big stone hammer -->
+    <path d="M44 33 Q50 36.5 50.5 43" fill="none" stroke-width="5"/>
+    <path d="M44 33 Q50 36.5 50.5 43" fill="none" stroke="#b0507e" stroke-width="3.2"/>
+    <path d="M51 46 L58 25" fill="none" stroke-width="3.8"/>
+    <path d="M51 46 L58 25" fill="none" stroke="url(#wood)" stroke-width="2.4"/>
+    <path d="M51.5 17.5 L63 21.5 L60 30.5 L48.5 26.5 Z" fill="url(#stone)"/>
+    <path d="M53.4 20.4 L55 21 M57.6 24.6 L59.6 25.3" fill="none" stroke="#7a7564" stroke-width=".9"/>
+    <path d="M48.4 43 Q51 41.2 53.4 43.2 Q53.2 46.6 50.8 47 Q48.4 46.4 48.4 43 Z" fill="url(#skinDark)"/>
+
+    <!-- head sitting low on the shoulders (no neck) -->
+    <path d="M19 19 Q18 7 32 6.5 Q46 7 46 19 Q46.5 27 41.5 30.5 Q36.5 33 32 32.8 Q25 32.6 21.5 29 Q19 26 19 19 Z" fill="url(#skin)"/>
+
+    <!-- bushy brown hair -->
+    <path d="M18.5 15.5 Q16 9 20.5 6.5 Q20 3 24.5 3.2 Q26 0.4 30 1.6 Q32.5 -0.2 35.5 1.8 Q39.5 0.6 40.5 4 Q45 3.6 45 7.5 Q48.5 9.5 46.5 15 Q42 10.5 32.5 10.2 Q23.5 10.4 18.5 15.5 Z" fill="url(#hair)"/>
+    <path d="M24 6.2 L25.5 8.8 M30.5 4.4 L31 7.6 M36.5 4.6 L35.8 7.8 M41.5 7.4 L40 9.6" fill="none" stroke="#3f2d17" stroke-width=".9"/>
+
+    <!-- heavy brow over small yellow eyes -->
+    <ellipse cx="37.5" cy="17.6" rx="2.9" ry="2.6" fill="url(#eye)"/>
+    <ellipse cx="27.5" cy="18" rx="2.5" ry="2.3" fill="url(#eye)"/>
+    <circle cx="38.4" cy="18" r="1.1" fill="#1a1110" stroke="none"/>
+    <circle cx="28.3" cy="18.4" r=".95" fill="#1a1110" stroke="none"/>
+    <path d="M22.5 16.5 Q27 12.4 31.6 15.6 Q33 14.4 34 15.4 Q38 12 42.8 15.4 Q38 14.8 33.2 17.6 Q27.5 14.8 22.5 16.5 Z" fill="url(#skinDark)"/>
+
+    <!-- broad snout -->
+    <path d="M31 19.5 Q36.5 19 37.5 23.5 Q34.5 25.6 31 24.4 Q29 22 31 19.5 Z" fill="url(#skinDark)"/>
+    <path d="M32.5 23.2 L33.4 22.4 M35.4 22.4 L36 23.2" fill="none" stroke-width=".9"/>
+
+    <!-- wide underbite mouth with two tusks -->
+    <path d="M24.5 26 Q32.5 31.5 41.5 26 Q38.5 30.6 32.5 30.8 Q26.8 30.6 24.5 26 Z" fill="#3c1420"/>
+    <path d="M27.4 28.2 Q26.6 23.8 28.4 22.2 Q29.4 25.2 29.8 28.8 Z" fill="url(#tusk)" stroke-width="1"/>
+    <path d="M37.6 28.6 Q38.4 24.2 37 22.4 Q35.6 25.4 35.2 28.9 Z" fill="url(#tusk)" stroke-width="1"/>
+  </g>
+</svg>

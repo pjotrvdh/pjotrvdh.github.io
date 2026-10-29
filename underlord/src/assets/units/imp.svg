@@ -1,0 +1,90 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <!-- Plants vs. Zombies style (thin dark-brown outlines, muted colours with soft airbrushed
+       shading, hunched pose with no neck, heavy eyelids, limp arms, flat feet), drawn after the
+       Dungeon Keeper 1 imp: tan-brown skin, bald domed head, tall pointed ears swept up and back,
+       huge dark almond eyes with a small glint, gaunt cheeks, small mouth, skinny wiry body, pickaxe.
+       Faces right; feet near y=58. -->
+  <defs>
+    <radialGradient id="skin" cx=".38" cy=".28" r=".85">
+      <stop offset="0" stop-color="#d9a06a"/>
+      <stop offset=".55" stop-color="#ad6d3c"/>
+      <stop offset="1" stop-color="#6e3f1e"/>
+    </radialGradient>
+    <radialGradient id="skinDark" cx=".4" cy=".3" r=".9">
+      <stop offset="0" stop-color="#a6673a"/>
+      <stop offset="1" stop-color="#5e3418"/>
+    </radialGradient>
+    <radialGradient id="eye" cx=".55" cy=".35" r=".75">
+      <stop offset="0" stop-color="#4a3428"/>
+      <stop offset=".6" stop-color="#1c120d"/>
+      <stop offset="1" stop-color="#0a0605"/>
+    </radialGradient>
+    <linearGradient id="cloth" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#7a6a48"/>
+      <stop offset="1" stop-color="#4e432d"/>
+    </linearGradient>
+    <linearGradient id="wood" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#9a6a3c"/>
+      <stop offset="1" stop-color="#5f3c1f"/>
+    </linearGradient>
+    <linearGradient id="steel" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#d7dde2"/>
+      <stop offset="1" stop-color="#7f8a92"/>
+    </linearGradient>
+  </defs>
+
+  <g stroke="#2b1b12" stroke-width="1.3" stroke-linejoin="round" stroke-linecap="round">
+
+    <!-- pickaxe dragged along in the far hand, behind the body -->
+    <path d="M9 57.5 L20 40" fill="none" stroke="#2b1b12" stroke-width="3.6"/>
+    <path d="M9 57.5 L20 40" fill="none" stroke="url(#wood)" stroke-width="2.2"/>
+    <path d="M3 54.5 Q8 50 14 52.5 Q9 53.5 6 57 Z" fill="url(#steel)"/>
+
+    <!-- skinny legs and long flat feet -->
+    <path d="M27 48 L26 56" fill="none" stroke-width="3.4"/>
+    <path d="M27 48 L26 56" fill="none" stroke="#9a5e32" stroke-width="1.8"/>
+    <path d="M36 48 L37.5 56" fill="none" stroke-width="3.4"/>
+    <path d="M36 48 L37.5 56" fill="none" stroke="#9a5e32" stroke-width="1.8"/>
+    <path d="M20 58.3 Q20.5 55.2 27 55.4 L27.6 58.3 Z" fill="url(#skinDark)"/>
+    <path d="M36.4 55.4 Q43.5 55.2 44.5 58.3 L37 58.3 Z" fill="url(#skinDark)"/>
+
+    <!-- thin wiry body, ribs showing, ragged loincloth -->
+    <path d="M23 43 Q22 34 29 32 L37 32 Q43 34 41.5 43 Q40.5 49.5 32 50 Q24 49.5 23 43 Z" fill="url(#skin)"/>
+    <path d="M27.5 37 Q32 38.5 36.5 37 M27.8 39.6 Q32 41 36.2 39.6" fill="none" stroke="#6e3f1e" stroke-width=".8"/>
+    <path d="M23.4 44.5 Q32 48.5 41.3 44 Q41 49.5 37.5 50.8 L35 49 L32.5 51.4 L30 49.2 L27.2 51.2 L24.8 49.4 Q23.5 47.5 23.4 44.5 Z" fill="url(#cloth)"/>
+
+    <!-- long thin limp arms with small bony hands -->
+    <path d="M24.5 34.5 Q19.5 39 19.5 44.5" fill="none" stroke-width="3.4"/>
+    <path d="M24.5 34.5 Q19.5 39 19.5 44.5" fill="none" stroke="#a6673a" stroke-width="1.8"/>
+    <path d="M17.6 44 Q19.6 42.4 21.6 44 Q21.6 46.8 19.6 47.2 Q17.6 46.8 17.6 44 Z" fill="url(#skinDark)"/>
+    <path d="M39.5 34.5 Q45 39.5 45.5 46" fill="none" stroke-width="3.4"/>
+    <path d="M39.5 34.5 Q45 39.5 45.5 46" fill="none" stroke="#a6673a" stroke-width="1.8"/>
+    <path d="M43.4 45.6 Q45.5 44 47.6 45.6 Q47.6 48.4 45.5 48.8 Q43.4 48.4 43.4 45.6 Z" fill="url(#skinDark)"/>
+
+    <!-- tall pointed ear, swept up and back -->
+    <path d="M17 18 Q12 10 9 0.8 Q15 6 21 15 Z" fill="url(#skinDark)"/>
+    <path d="M16 15.5 Q13 10 11.6 5 Q15 9 18.5 14.5 Z" fill="#c98a55" stroke="none" opacity=".6"/>
+
+    <!-- big bald domed head, hunched forward with no neck, gaunt cheeks -->
+    <path d="M15 20 Q14 4 32 3 Q50 3 50 19 Q50.5 27.5 45 31.5 Q39 35.5 32 35 Q23 34.8 19 30 Q15 26 15 20 Z" fill="url(#skin)"/>
+    <path d="M22 7.5 Q28 4.8 35 5.6" fill="none" stroke="#e8bd8c" stroke-width="1.4"/>
+    <path d="M27 8.8 Q32 7.8 36.5 8.8" fill="none" stroke="#7a4522" stroke-width=".8"/>
+    <path d="M21.5 25 Q24 31 30 32.6" fill="none" stroke="#7a4522" stroke-width=".9"/>
+    <path d="M45.6 24.5 Q44.6 29.5 40 31.8" fill="none" stroke="#7a4522" stroke-width=".9"/>
+
+    <!-- huge dark almond eyes with heavy lids and a small glint -->
+    <path d="M32 18.5 Q36 11.5 44.5 13.5 Q48.5 15 47 19.5 Q42 24 34.5 22.5 Q31.2 21.4 32 18.5 Z" fill="url(#eye)"/>
+    <path d="M18.5 19.5 Q20.5 13.5 27 15 Q29.8 16.2 28.8 19.8 Q25.5 23.2 20.8 22.2 Q18.2 21.4 18.5 19.5 Z" fill="url(#eye)"/>
+    <ellipse cx="42" cy="16.5" rx="1.5" ry="1.1" fill="#fff4dc" stroke="none"/>
+    <ellipse cx="25.4" cy="17.6" rx="1.1" ry=".8" fill="#fff4dc" stroke="none"/>
+    <path d="M31.4 17.6 Q36 10.2 44.8 12.4 Q48.4 13.6 48.2 17 Q41 12.6 31.4 17.6 Z" fill="url(#skinDark)"/>
+    <path d="M18 18.6 Q20.4 12.6 27.4 14 Q29.6 15 29.8 17.8 Q24.5 14.6 18 18.6 Z" fill="url(#skinDark)"/>
+
+    <!-- small flat nose -->
+    <path d="M38.5 23.5 Q41 23 41.5 25.5 Q40 26.5 38.4 25.8" fill="none" stroke-width="1"/>
+
+    <!-- small thin mouth with a sly little grin -->
+    <path d="M31 28.5 Q36 30.6 41.5 27.8 Q37.5 31.8 31 28.5 Z" fill="#4a1e12"/>
+    <path d="M33.4 29.3 L34.6 30.4 L35.8 29.6 L37 30.3 L38.2 29.2 Q35.6 30.6 33.4 29.3 Z" fill="#f2ead6" stroke-width=".6"/>
+  </g>
+</svg>

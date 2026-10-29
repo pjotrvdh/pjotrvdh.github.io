@@ -1,7 +1,0 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
-  <!-- Hero Gate, where the invaders come from. -->
-  <path d="M8 60 L8 28 A24 24 0 0 1 56 28 L56 60 Z" fill="#24344a" stroke="#0e1520" stroke-width="3"/>
-  <path d="M18 60 L18 30 A14 14 0 0 1 46 30 L46 60 Z" fill="#d8e6ff"/>
-  <path d="M18 60 L18 30 A14 14 0 0 1 46 30" fill="none" stroke="#fff" stroke-width="2" opacity=".6"/>
-  <path d="M12 26 L20 20 M52 26 L44 20" stroke="#e2c46a" stroke-width="3" stroke-linecap="round"/>
-</svg>

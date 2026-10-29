@@ -1,6 +1,0 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
-  <!-- Portal that is not yet yours. -->
-  <circle cx="32" cy="32" r="29" fill="#0e0818" stroke="#2a2236" stroke-width="2"/>
-  <g fill="none" stroke-linecap="round" stroke-width="5"><path d="M32 12 A20 20 0 0 1 52 32" stroke="#6d5a86"/><path d="M32 52 A20 20 0 0 1 12 32" stroke="#6d5a86"/><path d="M46 22 A15 15 0 0 1 40 46" stroke="#4a3a5e"/><path d="M18 42 A15 15 0 0 1 24 18" stroke="#4a3a5e"/></g>
-  <circle cx="32" cy="32" r="5" fill="#8a78a6"/>
-</svg>

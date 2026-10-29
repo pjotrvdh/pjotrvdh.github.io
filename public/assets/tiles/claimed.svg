@@ -1,4 +1,0 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
-  <!-- Your claimed territory: four flagstones with your red mark. -->
-  <rect width="64" height="64" fill="#1a0e0c"/><rect x="2" y="2" width="28" height="28" fill="#3a201b"/><rect x="34" y="2" width="28" height="28" fill="#341c18"/><rect x="2" y="34" width="28" height="28" fill="#341c18"/><rect x="34" y="34" width="28" height="28" fill="#3a201b"/><path d="M32 26 L38 32 L32 38 L26 32 Z" fill="#c82d23" opacity=".6"/>
-</svg>

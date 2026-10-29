@@ -1,8 +1,0 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
-  <!-- Chicken wandering around the Hatchery. Faces right. -->
-  <ellipse cx="30" cy="38" rx="16" ry="13" fill="#f2ece0" stroke="#120b08" stroke-width="2.5"/>
-  <circle cx="44" cy="24" r="8" fill="#f2ece0" stroke="#120b08" stroke-width="2.5"/>
-  <path d="M51 24 L58 26 L51 28 Z" fill="#e3b23c"/><path d="M42 16 Q44 10 48 16" fill="#d23b2b"/>
-  <circle cx="46" cy="22" r="1.6" fill="#120b08"/>
-  <path d="M26 50 L24 58 M34 50 L36 58" stroke="#e3b23c" stroke-width="2.5"/>
-</svg>

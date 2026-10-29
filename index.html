@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Arcade · pjotrvdh</title>
+  <meta name="description" content="Browser games by pjotrvdh. Each one is a single page: open it and play.">
+  <link rel="icon" type="image/svg+xml" href="./src/favicon.svg">
+  <script type="module" src="./src/main.js"></script>
+</head>
+<body>
+  <header class="marquee">
+    <p class="owner" data-text="pjotrvdh presents">pjotrvdh presents</p>
+    <h1 class="title"><img src="./src/logo.svg" alt="Arcade" width="1102" height="420"></h1>
+    <p class="intro">Browser games I made, each one a single page. No installs, no accounts: pick a game and play.</p>
+  </header>
+
+  <main>
+    <section class="controls" aria-label="Find a game">
+      <label class="search">
+        <span>Search</span>
+        <input id="search" type="search" placeholder="Name or genre" autocomplete="off">
+      </label>
+      <div class="genres" id="genres" role="group" aria-label="Genre"></div>
+      <p class="count" id="count" aria-live="polite"></p>
+    </section>
+
+    <ul class="games" id="games"></ul>
+    <p class="empty" id="empty" hidden>No game matches that. Try another name or genre.</p>
+  </main>
+
+  <footer>
+    <p>Source on <a href="https://github.com/pjotrvdh/pjotrvdh.github.io">GitHub</a>. <span class="version" id="version" hidden></span></p>
+  </footer>
+</body>
+</html>

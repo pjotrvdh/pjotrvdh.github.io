@@ -1,9 +1,0 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 192 192">
-  <!-- Dungeon Heart. Covers the 3x3 heart tiles (192 = 3 x 64). The game adds the pulse and glow on top. -->
-  <g fill="#2a1512" stroke="#120b08" stroke-width="3"><path d="M96 96 m64.7 26.6 l23.1 19.1 l-13.8 14.5 Z"/><path d="M96 96 m27.0 64.6 l2.9 29.9 l-20.0 0.5 Z"/><path d="M96 96 m-26.6 64.8 l-19.1 23.2 l-14.5 -13.8 Z"/><path d="M96 96 m-64.6 27.0 l-29.9 2.9 l-0.5 -20.0 Z"/><path d="M96 96 m-64.8 -26.5 l-23.2 -19.1 l13.8 -14.5 Z"/><path d="M96 96 m-27.1 -64.5 l-2.9 -29.9 l20.0 -0.5 Z"/><path d="M96 96 m26.5 -64.8 l19.0 -23.2 l14.5 13.8 Z"/><path d="M96 96 m64.5 -27.1 l29.9 -2.9 l0.5 20.0 Z"/></g>
-  <circle cx="96" cy="96" r="86" fill="#160b0a" stroke="#4a1d18" stroke-width="6"/>
-  <circle cx="96" cy="96" r="66" fill="none" stroke="#2a1512" stroke-width="10" stroke-dasharray="14 10"/>
-  <defs><radialGradient id="h" cx=".38" cy=".36" r=".7"><stop offset="0" stop-color="#ff9a7a"/><stop offset=".45" stop-color="#d42a1f"/><stop offset="1" stop-color="#3a0606"/></radialGradient></defs>
-  <circle cx="96" cy="96" r="42" fill="url(#h)" stroke="#120b08" stroke-width="3"/>
-  <ellipse cx="82" cy="80" rx="12" ry="7" fill="#fff" opacity=".25"/>
-</svg>

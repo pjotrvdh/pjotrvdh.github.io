@@ -1,4 +1,0 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
-  <!-- Unclaimed dug-out floor. -->
-  <rect width="64" height="64" fill="#1d1713"/><rect x="2" y="2" width="60" height="60" fill="#241c17"/><circle cx="14" cy="18" r="2.5" fill="#8c6e55" opacity=".25"/><circle cx="44" cy="12" r="2.5" fill="#8c6e55" opacity=".25"/><circle cx="30" cy="40" r="2.5" fill="#8c6e55" opacity=".25"/><circle cx="52" cy="48" r="2.5" fill="#8c6e55" opacity=".25"/><circle cx="10" cy="52" r="2.5" fill="#8c6e55" opacity=".25"/>
-</svg>

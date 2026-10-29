@@ -1,7 +1,0 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
-  <!-- Treasure chest lying in a hidden cavern. -->
-  <rect x="12" y="30" width="40" height="22" rx="2" fill="#6b3f1c" stroke="#120b08" stroke-width="2.5"/>
-  <path d="M12 30 Q12 16 32 16 Q52 16 52 30 Z" fill="#8a5426" stroke="#120b08" stroke-width="2.5"/>
-  <path d="M12 30 L52 30 M22 18 L22 52 M42 18 L42 52" stroke="#c8941f" stroke-width="3"/>
-  <rect x="28" y="28" width="8" height="9" rx="1" fill="#e3b23c" stroke="#120b08" stroke-width="1.5"/>
-</svg>

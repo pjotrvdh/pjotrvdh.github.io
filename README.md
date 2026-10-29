@@ -1,91 +1,64 @@
-# Underlord
+# Arcade
 
-A browser game in the spirit of *Dungeon Keeper*. You are an evil overlord deep underground: dig into a cloud-covered map, claim territory, build rooms, attract creatures through portals and defend your Dungeon Heart against six invasions from the surface.
+Browser games by pjotrvdh, at [pjotrvdh.github.io](https://pjotrvdh.github.io/). Every game is a single, self-contained HTML file: open it and play, also offline.
 
-The game runs on Laravel. Its settings (economy, creatures, rooms, spells and waves) live in the database, and admins edit them in a Filament admin panel. The original single-file version is on the [`legacy`](../../tree/legacy) branch.
-
-## How to play
-
-- **Dig:** click a block to mark it for digging, or drag to mark a whole rectangle. You can mark blocks inside the clouds too. Your imps dig the blocks out, carry the gold to the Heart or a Treasury, and claim the new floor.
-- **Walls:** idle imps reinforce the earth walls around your territory. Heroes take much longer to tunnel through a reinforced wall.
-- **Explore:** the map is hidden in clouds. Your units reveal what they can see, and walls block their sight. Gold seams and the two portals shine through the clouds. Hidden caverns hold treasure chests, wandering creatures that join you, and a camp of sleeping heroes.
-- **Build:** you build rooms on claimed ground by clicking a tile or dragging a rectangle. The rooms are Treasury, Lair, Hatchery, Training Room and Library.
-- **Creatures:** creatures only arrive through a portal you have claimed. Each one needs a free bed in your Lair. Stronger creatures also need rooms of 9 or more tiles. Each map has a limited pool of creatures, and they want their wages on payday.
-- **Hand:** left-click a creature to pick it up (you can hold up to 8), then left-click your territory to drop it.
-  - A creature dropped into a Training Room, Library, Lair or Hatchery starts working there right away, with a small bonus.
-  - A dropped creature is dazed for a moment.
-  - Dropping a creature on your own portal dismisses it.
-  - Right-click slaps a creature; slapped imps work faster.
-- **Spells:** Create Imp, Lightning, Heal and Call to Arms. You unlock the last three through research in the Library.
-- **Control panel:** a minimap at the top (click it to jump there), then Info, Rooms, Spells and Creatures tabs. The Creatures tab shows, for each type, how many are idle, working and fighting. Click a number to pick one of them up, or right-click it to look at it.
-- **Computer Assistant:** the **C** button on the minimap lets the computer play for you, in one of four modes: Aggressive, Defensive, Construction only or Move only.
-- **Saving:** logged-in players save to their account; guests save in their browser. The game also autosaves every two minutes.
-- **Win:** survive all six hero waves. The last wave is led by the Lord of the Land. You lose when your Dungeon Heart is destroyed.
-
-### Controls
-
-| Action | Mouse / touch | Keyboard |
+| Game | Play | Source |
 |---|---|---|
-| Mark for digging / build | click or drag | |
-| Slap | right-click | |
-| Scroll the map | right- or middle-drag, the **Look** tool, two-finger drag | arrow keys / WASD |
-| Zoom | mouse wheel, pinch, **+ / − / Fit** buttons | `+` / `-` |
-| Pause | **Pause** button | `Space` / `P` |
-| Game speed | **1×** button | `1` `2` `3` |
-| Back to the hand tool | | `Esc` |
-| Cheats panel (admins only) | **Cheats** button | `` ` `` |
+| Learn to Fly: help a penguin fly; slide down the ramp, earn cash and buy better ramps, gliders and rockets | [pjotrvdh.github.io/learn-to-fly](https://pjotrvdh.github.io/learn-to-fly/) | [`learn-to-fly/`](learn-to-fly) |
+| Twistball: pong, but with a twist; curve the ball down a neon tunnel past the computer or a friend online | [pjotrvdh.github.io/twistball](https://pjotrvdh.github.io/twistball/) | [`twistball/`](twistball) |
+| Underlord: dig a dungeon, attract creatures and defend your Dungeon Heart, in the spirit of Dungeon Keeper | [pjotrvdh.github.io/underlord](https://pjotrvdh.github.io/underlord/) | [`underlord/`](underlord) |
 
 ## Getting started
 
-You need [Docker](https://www.docker.com/) and [DDEV](https://ddev.com/). Everything else runs inside DDEV.
+**With [DDEV](https://ddev.com/):** `ddev start` installs the packages and runs the Vite dev server on https://arcade.ddev.site, with hot reloading. The index is at `/`, each game at `/<game>/`. Run other commands inside DDEV too, for example `ddev npm run build`.
 
 ```bash
 ddev start
-ddev composer install
-ddev artisan migrate:fresh --seed
-ddev npm ci
-ddev npm run build
 ```
 
-- **Game:** https://underlord.ddev.site
-- **Admin panel:** https://underlord.ddev.site/admin. Locally, a developer login is shown on the login page. The seeder creates `admin@underlord.test` with the password `password`.
-- **Front-end development:** run `ddev npm run dev` instead of `build` for hot reloading.
+**Without DDEV:** you need [Node.js](https://nodejs.org/) 24 or newer.
 
-## Game data
+```bash
+npm ci
+npm run dev
+```
 
-The game's data has its defaults in code, and its current values in the database:
-
-| What | Defaults | Edited in |
-|---|---|---|
-| Settings (economy, Heart, portals, waves, …) | `config/underlord/settings.php` | admin panel → Settings |
-| Creatures and heroes | `config/underlord/creatures.php` | admin panel → Creatures |
-| Rooms | `config/underlord/rooms.php` | admin panel → Rooms |
-| Spells | `config/underlord/spells.php` | admin panel → Spells |
-| Hero waves | `config/underlord/waves.php` | admin panel → Waves |
-| SVG graphics | `config/underlord/assets.php` and `public/assets/` | the project only |
-
-- After every `migrate`, missing defaults are copied into the database. Records you edited in the admin panel are left alone.
-- To put everything back to the defaults, run `ddev artisan underlord:defaults --reset`.
-- In the admin panel, every field shows its default and turns orange when it has been changed.
-- Game data can only be edited there. New creatures, rooms or settings are added in `config/underlord/`.
-- The colours of creatures and rooms, and the SVGs, are managed in the project only.
-- See [`public/assets/README.md`](public/assets/README.md) for the size and orientation of the SVGs.
-
-## Admin panel
-
-- Only users with **Admin** switched on can open `/admin`. They can also use the in-game Cheats menu.
-- Admins manage players under **Players** and can play as a player (impersonate) to check their game and saves.
-
-## Development
+`node_modules` is shared between your computer and DDEV, and Vite's bundler is different per platform. Stick to one of the two, or run `npm ci` again after switching (DDEV does that by itself on start).
 
 | Command | What it does |
 |---|---|
-| `ddev composer test` | the test suite (PHPUnit, in-memory SQLite) |
-| `ddev composer analyse` | PHPStan/Larastan at the max level |
-| `ddev composer format-check` | Rector (dry run) and Pint |
-| `ddev composer format` | apply Rector and Pint |
+| `npm run dev` | dev server for the index and every game, with hot reloading |
+| `npm run build` | build every game and the index into `dist/` |
+| `npm run preview` | serve `dist/` |
 
-GitHub Actions runs the same checks on every pull request, plus a Composer and npm security audit.
+The `github pages` workflow builds and publishes `dist/` on every push to `main`.
 
-- **Migrations** only go forward: there are no `down()` methods, and mistakes are fixed with a new migration.
-- **AI agents:** the project uses [Laravel Boost](https://laravel.com/docs/ai). After cloning, run `ddev artisan boost:install` to generate the agent files (`AGENTS.md`, `CLAUDE.md`, MCP config). The project's own agent rules are in [`.ai/guidelines`](.ai/guidelines) and [`.ai/rules`](.ai/rules).
+## Project layout
+
+```
+index.html              the Arcade index
+src/
+  games.js              the games on the index: title, description, genres, date added
+  main.js               renders the index: search, genre filter, game tiles
+  styles/arcade.css     the cyberpunk look
+  logo.svg              the graffiti ARCADE logo (letters as paths, no font needed)
+  favicon.svg
+public/404.html         GitHub Pages' "not found" page; also sends old /Underlord/ links to /underlord/
+tools/vite.js           shared Vite setup: every page builds to one self-contained HTML file
+vite.config.js          builds the index and copies every game's build into dist/<game>
+.ddev/                  DDEV: config.yaml and start-vite.sh, which runs the Vite dev server
+learn-to-fly/           a game: its own npm workspace, see learn-to-fly/README.md
+twistball/              a game: its own npm workspace, see twistball/README.md
+underlord/              a game: its own npm workspace, see underlord/README.md
+```
+
+## Adding a game
+
+1. Put it in its own folder, for example `my-game/`, with a `package.json` whose `build` script writes one self-contained `my-game/dist/index.html`. Using `singleFilePage()` from `tools/vite.js` in its `vite.config.js` does that.
+2. Add the folder to `workspaces` in the root `package.json`.
+3. Add a 16:9 `my-game/cover.svg` and an entry in `src/games.js`; the slug is the folder name.
+
+## Development
+
+- **Checks:** GitHub Actions builds every pull request and runs `npm audit`.
+- **AI agents:** the project rules for coding agents are in [`AGENTS.md`](AGENTS.md).

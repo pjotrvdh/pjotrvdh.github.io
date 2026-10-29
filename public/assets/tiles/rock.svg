@@ -1,4 +1,0 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
-  <!-- Impenetrable rock (map border). -->
-  <rect width="64" height="64" fill="#0f0e12"/><rect x="2" y="2" width="60" height="60" fill="#1c1b22"/><path d="M8 20 L24 16 L30 28 M40 8 L46 22 L58 26 M14 44 L28 50 L34 60 M44 40 L54 52" stroke="#2c2b34" stroke-width="2" fill="none"/><rect x="15.3" y="32.5" width="4.8" height="3.8" rx="1" fill="#fff" opacity="0.05"/><rect x="37.0" y="5.7" width="3.1" height="4.5" rx="1" fill="#fff" opacity="0.05"/><rect x="16.5" y="15.1" width="8.0" height="3.4" rx="1" fill="#fff" opacity="0.05"/><rect x="48.8" y="28.7" width="6.2" height="2.5" rx="1" fill="#fff" opacity="0.05"/>
-</svg>
