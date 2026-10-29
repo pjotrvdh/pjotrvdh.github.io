@@ -1,10 +1,10 @@
-import { bitmaps, CHARS } from './library.js';
+import { CHARS } from './library.js';
 import { cssColor, invert, multiply, multiplyColor, transformBounds } from './matrix.js';
 import { drawEditText, drawStaticText } from './text.js';
 
 /*
- * Draws the display list on a 2D canvas the way Flash did: vector shapes with solid, gradient and
- * bitmap fills, strokes, morph shapes at their ratio, texts, colour transforms (applied to the fill
+ * Draws the display list on a 2D canvas the way Flash did: vector shapes with solid and gradient
+ * fills, strokes, morph shapes at their ratio, texts, colour transforms (applied to the fill
  * colours), masks (clip depths), and glow/drop-shadow filters and blend modes through an
  * offscreen layer. Also does the shape hit tests for hitTest(x, y, true).
  */
@@ -23,7 +23,7 @@ function shapePaths(ch) {
     return paths;
 }
 
-/** For gradient and bitmap fills: the path mapped into the fill's own space (cached per shape). */
+/** For gradient fills: the path mapped into the gradient's own space (cached per shape). */
 const fillSpaceCache = new WeakMap();
 
 function fillSpacePath(ch, i, path, m) {
@@ -123,19 +123,6 @@ function gradientStyle(ctx, f, cx) {
     return g;
 }
 
-const patternCache = new Map();
-
-function bitmapPattern(ctx, f) {
-    const k = `${f.id}:${f.rep}`;
-    let p = patternCache.get(k);
-    if (p === undefined) {
-        const img = bitmaps.get(f.id);
-        p = img ? ctx.createPattern(img, f.rep ? 'repeat' : 'no-repeat') : null;
-        patternCache.set(k, p);
-    }
-    return p;
-}
-
 /** Fills one path with fill style f; the context is in the shape's coordinates. */
 function fillPath(ctx, ch, i, path, f, cx, morph) {
     if (f.k === 's') {
@@ -149,22 +136,8 @@ function fillPath(ctx, ch, i, path, f, cx, morph) {
     }
     ctx.save();
     ctx.transform(...f.m);
-    if (f.k === 'b') {
-        const pattern = bitmapPattern(ctx, f);
-        if (pattern) {
-            const smoothing = ctx.imageSmoothingEnabled;
-            ctx.imageSmoothingEnabled = f.smooth;
-            if (cx && cx[3] !== 1) {
-                ctx.globalAlpha *= Math.max(0, Math.min(1, cx[3]));
-            }
-            ctx.fillStyle = pattern;
-            ctx.fill(inGradientSpace, 'evenodd');
-            ctx.imageSmoothingEnabled = smoothing;
-        }
-    } else {
-        ctx.fillStyle = gradientStyle(ctx, f, cx);
-        ctx.fill(inGradientSpace, 'evenodd');
-    }
+    ctx.fillStyle = gradientStyle(ctx, f, cx);
+    ctx.fill(inGradientSpace, 'evenodd');
     ctx.restore();
 }
 

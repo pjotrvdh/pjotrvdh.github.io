@@ -20,7 +20,7 @@ Arcade is the owner's collection of browser games, published at https://pjotrvdh
 
 ## Learn to Fly (`learn-to-fly/`)
 
-An HTML5 remake of the 2009 Flash game, aiming to behave 1-to-1 like the original. `learn-to-fly/tools/import-swf.mjs` exports the original's shapes, fonts, texts, buttons, timelines, bitmaps and sounds from `downloads/learn-to-fly.swf` (git-ignored) into `learn-to-fly/src/assets` (generated: rerun the tool, don't edit). `learn-to-fly/src/render` is a small Flash-style player (display list, timelines, canvas drawing); `learn-to-fly/src/game` holds the rewritten ActionScript (one file per scene, combined in `scripts.js`), `learn-to-fly/src/config` the original numbers.
+An HTML5 remake of the 2009 Flash game, aiming to behave 1-to-1 like the original. `learn-to-fly/tools/import-swf.mjs` exports the original's shapes, fonts, texts, buttons, timelines and sounds (no bitmaps: everything is vector) from `downloads/learn-to-fly.swf` (git-ignored) into `learn-to-fly/src/assets` (generated: rerun the tool, don't edit). `learn-to-fly/src/render` is a small Flash-style player (display list, timelines, canvas drawing); `learn-to-fly/src/game` holds the rewritten ActionScript (one file per scene, combined in `scripts.js`), `learn-to-fly/src/config` the original numbers.
 
 - Scripts keep the original's instance names and quirks; note any deliberate change in `learn-to-fly/.docs/game.md`. The loader, intro, MaxGames sponsor, version number and credit line are left out of the export (`LEFT_OUT` in the import tool).
 - The canvas fills the window edge to edge (backgrounds scaled up to the window; in flight more of the world) with an HTML control bar, HUD and score board over it (`controls.js`, `hud.js`).

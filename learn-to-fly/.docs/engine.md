@@ -10,12 +10,12 @@ description: How Learn to Fly exports the SWF and plays it: library.json, timeli
 
 ## The export (`tools/import-swf.mjs`)
 
-- Reads `downloads/learn-to-fly.swf` (SWF 9, AS2, 640 × 480, 33 fps), leaves out some characters (`LEFT_OUT`: loader, intro, the MaxGames sponsor, the version number and the menu's credit; their placements are dropped too) and then every character nothing uses any more, and writes `src/assets/library.json`, `bitmaps/` and `sounds/`. Rerun it instead of editing the output.
+- Reads `downloads/learn-to-fly.swf` (SWF 9, AS2, 640 × 480, 33 fps), leaves out some characters (`LEFT_OUT`: loader, intro, the MaxGames sponsor, the version number and the menu's credit; their placements are dropped too) and then every character nothing uses any more, and writes `src/assets/library.json` and `sounds/`. No bitmaps are exported: the rocket flames (shapes 73 and 76) are redrawn as vector shapes (`REDRAWN`), and bitmap fills elsewhere (only in clips hidden behind HTML) are dropped (`dropBitmapFills()`). Rerun it instead of editing the output.
 - `chars[id]`, by `t`:
   - `shape`: `b` bounds, `fills`, `lines`, `paths` = `['f' | 'l', styleIndex, svgPathData]` in drawing order (per style group: fills, then lines). Fill edges are chained into closed loops per fill style (fill1 as is, fill0 reversed).
   - `morph`: like a shape, but each path is `{cmd, a, b}` (commands, start and end coordinates, all quadratic), interpolated at the placement's `ratio`.
   - `font` (DefineFont3, em = 1024), `text` (static, glyph indices), `edit` (dynamic text field: `variable`, font, size, align, …).
-  - `button`: `records` with `states` (1 up, 2 over, 4 down, 8 hit); `sprite`: `frames` (+ `stream`); `bitmap`; `sound`.
+  - `button`: `records` with `states` (1 up, 2 over, 4 down, 8 hit); `sprite`: `frames` (+ `stream`); `sound`.
 - Frame `ops`: `['place', {depth, c, m, cx, ratio, name, clip, filters, blend, events, move}]`, `['remove', depth]`, `['sound', id, info]`. Frame `actions` are DoActions that only stop/play/goto; any other DoAction sets `script: true`.
 - Matrices are `[a, b, c, d, tx, ty]` in px; colour transforms `[rMul, gMul, bMul, aMul, rAdd, gAdd, bAdd, aAdd]`.
 - `exports`: linkage names (`'BGM'`, `'shop.wav'`, `'beat'`, …) for `attachMovie()` and `attachSound()`.
@@ -40,8 +40,8 @@ description: How Learn to Fly exports the SWF and plays it: library.json, timeli
   - `overlays` (fades 108, 109, 119) cover the whole window, on `fxCanvas` (above the HTML screens); `skip` (options menu 148, HUD 644, score board 579) are not drawn: HTML replaces them.
 - Smooth motion: the game ticks at 33 fps; `Player.snapshot()` keeps each object's previous matrix (`prevM`) and drawing, at the display's refresh rate, interpolates towards the current one (`alpha`). Jumps of more than 120 px or big rotations are not interpolated.
 
-- Colour transforms are applied to the fill colours (exact for vectors); bitmaps only get the alpha.
-- Gradient and bitmap fills draw the path mapped into the fill's own space (cached per shape).
+- Colour transforms are applied to the fill colours.
+- Gradient fills draw the path mapped into the gradient's own space (cached per shape).
 - Masks (`clipDepth`) become a canvas clip; filters (glow, drop shadow) and blend modes draw the object into an offscreen layer and composite it with a canvas shadow / composite operation. Blur, bevel and colour-matrix filters are skipped.
 - Device-font text uses system font stacks; Comic Sans MS (the day number) is replaced by Arial Rounded (AGENTS.md rule).
 

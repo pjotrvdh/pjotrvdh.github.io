@@ -17,9 +17,9 @@ description: Hub of the Learn to Fly wiki (HTML5 remake of the Flash game). Read
 
 | File | What it owns |
 |---|---|
-| `learn-to-fly/tools/import-swf.mjs` | exports the SWF: shapes, morphs, fonts, texts, buttons, sprites, bitmaps, sounds |
-| `learn-to-fly/src/assets/` | the export: `library.json`, `bitmaps/`, `sounds/` (generated, do not edit) |
-| `learn-to-fly/src/render/library.js` | loads the export; bitmaps with alpha masks |
+| `learn-to-fly/tools/import-swf.mjs` | exports the SWF: shapes, morphs, fonts, texts, buttons, sprites, sounds (no bitmaps: the two rocket flames are redrawn as vectors) |
+| `learn-to-fly/src/assets/` | the export: `library.json`, `sounds/` (generated, do not edit) |
+| `learn-to-fly/src/render/library.js` | loads the export |
 | `learn-to-fly/src/render/display.js` | display objects and timelines with the AS2 API (`x`, `gotoAndStop()`, `hitTest()`, …) |
 | `learn-to-fly/src/render/draw.js`, `text.js`, `matrix.js` | canvas drawing: fills, gradients, morphs, masks, filters, blend modes, texts |
 | `learn-to-fly/src/render/player.js` | the frame: timelines, events, buttons, frame scripts, variables, streams |

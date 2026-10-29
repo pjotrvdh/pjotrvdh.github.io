@@ -8,7 +8,6 @@
  * It writes:
  * - src/assets/library.json: every shape (as SVG path data per fill and line style), morph shape,
  *   font, static and dynamic text field, button and sprite timeline, plus the root timeline.
- * - src/assets/bitmaps/<id>.png|jpg: the bitmaps (JPEGs with an alpha channel get a <id>.alpha.png mask).
  * - src/assets/sounds/<id>.mp3: event sounds, and stream-<sprite>.mp3 for sound streamed in a timeline.
  *
  * Left out (see LEFT_OUT): the loader, the intro cutscene and the sponsor (MaxGames); the game
@@ -19,7 +18,7 @@
  * a handler in src/game/scripts.js. See .docs/assets.md.
  */
 import { mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
-import { deflateSync, inflateSync } from 'node:zlib';
+import { inflateSync } from 'node:zlib';
 
 const SOURCE = 'downloads/learn-to-fly.swf';
 const TARGET = 'learn-to-fly/src/assets';
@@ -32,6 +31,32 @@ const TARGET = 'learn-to-fly/src/assets';
  * in the main menu (src/game/start.js).
  */
 const LEFT_OUT = new Set([9, 11, 31, 32, 33, 34, 35, 36, 37, 38, 39, 41, 43, 44, 45, 46, 47, 65, 103, 259, 262, 310]);
+
+/**
+ * Shapes drawn here instead of exported: the rocket flames (shapes 73 and 76, in sprites 74 and 77)
+ * were white bitmaps (72, 75); these are their outlines as vector shapes, the same size (15 × 20
+ * and 26 × 27 px). The glow filter on their placements colours them yellow.
+ */
+const flame = (b, d) => ({ t: 'shape', b, fills: [{ k: 's', c: [255, 255, 255, 255] }], lines: [], paths: [['f', 0, d]] });
+const REDRAWN = {
+    73: flame([0, 0, 15, 20], 'M2 0Q7.5 -1 13 0Q15 4 14 6Q11 7 10.5 9L9 15Q8 18.5 7.5 19Q7 18.5 6 15L4.5 9Q4 7 1 6Q0 4 2 0Z'),
+    76: flame([0, 0, 26, 27], 'M6 0Q13 -1 20 0Q25 2 26 4.5Q24 6 21 7L21 14Q20.5 18 18 19L15.5 23Q14 26.5 13 27Q12 26.5 10.5 23L8 19Q5.5 18 5 14L5 7Q2 6 0 4.5Q1 2 6 0Z'),
+};
+
+/**
+ * No bitmaps are exported: the clips that still had bitmap fills (the shop's boards and buttons, the
+ * tutorial boards, the score board, the old HUD dials) are hidden behind HTML. Their bitmap-filled
+ * parts are dropped, so those clips draw only their vector parts.
+ */
+function dropBitmapFills(chars) {
+    for (const c of Object.values(chars)) {
+        if (c.t !== 'shape' && c.t !== 'morph') {
+            continue;
+        }
+        c.fills = c.fills.map((f) => (f.k === 'b' ? null : f));
+        c.paths = c.paths.filter(([kind, i]) => kind !== 'f' || c.fills[i]);
+    }
+}
 
 /** Reads bytes and bit fields from a SWF buffer. */
 class Reader {
@@ -713,143 +738,6 @@ function parseEditText(d) {
     return { id, edit };
 }
 
-/* ---------- bitmaps ---------- */
-
-const CRC_TABLE = Array.from({ length: 256 }, (_, n) => {
-    let c = n;
-    for (let k = 0; k < 8; k++) {
-        c = c & 1 ? 0xedb88320 ^ (c >>> 1) : c >>> 1;
-    }
-    return c >>> 0;
-});
-
-function crc32(buf) {
-    let c = 0xffffffff;
-    for (const b of buf) {
-        c = CRC_TABLE[(c ^ b) & 0xff] ^ (c >>> 8);
-    }
-    return (c ^ 0xffffffff) >>> 0;
-}
-
-function png(width, height, rgba, channels = 4) {
-    const chunk = (type, data) => {
-        const len = Buffer.alloc(4);
-        len.writeUInt32BE(data.length);
-        const td = Buffer.concat([Buffer.from(type), data]);
-        const crc = Buffer.alloc(4);
-        crc.writeUInt32BE(crc32(td));
-        return Buffer.concat([len, td, crc]);
-    };
-    const ihdr = Buffer.alloc(13);
-    ihdr.writeUInt32BE(width, 0);
-    ihdr.writeUInt32BE(height, 4);
-    ihdr[8] = 8;
-    ihdr[9] = channels === 4 ? 6 : 0;
-    const raw = Buffer.alloc((width * channels + 1) * height);
-    for (let y = 0; y < height; y++) {
-        raw[y * (width * channels + 1)] = 0;
-        rgba.copy(raw, y * (width * channels + 1) + 1, y * width * channels, (y + 1) * width * channels);
-    }
-    return Buffer.concat([
-        Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]),
-        chunk('IHDR', ihdr),
-        chunk('IDAT', deflateSync(raw)),
-        chunk('IEND', Buffer.alloc(0)),
-    ]);
-}
-
-function parseLossless(d, code) {
-    const r = new Reader(d);
-    const id = r.u16();
-    const format = r.u8();
-    const w = r.u16();
-    const h = r.u16();
-    const tableSize = format === 3 ? r.u8() + 1 : 0;
-    const data = inflateSync(d.subarray(r.pos));
-    const alpha = code === 36;
-    const out = Buffer.alloc(w * h * 4);
-    const unpremultiply = (i, a) => {
-        if (alpha && a > 0 && a < 255) {
-            out[i] = Math.min(255, Math.round((out[i] * 255) / a));
-            out[i + 1] = Math.min(255, Math.round((out[i + 1] * 255) / a));
-            out[i + 2] = Math.min(255, Math.round((out[i + 2] * 255) / a));
-        }
-    };
-    if (format === 3) {
-        const entry = alpha ? 4 : 3;
-        const pitch = (w + 3) & ~3;
-        const base = tableSize * entry;
-        for (let y = 0; y < h; y++) {
-            for (let x = 0; x < w; x++) {
-                const idx = data[base + y * pitch + x];
-                const o = (y * w + x) * 4;
-                out[o] = data[idx * entry];
-                out[o + 1] = data[idx * entry + 1];
-                out[o + 2] = data[idx * entry + 2];
-                out[o + 3] = alpha ? data[idx * entry + 3] : 255;
-                unpremultiply(o, out[o + 3]);
-            }
-        }
-    } else if (format === 5) {
-        for (let i = 0; i < w * h; i++) {
-            const a = alpha ? data[i * 4] : 255;
-            out[i * 4] = data[i * 4 + 1];
-            out[i * 4 + 1] = data[i * 4 + 2];
-            out[i * 4 + 2] = data[i * 4 + 3];
-            out[i * 4 + 3] = a;
-            unpremultiply(i * 4, a);
-        }
-    } else if (format === 4) {
-        const pitch = (w * 2 + 3) & ~3;
-        for (let y = 0; y < h; y++) {
-            for (let x = 0; x < w; x++) {
-                const v = data.readUInt16BE(y * pitch + x * 2);
-                const o = (y * w + x) * 4;
-                out[o] = ((v >> 10) & 31) * 8;
-                out[o + 1] = ((v >> 5) & 31) * 8;
-                out[o + 2] = (v & 31) * 8;
-                out[o + 3] = 255;
-            }
-        }
-    }
-    return { id, w, h, file: `${id}.png`, data: png(w, h, out) };
-}
-
-/** Strips the stray FFD9 FFD8 pair Flash puts in some JPEG streams. */
-function cleanJpeg(buf) {
-    let b = buf;
-    if (b[0] === 0xff && b[1] === 0xd9 && b[2] === 0xff && b[3] === 0xd8) {
-        b = b.subarray(4);
-    }
-    const parts = [];
-    let start = 0;
-    for (let i = 2; i < b.length - 3; i++) {
-        if (b[i] === 0xff && b[i + 1] === 0xd9 && b[i + 2] === 0xff && b[i + 3] === 0xd8) {
-            parts.push(b.subarray(start, i));
-            start = i + 4;
-        }
-    }
-    parts.push(b.subarray(start));
-    return Buffer.concat(parts);
-}
-
-function jpegSize(b) {
-    let i = 2;
-    while (i < b.length) {
-        if (b[i] !== 0xff) {
-            i++;
-            continue;
-        }
-        const marker = b[i + 1];
-        const len = b.readUInt16BE(i + 2);
-        if (marker >= 0xc0 && marker <= 0xc3) {
-            return { h: b.readUInt16BE(i + 5), w: b.readUInt16BE(i + 7) };
-        }
-        i += 2 + len;
-    }
-    return { w: 0, h: 0 };
-}
-
 /* ---------- sounds ---------- */
 
 function parseSound(d) {
@@ -1171,9 +1059,8 @@ const frameRect = header.rect();
 const fps = header.u16() / 256;
 header.u16();
 
-const out = { chars: {}, sounds: [], bitmaps: [], unhandled: new Set() };
+const out = { chars: {}, sounds: [], unhandled: new Set() };
 const exportsById = {};
-let jpegTables = null;
 let background = [255, 255, 255];
 const topTags = readTags(body, header.pos);
 const timelineTags = [];
@@ -1197,34 +1084,8 @@ for (const [code, d] of topTags) {
     } else if (code === 34) {
         const { id, button } = parseButton2(d);
         out.chars[id] = button;
-    } else if (code === 20 || code === 36) {
-        const bmp = parseLossless(d, code);
-        out.bitmaps.push(bmp);
-        out.chars[bmp.id] = { t: 'bitmap', w: bmp.w, h: bmp.h, file: bmp.file };
-    } else if (code === 8) {
-        jpegTables = d;
-    } else if (code === 6 || code === 21 || code === 35) {
-        const id = d.readUInt16LE(0);
-        let jpeg;
-        let alpha = null;
-        if (code === 35) {
-            const offset = d.readUInt32LE(2);
-            jpeg = cleanJpeg(d.subarray(6, 6 + offset));
-            alpha = inflateSync(d.subarray(6 + offset));
-        } else {
-            jpeg = cleanJpeg(d.subarray(2));
-            if (code === 6 && jpegTables?.length > 4) {
-                jpeg = cleanJpeg(Buffer.concat([jpegTables.subarray(0, jpegTables.length - 2), jpeg.subarray(2)]));
-            }
-        }
-        const { w, h } = jpegSize(jpeg);
-        const bmp = { id, w, h, file: `${id}.jpg`, data: jpeg };
-        out.bitmaps.push(bmp);
-        out.chars[id] = { t: 'bitmap', w, h, file: bmp.file };
-        if (alpha) {
-            out.bitmaps.push({ id, file: `${id}.alpha.png`, data: png(w, h, alpha, 1) });
-            out.chars[id].alpha = `${id}.alpha.png`;
-        }
+    } else if ([6, 8, 20, 21, 35, 36].includes(code)) {
+        // Bitmaps are not exported: see REDRAWN and dropBitmapFills().
     } else if (code === 14) {
         const s = parseSound(d);
         out.sounds.push({ file: `${s.id}.mp3`, data: s.data });
@@ -1249,10 +1110,15 @@ for (const [code, d] of topTags) {
 
 const root = parseTimeline(timelineTags, 'root', out);
 
+// The rocket's flames were the only bitmaps still in sight: they are redrawn as vector shapes.
+for (const [id, shape] of Object.entries(REDRAWN)) {
+    out.chars[id] = shape;
+}
+dropBitmapFills(out.chars);
+
 for (const id of LEFT_OUT) {
     delete out.chars[id];
 }
-out.bitmaps = out.bitmaps.filter((b) => !LEFT_OUT.has(b.id));
 out.sounds = out.sounds.filter((s) => s.file !== 'stream-103.mp3' && !LEFT_OUT.has(Number.parseInt(s.file, 10)));
 const dropLeftOut = (frames) => {
     for (const f of frames) {
@@ -1295,8 +1161,6 @@ for (const c of Object.values(out.chars)) {
             }
         } else if (c.t === 'button') {
             c.records.forEach((r) => visit(r.c));
-        } else if (c.t === 'shape' || c.t === 'morph') {
-            c.fills.filter((f) => f.k === 'b').forEach((f) => visit(f.id));
         } else if (c.t === 'text') {
             c.records.forEach((r) => visit(r.font));
         } else if (c.t === 'edit' && c.font) {
@@ -1325,18 +1189,12 @@ for (const c of Object.values(out.chars)) {
         }
     }
     const streams = new Set(Object.values(out.chars).filter((c) => c.t === 'sprite' && c.stream).map((c) => c.stream.file));
-    out.bitmaps = out.bitmaps.filter((b) => out.chars[b.id]);
     out.sounds = out.sounds.filter((x) => streams.has(x.file) || out.chars[Number.parseInt(x.file, 10)]);
 }
 const exportsByName = Object.fromEntries(Object.entries(exportsById).filter(([id]) => out.chars[id]).map(([id, name]) => [name, Number(id)]));
 
-rmSync(`${TARGET}/bitmaps`, { recursive: true, force: true });
 rmSync(`${TARGET}/sounds`, { recursive: true, force: true });
-mkdirSync(`${TARGET}/bitmaps`, { recursive: true });
 mkdirSync(`${TARGET}/sounds`, { recursive: true });
-for (const b of out.bitmaps) {
-    writeFileSync(`${TARGET}/bitmaps/${b.file}`, b.data);
-}
 for (const s of out.sounds) {
     writeFileSync(`${TARGET}/sounds/${s.file}`, s.data);
 }
@@ -1353,7 +1211,7 @@ const counts = {};
 for (const c of Object.values(out.chars)) {
     counts[c.t] = (counts[c.t] ?? 0) + 1;
 }
-console.log(`Wrote ${TARGET}/library.json:`, counts, `${out.bitmaps.length} bitmap files, ${out.sounds.length} sound files.`);
+console.log(`Wrote ${TARGET}/library.json:`, counts, `${out.sounds.length} sound files.`);
 if (out.unhandled.size) {
     console.log('Tags not exported:', [...out.unhandled].sort((a, b) => a - b).join(', '));
 }
