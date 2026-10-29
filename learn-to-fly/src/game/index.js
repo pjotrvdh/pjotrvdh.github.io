@@ -1,6 +1,7 @@
 import { STAGE } from '../render/library.js';
 import { Player } from '../render/player.js';
 import { audio, preloadSounds, unlockAudio } from './audio.js';
+import { setupCheats } from './cheats.js';
 import { setupControls } from './controls.js';
 import { g, pending } from './context.js';
 import { endFlight, f } from './flight.js';
@@ -92,6 +93,7 @@ const toStage = (x, y) => ({ x: (x - view.ox) / view.s, y: (y - view.oy) / view.
 
 setupInput(player, canvas, toStage, unlockAudio);
 const controls = setupControls(player);
+setupCheats();
 
 const step = 1000 / STAGE.fps;
 let last = performance.now();

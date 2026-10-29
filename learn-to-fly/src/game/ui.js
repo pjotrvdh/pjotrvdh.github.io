@@ -115,5 +115,12 @@ export function hideClips(...clips) {
     }
 }
 
+/** Tells the open screens that the saved game changed outside them (the cheats), so they redraw. */
+export const STATE_EVENT = 'learn-to-fly-state';
+
+export function stateChanged() {
+    window.dispatchEvent(new Event(STATE_EVENT));
+}
+
 /** Money as the game shows it. */
 export const money = (n) => `$${Math.round(n).toLocaleString('en-US')}`;
