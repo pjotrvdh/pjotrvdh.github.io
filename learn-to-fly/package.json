@@ -1,0 +1,16 @@
+{
+    "$schema": "https://www.schemastore.org/package.json",
+    "name": "learn-to-fly",
+    "version": "1.0.0",
+    "description": "An HTML5 remake of Learn to Fly: a penguin, a ramp, and a shop full of gliders and rockets.",
+    "private": true,
+    "type": "module",
+    "scripts": {
+        "dev": "vite",
+        "build": "vite build",
+        "preview": "vite preview"
+    },
+    "devDependencies": {
+        "vite": "^8.0.0"
+    }
+}
