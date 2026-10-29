@@ -5,7 +5,7 @@
  */
 import { sound } from './audio.js';
 import { FLOOR, HERO, LAIR, OWN, hash, inb, ix, tx, ty } from './constants.js';
-import { CFG, KINDS, SPELLS } from './config.js';
+import { CFG, KINDS, SPELLS, isWorker } from './config.js';
 import { bfs } from './path.js';
 import { G } from './state.js';
 import { cap, ownPortal, ti, walk } from './tiles.js';
@@ -143,7 +143,7 @@ export function openTile(j) {
 
 /** Your living creatures (imps excluded, held ones included). */
 export function creatures() {
-    return G.ents.filter((e) => e.side === OWN && e.kind !== 'imp' && !e.dead);
+    return G.ents.filter((e) => e.side === OWN && !isWorker(e) && !e.dead);
 }
 
 // Beds (Dungeon Keeper style): every creature claims one Lair tile as its own bed. Nobody else sleeps there,

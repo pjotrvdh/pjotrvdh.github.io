@@ -7,6 +7,13 @@
  */
 export default [
     {
+        slug: 'learn-to-fly',
+        title: 'Learn to Fly',
+        description: 'A penguin wants to fly. Slide down the ramp, earn cash for every flight and buy bigger ramps, gliders and rockets until you break through the iceberg.',
+        tags: ['Arcade', 'Simulation'],
+        added: '2026-10-29',
+    },
+    {
         slug: 'twistball',
         title: 'Twistball',
         description: 'Pong, but with a twist: down a neon tunnel. Move your paddle as you hit the ball to curve it past the opponent, through ten levels that get faster and wilder.',

@@ -17,7 +17,7 @@
  * tools stand in for the right button and for dragging the map.
  */
 import { H, HATCH, LAIR, LIB, N, N4, OWN, TRAIN, TREAS, W, inb, ix, tx, ty } from './constants.js';
-import { ROOMS, SPELLS } from './config.js';
+import { ROOMS, SPELLS, isWorker } from './config.js';
 import { applyRect, canDrop, cast, dismissHeld, dropHeld, pickUp, slap } from './actions.js';
 import { G, app } from './state.js';
 import { diggable, ownPortal } from './tiles.js';
@@ -61,12 +61,13 @@ function cursor(cv, overUnit) {
 
 /** Drops (or, on your own portal, dismisses) the creature picked up last onto tile i. */
 function drop(i) {
-    if (ownPortal(i) && G.held[G.held.length - 1].kind !== 'imp') {
+    const d = G.held[G.held.length - 1];
+    if (ownPortal(i) && !isWorker(d)) {
         dismissHeld(i);
-    } else if (canDrop(i, G.held[G.held.length - 1])) {
+    } else if (canDrop(i, d)) {
         dropHeld(i);
     } else {
-        msg(G.held[G.held.length - 1].kind === 'imp' ? 'Imps can only be dropped on open ground you have discovered.' : 'You can only drop creatures on your own territory.', 'dropbad', 'bad');
+        msg(isWorker(d) ? 'Imps can only be dropped on open ground you have discovered.' : 'You can only drop creatures on your own territory.', 'dropbad', 'bad');
     }
 }
 

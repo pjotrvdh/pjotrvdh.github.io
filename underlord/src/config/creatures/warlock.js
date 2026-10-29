@@ -14,6 +14,8 @@ export default {
     train: 9,
     /** Research points per second in the Library; 0 = it never studies. */
     study: 4,
+    /** Chance (0–1) that it picks the Library before the Training Room when it has nothing else to do; 0 = no preference. */
+    studyChance: 0.8,
     /** How far it can see, in tiles. */
     vision: 5,
     /** How many the portals hold on one map. Arrivals take one; one that leaves or is dismissed goes back, a slain one is gone. */

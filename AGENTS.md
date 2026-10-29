@@ -4,7 +4,7 @@ Arcade is the owner's collection of browser games, published at https://pjotrvdh
 
 ## Docs first
 
-- Before changing anything, read the wiki for that area: [.docs/index.md](.docs/index.md) for the Arcade (layout, build, DDEV, adding a game), and `<game>/.docs/index.md` for a game's rules and mechanics: [underlord/.docs/index.md](underlord/.docs/index.md), [twistball/.docs/index.md](twistball/.docs/index.md).
+- Before changing anything, read the wiki for that area: [.docs/index.md](.docs/index.md) for the Arcade (layout, build, DDEV, adding a game), and `<game>/.docs/index.md` for a game's rules and mechanics: [underlord/.docs/index.md](underlord/.docs/index.md), [twistball/.docs/index.md](twistball/.docs/index.md), [learn-to-fly/.docs/index.md](learn-to-fly/.docs/index.md).
 - Update the matching doc in the same change as the code; a doc that disagrees with the code is a bug. Read [.docs/writing-docs.md](.docs/writing-docs.md) before adding or editing a doc.
 
 ## Structure
@@ -16,7 +16,16 @@ Arcade is the owner's collection of browser games, published at https://pjotrvdh
 - `public/404.html` is GitHub Pages' not-found page and also redirects the old `/Underlord/` URL to `/underlord/`.
 - `npm run dev` serves the index and every game (`/<slug>/`). DDEV (default `ddev.site` TLD, no PHP or database): `ddev start` runs it through `.ddev/start-vite.sh` on https://arcade.ddev.site. Run npm commands as `ddev npm …` when DDEV is used.
 - The index has a cyberpunk look (`src/styles/arcade.css`) and a graffiti logo, `src/logo.svg`, whose letters are paths (from Sedgwick Ave Display, SIL OFL), so no font is needed.
-- Text uses system fonts only, so no font files are shipped (never Comic Sans). The Arcade index and Twistball use a DIN-like HUD stack (`Bahnschrift, "DIN Alternate", …`; Twistball's HUD numbers are monospaced); Underlord uses Palatino-style serifs for headings and a humanist sans (`"Gill Sans", "Segoe UI", "Trebuchet MS", …`) for the rest. Keep text contrast at WCAG AA or better.
+- Text uses system fonts only, so no font files are shipped (never Comic Sans). The one exception is Learn to Fly's chalk handwriting, Patrick Hand (SIL OFL, `learn-to-fly/src/assets/fonts`, a Latin subset embedded in the page). The Arcade index and Twistball use a DIN-like HUD stack (`Bahnschrift, "DIN Alternate", …`; Twistball's HUD numbers are monospaced); Learn to Fly draws its texts with the fonts embedded in the original (system fonts for its device-font texts; its Comic Sans day number uses Arial Rounded); Underlord uses Palatino-style serifs for headings and a humanist sans (`"Gill Sans", "Segoe UI", "Trebuchet MS", …`) for the rest. Keep text contrast at WCAG AA or better.
+
+## Learn to Fly (`learn-to-fly/`)
+
+An HTML5 remake of the 2009 Flash game, aiming to behave 1-to-1 like the original. `learn-to-fly/tools/import-swf.mjs` exports the original's shapes, fonts, texts, buttons, timelines, bitmaps and sounds from `downloads/learn-to-fly.swf` (git-ignored) into `learn-to-fly/src/assets` (generated: rerun the tool, don't edit). `learn-to-fly/src/render` is a small Flash-style player (display list, timelines, canvas drawing); `learn-to-fly/src/game` holds the rewritten ActionScript (one file per scene, combined in `scripts.js`), `learn-to-fly/src/config` the original numbers.
+
+- Scripts keep the original's instance names and quirks; note any deliberate change in `learn-to-fly/.docs/game.md`. The loader, intro, MaxGames sponsor, version number and credit line are left out of the export (`LEFT_OUT` in the import tool).
+- The canvas fills the window edge to edge (backgrounds scaled up to the window; in flight more of the world) with an HTML control bar, HUD and score board over it (`controls.js`, `hud.js`).
+- The game starts in the main menu (no loader or intro). The shop, ramp menu, tutorial boards, achievements, end screen and clear-data question are HTML in chalk (inline SVG drawings, real text: `src/game/ui.js`, `src/styles/screens.css`); their canvas clips are hidden.
+- Games are saved in localStorage under `learn-to-fly-save`.
 
 ## Twistball (`twistball/`)
 

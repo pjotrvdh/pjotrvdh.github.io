@@ -4,7 +4,7 @@
  * the units on discovered ground and the part of the map the camera sees. Clicking it is input.js.
  */
 import { GEM, GOLD, H, HERO, NEUTRAL, OWN, PRISONER, W, tx, ty } from './constants.js';
-import { ASSETS, ROOMS } from './config.js';
+import { ASSETS, ROOMS, isWorker } from './config.js';
 import { G } from './state.js';
 import { ti } from './tiles.js';
 import { view } from '../render/view.js';
@@ -49,7 +49,7 @@ export function drawMini() {
         if (e.dead || e.held || (e.side !== OWN && !G.seen[ti(e)])) {
             continue;
         }
-        c.fillStyle = e.side === HERO ? '#8fb4ef' : e.side === NEUTRAL || e.side === PRISONER ? '#9a928a' : e.kind === 'imp' ? '#ffb070' : '#ffe2a0';
+        c.fillStyle = e.side === HERO ? '#8fb4ef' : e.side === NEUTRAL || e.side === PRISONER ? '#9a928a' : isWorker(e) ? '#ffb070' : '#ffe2a0';
         c.fillRect(e.x * s - s * 0.4, e.y * s - s * 0.4, s * 0.8, s * 0.8);
     }
     // the part of the map the camera sees (a trapezoid when the camera is tilted)

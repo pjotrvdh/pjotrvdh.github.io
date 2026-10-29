@@ -56,7 +56,7 @@ export function creatureThink(e) {
             return;
         }
     }
-    if (e.kind === 'warlock' && G.rc[LIB] && Math.random() < 0.8) {
+    if (G.rc[LIB] && Math.random() < KINDS[e.kind].studyChance) {
         p = bfs(here, (i) => G.room[i] === LIB, 6);
         if (p) {
             go(e, p, 'study', 8);

@@ -45,7 +45,7 @@ export class Figure {
         }
         const ring = new THREE.Mesh(new THREE.RingGeometry(0.26, 0.31, 20).rotateX(-Math.PI / 2), new THREE.MeshBasicMaterial({ color: ringColor(side), transparent: true, opacity: 0.75, depthWrite: false }));
         ring.position.y = 0.015;
-        ring.scale.setScalar(KINDS[kind]?.big ? 1.4 : kind === 'imp' ? 0.75 : 1);
+        ring.scale.setScalar(KINDS[kind]?.big ? 1.4 : KINDS[kind]?.worker ? 0.75 : 1);
         this.ring = ring;
         this.root.add(ring);
         this.gold = new THREE.Mesh(new THREE.IcosahedronGeometry(0.07, 0), new THREE.MeshStandardMaterial({ color: '#f2c64a', emissive: '#7a5208', metalness: 0.6, roughness: 0.35, flatShading: true }));

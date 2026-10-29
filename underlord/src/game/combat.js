@@ -4,7 +4,7 @@
  */
 import { sound } from './audio.js';
 import { HERO, OWN, foes, inb, ix } from './constants.js';
-import { CFG, ECON, KINDS } from './config.js';
+import { CFG, ECON, KINDS, isWorker } from './config.js';
 import { addGold, gainXP, release, step } from './entities.js';
 import { bfs } from './path.js';
 import { G } from './state.js';
@@ -102,7 +102,7 @@ export function attack(e, t) {
     if (e.side === OWN) {
         gainXP(e, dmg * 0.4);
     }
-    if (t.side === OWN && t.kind !== 'imp' && t.state === 'sleep') {
+    if (t.side === OWN && !isWorker(t) && t.state === 'sleep') {
         t.state = 'think';
     }
     if (t.hp <= 0) {

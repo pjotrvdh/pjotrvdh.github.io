@@ -4,7 +4,7 @@
  * for enemies (imps flee, or defend the Heart). What each state does is the STATES table.
  */
 import { HATCH, HERO, LIB, NEUTRAL, OWN, PRISONER, TRAIN, tx, ty } from './constants.js';
-import { ECON, KINDS } from './config.js';
+import { ECON, KINDS, isWorker } from './config.js';
 import { collect, creatureThink } from './creatures.js';
 import { addGold, arrive, gainXP, go, hasBed, leave, release, research, step, toPool } from './entities.js';
 import { fight, heartFoe, joy, nearestEnemy } from './combat.js';
@@ -32,7 +32,7 @@ export function tick(e, dt) {
         findTreasure(e);
         getHungry(e, dt);
     }
-    if (e.kind === 'imp') {
+    if (isWorker(e)) {
         impLookout(e, dt);
     } else {
         lookout(e, dt);
@@ -66,7 +66,7 @@ function findTreasure(e) {
 
 /** Your creatures (not imps, not those that never eat) get hungry; starving, they leave. */
 function getHungry(e, dt) {
-    if (e.kind === 'imp' || !KINDS[e.kind].eats) {
+    if (isWorker(e) || !KINDS[e.kind].eats) {
         return;
     }
     e.hunger += dt * 1.5;
@@ -161,7 +161,7 @@ const STATES = {
             e.state = e.guard ? 'guard' : 'march';
             e.path = [];
             e.repath = 0;
-        } else if (e.kind === 'imp') {
+        } else if (isWorker(e)) {
             impThink(e);
         } else {
             creatureThink(e);
