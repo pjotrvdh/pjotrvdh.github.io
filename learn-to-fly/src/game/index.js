@@ -1,4 +1,4 @@
-import { loadBitmaps, STAGE } from '../render/library.js';
+import { STAGE } from '../render/library.js';
 import { Player } from '../render/player.js';
 import { audio, preloadSounds, unlockAudio } from './audio.js';
 import { setupControls } from './controls.js';
@@ -117,11 +117,9 @@ function loop(now) {
     requestAnimationFrame(loop);
 }
 
-loadBitmaps().then(() => {
-    preloadSounds();
-    player.start();
-    layout();
-    player.draw(view);
-    document.body.classList.add('ready');
-    requestAnimationFrame(loop);
-});
+preloadSounds();
+player.start();
+layout();
+player.draw(view);
+document.body.classList.add('ready');
+requestAnimationFrame(loop);

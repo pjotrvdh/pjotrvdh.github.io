@@ -30,7 +30,7 @@ index.html              the page: one canvas
 cover.svg               the game's tile on the Arcade index (16:9)
 tools/import-swf.mjs    exports the SWF's assets into src/assets
 src/
-  assets/               library.json (shapes, fonts, texts, buttons, timelines), bitmaps/, sounds/,
+  assets/               library.json (shapes, fonts, texts, buttons, timelines; all vector), sounds/,
                         fonts/ (Patrick Hand, SIL OFL: the chalk handwriting)
   config/               the game's numbers: upgrades.js, physics.js, ramps.js, game.js
   render/               the player: display list and timelines, drawing, text, the frame loop
