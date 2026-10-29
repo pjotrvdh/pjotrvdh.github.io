@@ -684,6 +684,11 @@ button {
 }
 
 @media (max-width: 700px) {
+    /* Below the control bar. */
+    .flight-hint {
+        top: calc(max(12px, env(safe-area-inset-top)) + 66px);
+    }
+
     .bar-row,
     .card-row {
         grid-template-columns: 1fr;
