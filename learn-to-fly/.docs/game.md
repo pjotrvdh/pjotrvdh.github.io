@@ -49,6 +49,11 @@ description: Learn to Fly's scenes, flight physics, money, shop, ramps and achie
 - `controls.js`: the control bar (settings, sound, pause, full screen; M, P/Esc, F); the SWF's options menu is hidden (`options.js`). Settings: day intro (`skipCutscenes`: with it off and no board to show, the flight starts at once), control reminders, mute; kept in localStorage `learn-to-fly-options`.
 - `hud.js` with the HTML in `index.html`: the control reminders after the jump, the flight HUD (speed with the glider's red zone, altitude, distance, resistance, fuel) and the score board, reading `f` and the root's `rdis`, `ralt`, `rdur`, `rtotal`. The HUD shows with every glider level.
 
+## Cheats
+
+- `cheats.js`: typing `iliketocheat` anywhere shows a Cheats button in the control bar, for the current page load only. It offers +$1,000, +$10,000, every upgrade at its top level, every ramp open (by marking all achievements done, without their rewards), endless fuel (`cheats.endlessFuel`, read in `getAir()`) and "Win the game" (in flight: sets the distance past the finish line, so the flight's own rules play the ending).
+- Cheats save the game and call `stateChanged()` (`ui.js`), so an open shop or ramp menu redraws.
+
 ## Saving
 
 - `state.js` keeps what the original's SharedObject kept, in localStorage `learn-to-fly-save`; the shop frame saves. The options are not saved (original).

@@ -1,5 +1,6 @@
 import config from '../config/index.js';
 import { Sound } from './audio.js';
+import { cheats } from './cheats.js';
 import { fade, flashfade, g, music, pending } from './context.js';
 import { KINDS, options, state, upgradeValue } from './state.js';
 
@@ -147,6 +148,9 @@ function getAir(root) {
             const t = turn();
             player.rotation += P.spin + t;
             f.vdir += P.spin + t;
+        }
+        if (cheats.endlessFuel) {
+            f.rocketfuel = upgradeValue('fuel');
         }
         if (g.player.isDown('Space') && f.rocketfuel > 0) {
             player.c('fuel').gotoAndStop(50 - Math.round((f.rocketfuel / upgradeValue('fuel')) * 50 - 0.5));

@@ -1,7 +1,7 @@
 import config from '../config/index.js';
 import { fade, g, music } from './context.js';
 import { achievementCount, KINDS, state } from './state.js';
-import { drawing, h, hideClips, money, registerScreen, showScreen } from './ui.js';
+import { drawing, h, hideClips, money, registerScreen, showScreen, STATE_EVENT } from './ui.js';
 
 /*
  * The ramp menu (root frame 9, the "stage" label): the five ramps along the top, the picked ramp's
@@ -46,6 +46,11 @@ function build() {
             list,
             fly));
     registerScreen('ramps', screen);
+    window.addEventListener(STATE_EVENT, () => {
+        if (!screen.hidden) {
+            render();
+        }
+    });
     Object.assign(ui, { screen, buttons, title, note, goal, count, list, fly });
 }
 

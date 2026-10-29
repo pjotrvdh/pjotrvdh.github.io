@@ -132,6 +132,42 @@ canvas {
     background: rgba(255, 255, 255, 0.08);
 }
 
+.cheats {
+    min-width: 230px;
+}
+
+.cheats h2 {
+    margin: 2px 8px 4px;
+    font-size: 15px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--muted);
+}
+
+.cheats button {
+    padding: 8px 10px;
+    border: 0;
+    border-radius: 8px;
+    background: transparent;
+    color: var(--ink);
+    font: 15px var(--font);
+    text-align: left;
+    cursor: pointer;
+}
+
+.cheats button:hover,
+.cheats button:focus-visible {
+    background: rgba(255, 255, 255, 0.1);
+    outline: none;
+}
+
+.cheat-status {
+    min-height: 1.2em;
+    margin: 4px 8px 2px;
+    color: var(--gold);
+    font-size: 14px;
+}
+
 .settings input {
     width: 18px;
     height: 18px;

@@ -2,7 +2,7 @@ import config from '../config/index.js';
 import { Sound } from './audio.js';
 import { fade, music } from './context.js';
 import { save, state } from './state.js';
-import { drawing, h, hideClips, money, registerScreen, showScreen } from './ui.js';
+import { drawing, h, hideClips, money, registerScreen, showScreen, STATE_EVENT } from './ui.js';
 
 /*
  * The shop (root frame 8): a chalk board in HTML. The bars (Ramp Height, Acceleration, Air
@@ -99,6 +99,12 @@ function build() {
         hint);
     registerScreen('shop', screen);
     Object.assign(ui, { screen, cost, cash, hint, ready, rows, cardRows });
+    window.addEventListener(STATE_EVENT, () => {
+        if (!ui.screen.hidden) {
+            shown.cash = state.cash;
+            render();
+        }
+    });
 }
 
 function setPreview(upgrade, level) {
