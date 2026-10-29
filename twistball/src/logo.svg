@@ -1,0 +1,27 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 688 150">
+  <!-- Twistball logo, cyberpunk style: own angular letters (thick mitred strokes, no font), skewed,
+       in yellow with cyan and magenta offset copies, two glitch slices that jump sideways, and a
+       HUD bar underneath. -->
+  <defs>
+    <g id="word"><path transform="translate(0 0)" d="M0 7 H60"/><path transform="translate(0 0)" d="M30 7 V80"/><path transform="translate(73 0)" d="M0 0 L13 80 L37 26 L61 80 L74 0"/><path transform="translate(160 0)" d="M7 0 V80"/><path transform="translate(187 0)" d="M58 7 H13 L6 14 V32 L13 40 H47 L54 47 V66 L47 73 H2"/><path transform="translate(260 0)" d="M0 7 H60"/><path transform="translate(260 0)" d="M30 7 V80"/><path transform="translate(333 0)" d="M7 0 V80"/><path transform="translate(333 0)" d="M7 7 H44 L52 15 V29 L44 37 H7"/><path transform="translate(333 0)" d="M7 40 H47 L55 48 V65 L47 73 H7"/><path transform="translate(406 0)" d="M7 80 V19 L19 7 H43 L55 19 V80"/><path transform="translate(406 0)" d="M7 46 H55"/><path transform="translate(481 0)" d="M7 0 V73 H58"/><path transform="translate(552 0)" d="M7 0 V73 H58"/></g>
+    <clipPath id="sliceA"><rect x="0" y="46" width="688" height="9"/></clipPath>
+    <clipPath id="sliceB"><rect x="0" y="80" width="688" height="6"/></clipPath>
+  </defs>
+  <g transform="translate(38 24) skewX(-12)" fill="none" stroke-width="13" stroke-linejoin="miter" stroke-miterlimit="3" stroke-linecap="square">
+    <use href="#word" stroke="#ff2bd6" transform="translate(-5 -2)" opacity=".85"/>
+    <use href="#word" stroke="#00e5ff" transform="translate(6 4)"/>
+    <use href="#word" stroke="#f5e600"/>
+  </g>
+  <g clip-path="url(#sliceA)">
+    <g transform="translate(14 0) translate(38 24) skewX(-12)" fill="none" stroke-width="13" stroke-linejoin="miter" stroke-miterlimit="3" stroke-linecap="square"><use href="#word" stroke="#00e5ff"/></g>
+  </g>
+  <g clip-path="url(#sliceB)">
+    <g transform="translate(-10 0) translate(38 24) skewX(-12)" fill="none" stroke-width="13" stroke-linejoin="miter" stroke-miterlimit="3" stroke-linecap="square"><use href="#word" stroke="#fffbe0"/></g>
+  </g>
+  <g transform="translate(24 118)">
+    <path d="M0 0 H378 L386 7 H624" fill="none" stroke="#f5e600" stroke-width="3"/>
+    <rect x="396" y="4" width="22" height="6" fill="#00e5ff"/>
+    <rect x="424" y="4" width="10" height="6" fill="#ff2bd6"/>
+    <rect x="440" y="4" width="6" height="6" fill="#f5e600"/>
+  </g>
+</svg>

@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <!-- Arcade favicon: a neon "A" on a clipped dark tile, in the index's cyan and magenta. -->
+  <defs><linearGradient id="n" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#00f0ff"/><stop offset="1" stop-color="#ff2bd6"/></linearGradient></defs>
+  <path d="M0 0H50L64 14V64H14L0 50Z" fill="#0b0916"/>
+  <path d="M18 50L29 14H35L46 50H39L36.5 41H27.5L25 50ZM29.3 35H34.7L32 25Z" fill="url(#n)"/>
+  <path d="M50 0L64 14" stroke="#f5e600" stroke-width="4"/>
+</svg>
