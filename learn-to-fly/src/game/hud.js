@@ -5,7 +5,8 @@ import { state, upgradeValue } from './state.js';
 /*
  * The flight HUD and the score board in HTML, in place of the dials (hudc) and chalk board (fboard)
  * of the SWF. They read the flight (`f` in flight.js) and the values the score board's timeline counts
- * up (`rdis`, `ralt`, `rdur`, `rtotal` on the root). Clicks go through to the game.
+ * up (`rdis`, `ralt`, `rdur`, `rtotal` on the root). Clicks go through to the game. On a touch
+ * screen (body class `touch`, see input.js) the touch pad shows with the HUD.
  */
 
 const FLIGHT_FRAME = 11;
@@ -15,9 +16,15 @@ const HINTS = {
     glider: [0, 137, 'Use ← → to control the flight'],
     rocket: [137, 302, 'Press Space to use your rockets'],
 };
+/** The same reminders for the touch pad. */
+const TOUCH_HINTS = {
+    noGlider: [0, 137, 'Hold ◀ ▶ to adjust your angle'],
+    glider: [0, 137, 'Hold ◀ ▶ to control the flight'],
+    rocket: [137, 302, 'Hold the rocket button to use your rockets'],
+};
 const $ = (id) => document.getElementById(id);
 const els = {};
-let shown = { hud: false, board: false, hint: false };
+let shown = { hud: false, board: false, hint: false, pad: false };
 
 function setText(el, text) {
     if (el.textContent !== text) {
@@ -33,9 +40,11 @@ function show(el, key, on) {
 }
 
 export const hud = {
+    /** Lets go of the touch pad's buttons (set by index.js from setupInput()). */
+    releasePad: () => {},
     update() {
         if (!els.hud) {
-            for (const id of ['hint', 'hud', 'board', 'hSpeed', 'hSpeedBar', 'hAlt', 'hDist', 'hRes', 'hFuel', 'hFuelBar', 'bDist', 'bAlt', 'bDur', 'bTotal']) {
+            for (const id of ['hint', 'hud', 'board', 'pad', 'hSpeed', 'hSpeedBar', 'hAlt', 'hDist', 'hRes', 'hFuel', 'hFuelBar', 'bDist', 'bAlt', 'bDur', 'bTotal']) {
                 els[id] = $(id);
             }
         }
@@ -44,10 +53,16 @@ export const hud = {
         const board = root?.get('fboard');
         const boardUp = inFlight && f.finished && !f.finishclick && (board?.currentFrame ?? 0) >= 20;
         show(els.hud, 'hud', inFlight && !f.finished);
+        const padUp = inFlight && !f.finished;
+        if (shown.pad && !padUp) {
+            this.releasePad();
+        }
+        show(els.pad, 'pad', padUp);
         let hint = '';
         if (inFlight && f.hintTick !== null && f.hintTick !== undefined && !f.finished) {
             const t = g.player.tickCount - f.hintTick;
-            const list = [state.levels.gliders > 1 ? HINTS.glider : HINTS.noGlider, ...(state.levels.rockets > 1 ? [HINTS.rocket] : [])];
+            const hints = document.body.classList.contains('touch') ? TOUCH_HINTS : HINTS;
+            const list = [state.levels.gliders > 1 ? hints.glider : hints.noGlider, ...(state.levels.rockets > 1 ? [hints.rocket] : [])];
             hint = list.find(([from, to]) => t >= from && t < to)?.[2] ?? '';
         }
         show(els.hint, 'hint', !!hint);
@@ -71,8 +86,10 @@ export const hud = {
             setText(els.hRes, String(rv.reshud ?? '0%'));
             const hasRocket = state.levels.rockets > 1;
             els.hFuel.hidden = !hasRocket;
+            els.pad.classList.toggle('rocket', hasRocket);
             if (hasRocket) {
                 els.hFuelBar.style.setProperty('--v', Math.max(0, f.rocketfuel / upgradeValue('fuel')).toFixed(3));
+                els.pad.classList.toggle('empty', f.rocketfuel <= 0);
             }
         }
         if (boardUp) {

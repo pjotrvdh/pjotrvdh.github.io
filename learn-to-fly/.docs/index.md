@@ -29,7 +29,7 @@ description: Hub of the Learn to Fly wiki (HTML5 remake of the Flash game). Read
 | `learn-to-fly/src/game/shop.js`, `ramp-menu.js`, `day.js` | shop, ramp (stage) menu, day intro and tutorial boards |
 | `learn-to-fly/src/game/flight.js` | the flight, the HUD meters and the score board |
 | `learn-to-fly/src/game/achievements.js`, `outro.js` | achievement rewards, the ending |
-| `learn-to-fly/src/game/state.js`, `context.js`, `audio.js`, `input.js`, `index.js`, `controls.js`, `hud.js`, `cheats.js` | save game and options, shared helpers (music, fades), Web Audio, input, boot, layout and frame loop, control bar, HUD and score board, the Cheats panel |
+| `learn-to-fly/src/game/state.js`, `context.js`, `audio.js`, `input.js`, `index.js`, `controls.js`, `hud.js`, `cheats.js` | save game and options, shared helpers (music, fades), Web Audio, input and the touch pad, boot, layout and frame loop, control bar, HUD and score board, the Cheats panel |
 | `learn-to-fly/src/config/*.js` | the original numbers: `upgrades.js`, `physics.js`, `ramps.js`, `game.js` |
 
 ## Docs in this wiki

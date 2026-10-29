@@ -376,3 +376,101 @@ canvas {
         font-size: 18px;
     }
 }
+
+/* ----- touch pad (src/game/input.js) ----- */
+
+/* ◀ ▶ in the bottom left corner, the rocket in the bottom right; only on a touch screen. */
+.pad {
+    --pad-size: clamp(64px, 14vmin, 92px);
+    --pad-gap: max(16px, env(safe-area-inset-bottom));
+    position: fixed;
+    inset: auto 0 0;
+    pointer-events: none;
+}
+
+.pad[hidden],
+body:not(.touch) .pad {
+    display: none;
+}
+
+.pad-side {
+    position: absolute;
+    bottom: var(--pad-gap);
+    display: flex;
+    gap: 12px;
+}
+
+.pad-side.left {
+    left: max(16px, env(safe-area-inset-left));
+}
+
+.pad-side.right {
+    right: max(16px, env(safe-area-inset-right));
+}
+
+.pad-btn {
+    display: grid;
+    place-items: center;
+    width: var(--pad-size);
+    height: var(--pad-size);
+    padding: 0;
+    border: 1px solid var(--line);
+    border-radius: 50%;
+    background: var(--glass);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    color: var(--ink);
+    pointer-events: auto;
+    touch-action: none;
+    user-select: none;
+    -webkit-user-select: none;
+    -webkit-touch-callout: none;
+    -webkit-tap-highlight-color: transparent;
+}
+
+.pad-btn svg {
+    width: 50%;
+    height: 50%;
+}
+
+.pad-btn.down {
+    border-color: var(--accent);
+    background: rgba(92, 200, 255, 0.35);
+}
+
+.pad-btn[data-key="Space"] {
+    color: var(--gold);
+}
+
+.pad:not(.rocket) .pad-btn[data-key="Space"] {
+    display: none;
+}
+
+.pad.empty .pad-btn[data-key="Space"] {
+    opacity: 0.4;
+}
+
+/* The HUD goes between the pad's buttons, or above them where it doesn't fit. */
+.touch .hud {
+    flex-wrap: wrap;
+    justify-content: center;
+    max-width: calc(100vw - 2 * (2 * clamp(64px, 14vmin, 92px) + 12px + 32px));
+}
+
+.touch .meter {
+    min-width: 0;
+    flex: 1 1 22%;
+    padding: 4px 10px;
+}
+
+.touch .meter b {
+    font-size: 18px;
+}
+
+@media (max-aspect-ratio: 4/3) {
+    .touch .hud {
+        max-width: none;
+        width: calc(100vw - 32px);
+        bottom: calc(max(16px, env(safe-area-inset-bottom)) + clamp(64px, 14vmin, 92px) + 12px);
+    }
+}

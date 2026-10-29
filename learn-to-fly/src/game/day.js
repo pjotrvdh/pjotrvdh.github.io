@@ -11,13 +11,16 @@ import { drawing, h, hideClips, hideScreens, registerScreen, showScreen } from '
  * straight away.
  */
 
+/** On a touch screen the boards name the touch pad's buttons (see input.js). */
+const touch = () => document.body.classList.contains('touch');
+
 const SPEEDS = [1, 0.8, 0.5, 1.2, 1, 0.95];
 
 const BOARDS = [
     () => [
         h('h2', {}, 'Learn to fly'),
         h('div', { class: 'tip' }, drawing('ramp'), h('p', {}, 'Wait until you reach the jump')),
-        h('div', { class: 'tip' }, h('div', { class: 'pair' }, drawing('arrows'), drawing('tilt')), h('p', {}, 'Use ← → to adjust your angle')),
+        h('div', { class: 'tip' }, h('div', { class: 'pair' }, drawing('arrows'), drawing('tilt')), h('p', {}, touch() ? 'Hold ◀ ▶ to adjust your angle' : 'Use ← → to adjust your angle')),
         h('div', { class: 'tip' }, drawing('bounce'), h('p', {}, 'Hit the water with your belly fast enough to bounce back up!')),
     ],
     () => [
@@ -27,10 +30,10 @@ const BOARDS = [
     ],
     () => [
         h('h2', {}, h('em', {}, 'Rocket')),
-        h('div', { class: 'tip' }, drawing('space'), h('p', {}, 'Press Space to use your rocket for an extra boost')),
+        h('div', { class: 'tip' }, drawing('space'), h('p', {}, touch() ? 'Hold the rocket button for an extra boost' : 'Press Space to use your rocket for an extra boost')),
         h('div', { class: 'tip pair-row' },
-            h('figure', {}, drawing('rocket1'), h('figcaption', {}, 'Before Space')),
-            h('figure', {}, drawing('wow'), h('figcaption', {}, 'After Space'))),
+            h('figure', {}, drawing('rocket1'), h('figcaption', {}, touch() ? 'Before the rocket' : 'Before Space')),
+            h('figure', {}, drawing('wow'), h('figcaption', {}, touch() ? 'After the rocket' : 'After Space'))),
         h('p', { class: 'strong' }, 'Remember to upgrade your rocket fuel capacity for maximum results'),
     ],
 ];

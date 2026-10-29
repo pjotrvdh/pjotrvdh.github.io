@@ -111,7 +111,7 @@ if (import.meta.env.DEV) {
 /** Window (CSS px) to stage coordinates, for input. */
 const toStage = (x, y) => ({ x: (x - view.ox) / view.s, y: (y - view.oy) / view.s });
 
-setupInput(player, canvas, toStage, unlockAudio);
+hud.releasePad = setupInput(player, canvas, toStage, unlockAudio).releasePad;
 const controls = setupControls(player);
 setupCheats();
 
