@@ -269,8 +269,17 @@ export class Renderer {
         this.skip = new Set();
         this.overlays = new Set();
         this.stretch = new Set();
-        /** Clips whose picture area (a rect in stage coordinates) is scaled evenly to cover the window. */
+        /**
+         * Clips whose picture area is scaled evenly to cover the window's width and the height below
+         * `top` (CSS px): {rect: [x0, y0, x1, y1] in stage coordinates, top}.
+         */
         this.coverRects = new Map();
+        /**
+         * Shapes that go on to the window's left (or top) edge: a slice [a, b] of the shape (in its own
+         * coordinates; x for `left`, y for `up`) is stretched from that edge to `from`, where the
+         * shape's land (or sky) starts (drawExtension()). Entries: {from, slice: [a, b], up?}.
+         */
+        this.extend = new Map();
         this.fill = null;
     }
 
@@ -283,6 +292,7 @@ export class Renderer {
         const H = this.canvas.height;
         const k = view.s * view.dpr;
         const base = [k, 0, 0, k, view.ox * view.dpr, view.oy * view.dpr];
+        this.dpr = view.dpr;
         this.base = base;
         const children = root.children.filter((c) => !this.skip.has(c.id) && !this.overlays.has(c.id));
         const rootM = multiply(base, root.m);
@@ -323,16 +333,51 @@ export class Renderer {
         }
     }
 
-    /** The matrix (in canvas pixels) that scales a stage rect evenly around its centre to cover the window. */
-    coverMatrix([x0, y0, x1, y1]) {
+    /**
+     * Draws slice [a, b] of a shape stretched from the window's left edge to x `from` of the shape,
+     * or with `up` from the top edge to y `from`.
+     */
+    drawExtension(ctx, obj, m, cx, { from, slice: [a, b], up = false }) {
+        const scale = up ? m[3] : m[0];
+        const start = scale * from + (up ? m[5] : m[4]);
+        if (start <= 0 || !scale) {
+            return;
+        }
+        // Overlap the shape a little, so no seam shows where it starts.
+        const end = start + 3 * Math.abs(scale);
+        const k = end / (scale * (b - a));
+        const shift = -k * (scale * a + (up ? m[5] : m[4]));
+        const stretched = multiply(up ? [1, 0, 0, k, 0, shift] : [k, 0, 0, 1, shift, 0], m);
+        const bounds = obj.char.b;
+        ctx.save();
+        ctx.setTransform(1, 0, 0, 1, 0, 0);
+        ctx.beginPath();
+        ctx.rect(0, 0, up ? this.canvas.width : end, up ? end : this.canvas.height);
+        ctx.clip();
+        ctx.setTransform(...stretched);
+        ctx.beginPath();
+        if (up) {
+            ctx.rect(bounds[0], a, bounds[2] - bounds[0], b - a);
+        } else {
+            ctx.rect(a, bounds[1], b - a, bounds[3] - bounds[1]);
+        }
+        ctx.clip();
+        drawShape(ctx, obj, cx, 1 / Math.sqrt(Math.abs(stretched[0] * stretched[3]) || 1));
+        ctx.restore();
+    }
+
+    /** The matrix (in canvas pixels) that scales a stage rect evenly to cover the window below `top`. */
+    coverMatrix({ rect: [x0, y0, x1, y1], top = 0 }) {
         const b = this.base;
         const f = this.fill;
+        const inset = top * this.dpr;
         const rx0 = b[0] * x0 + b[4];
         const ry0 = b[3] * y0 + b[5];
         const rw = b[0] * (x1 - x0);
         const rh = b[3] * (y1 - y0);
-        const k = Math.max(f.W / rw, f.H / rh);
-        return [k, 0, 0, k, f.W / 2 - k * (rx0 + rw / 2), f.H / 2 - k * (ry0 + rh / 2)];
+        const k = Math.max(f.W / rw, (f.H - inset) / rh);
+        // Centred sideways; the top at `inset`, the rest goes below the window's bottom edge.
+        return [k, 0, 0, k, f.W / 2 - k * (rx0 + rw / 2), inset - k * ry0];
     }
 
     /**
@@ -470,6 +515,10 @@ export class Renderer {
         const rect = this.fill && this.coverRects.get(obj.id);
         if (rect) {
             m = multiply(this.coverMatrix(rect), m);
+        }
+        const extend = this.fill && this.extend.get(obj.id);
+        if (extend) {
+            this.drawExtension(ctx, obj, m, multiplyColor(parentCx, obj.cx), extend);
         }
         const cx = multiplyColor(parentCx, obj.cx);
         if (cx && cx[3] <= 0 && cx[7] <= 0) {
