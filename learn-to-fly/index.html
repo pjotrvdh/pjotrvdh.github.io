@@ -1,0 +1,53 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#0b1424">
+  <title>Learn to Fly</title>
+  <link rel="icon" type="image/svg+xml" href="./src/assets/favicon.svg">
+  <script type="module" src="./src/main.js"></script>
+</head>
+<body>
+  <canvas id="stage" aria-label="Learn to Fly. Click to play; in flight, the arrow keys tilt the penguin and Space fires the rocket."></canvas>
+
+  <!-- The HTML screens (shop, ramp menu, tutorial boards, achievements, end, clear data; src/game/ui.js). -->
+  <div id="screens"></div>
+  <!-- Scene fades, drawn over the screens. -->
+  <canvas id="fx" aria-hidden="true"></canvas>
+
+  <!-- In flight: the control reminders (src/game/hud.js). -->
+  <p class="flight-hint" id="hint" hidden></p>
+
+  <!-- In flight: speed, altitude, distance, air resistance and fuel (src/game/hud.js). -->
+  <div class="hud" id="hud" hidden>
+    <div class="meter speed">
+      <small>Speed</small>
+      <b><span id="hSpeed">0</span> <i>mph</i></b>
+      <div class="bar" id="hSpeedBar"><span></span></div>
+    </div>
+    <div class="meter"><small>Altitude</small><b><span id="hAlt">0.0</span> <i>ft</i></b></div>
+    <div class="meter"><small>Distance</small><b><span id="hDist">0</span> <i>ft</i></b></div>
+    <div class="meter"><small>Resistance</small><b id="hRes">0%</b></div>
+    <div class="meter fuel" id="hFuel" hidden>
+      <small>Fuel</small>
+      <div class="bar" id="hFuelBar"><span></span></div>
+    </div>
+  </div>
+
+  <!-- After a flight: the earnings, counting up (src/game/hud.js). -->
+  <div class="board" id="board" hidden>
+    <h2>Flight results</h2>
+    <dl>
+      <div><dt>Distance</dt><dd id="bDist">$0</dd></div>
+      <div><dt>Max altitude</dt><dd id="bAlt">$0</dd></div>
+      <div><dt>Flight duration</dt><dd id="bDur">×0.0</dd></div>
+      <div class="total"><dt>Total</dt><dd id="bTotal">$0</dd></div>
+    </dl>
+    <p>Click or press any key to continue</p>
+  </div>
+
+  <nav class="controls" id="controls" aria-label="Game controls"></nav>
+  <p class="loading" aria-live="polite">Loading…</p>
+</body>
+</html>

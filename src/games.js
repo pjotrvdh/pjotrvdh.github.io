@@ -1,0 +1,30 @@
+/**
+ * The games on the Arcade index, newest first. Each game lives in a folder with the same name as
+ * its slug: an npm workspace (listed in package.json) that builds to <slug>/dist/index.html and has
+ * a 16:9 <slug>/cover.svg. The root build copies <slug>/dist to dist/<slug>.
+ *
+ * Plain data only: vite.config.js reads this file too.
+ */
+export default [
+    {
+        slug: 'learn-to-fly',
+        title: 'Learn to Fly',
+        description: 'A penguin wants to fly. Slide down the ramp, earn cash for every flight and buy bigger ramps, gliders and rockets until you break through the iceberg.',
+        tags: ['Arcade', 'Simulation'],
+        added: '2026-10-29',
+    },
+    {
+        slug: 'twistball',
+        title: 'Twistball',
+        description: 'Pong, but with a twist: down a neon tunnel. Move your paddle as you hit the ball to curve it past the opponent, through ten levels that get faster and wilder.',
+        tags: ['Arcade', 'Sports'],
+        added: '2026-10-19',
+    },
+    {
+        slug: 'underlord',
+        title: 'Underlord',
+        description: 'Dig into the dark, build rooms and attract creatures, then defend your Dungeon Heart against six waves of heroes. In the spirit of Dungeon Keeper.',
+        tags: ['Strategy', 'Simulation'],
+        added: '2026-10-15',
+    },
+];

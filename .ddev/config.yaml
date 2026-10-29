@@ -1,6 +1,6 @@
 # DDEV for the Vite project: no PHP and no database. `ddev start` runs the Vite dev server
-# (see start-vite.sh) and serves it on https://underlord.ddev.site.
-name: underlord
+# (see start-vite.sh) and serves it on https://arcade.ddev.site (the index) and https://arcade.ddev.site/underlord/.
+name: arcade
 type: generic
 webserver_type: generic
 docroot: ""
