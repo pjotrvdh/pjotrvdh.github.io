@@ -1,0 +1,177 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Twistball</title>
+  <meta name="description" content="Pong, but with a twist: 3D pong down a neon tunnel. Put spin on the ball and curve it past the opponent.">
+  <link rel="icon" type="image/svg+xml" href="./src/favicon.svg">
+  <script type="module" src="./src/main.js"></script>
+</head>
+<body>
+  <div class="app">
+    <header class="hud">
+      <h1><img src="./src/logo.svg" alt="Twistball" width="688" height="150"></h1>
+      <dl>
+        <div class="score"><dt id="scoreLabel">Score</dt><dd id="score">000000</dd></div>
+        <div><dt id="levelLabel">Level</dt><dd id="level">1 / 10</dd></div>
+        <div class="solo-only"><dt>Level bonus</dt><dd id="levelBonus">3000</dd></div>
+        <div class="you"><dt id="nearLabel">You</dt><dd id="nearLives"></dd></div>
+        <div class="them"><dt id="farLabel">Opponent</dt><dd id="farLives"></dd></div>
+        <div class="match-only them-score"><dt id="farScoreLabel">Opponent score</dt><dd id="farScore">000000</dd></div>
+      </dl>
+      <div class="buttons">
+        <button id="pause" type="button">Pause</button>
+        <button id="mute" type="button" aria-pressed="false">Sound on</button>
+      </div>
+    </header>
+
+    <main class="arena">
+      <canvas id="stage" aria-label="The tunnel. Move the mouse or drag to move your paddle. The ball serves itself after a countdown."></canvas>
+      <p class="call" id="call" role="status" aria-live="polite"></p>
+      <p class="hint" id="hint"></p>
+      <p class="countdown" id="countdown" role="timer" aria-live="assertive" hidden></p>
+
+      <div class="overlay" id="overlay">
+        <section class="screen" id="screenTitle" aria-labelledby="titleHeading">
+          <h2 id="titleHeading" class="logo"><img src="./src/logo.svg" alt="Twistball" width="688" height="150"></h2>
+          <p>Pong, but with a twist. Your see-through paddle is at the front; the opponent guards the far end.</p>
+          <ul>
+            <li><strong>Move</strong> with the mouse, by dragging on a touch screen, or with the arrow keys or WASD.</li>
+            <li>Before every serve the game counts down from <strong>3</strong>, then the ball serves itself. Move as it leaves to curve your serve.</li>
+            <li><strong>Curve the ball:</strong> move your paddle as you hit it. The faster you move, the more it bends.</li>
+            <li>Hit the ball in the <strong>centre</strong> of your paddle for a bonus. Clear a level fast for the level bonus.</li>
+            <li>Take the opponent's 3 lives to clear a level. You have 5 lives for all ten levels.</li>
+            <li><strong>Play online:</strong> make a room and send the code or link to a friend, or join theirs. Both of you score; when one runs out of lives, the higher score wins.</li>
+          </ul>
+          <div class="modes">
+            <button id="startSolo" class="main" type="button" autofocus>1 player</button>
+            <button id="startOnline" type="button">Play online</button>
+            <button id="startDemo" type="button">CPU vs CPU</button>
+          </div>
+          <p class="speed"><label for="startLevel">1 player: start at level</label>
+            <select id="startLevel"></select>
+          </p>
+          <p class="speed"><label for="cpuKind">1 player: computer</label>
+            <select id="cpuKind"></select>
+          </p>
+          <fieldset class="palettes">
+            <legend>Colours</legend>
+            <p class="palette-key" aria-hidden="true">
+              <span><i class="key-near"></i>You</span><span><i class="key-far"></i>Opponent</span><span><i class="key-ball"></i>Ball</span><span><i class="key-tunnel"></i>Tunnel</span>
+            </p>
+            <div class="palette-list" id="palette"></div>
+          </fieldset>
+          <p class="speed"><label for="speed">Speed online and CPU vs CPU</label>
+            <select id="speed">
+              <option value="1">1 (slow)</option><option value="2">2</option><option value="3">3</option><option value="4">4</option><option value="5">5</option>
+              <option value="6">6</option><option value="7">7</option><option value="8">8</option><option value="9">9</option><option value="10">10 (fast)</option>
+            </select>
+          </p>
+          <h3>High scores</h3>
+          <ol class="highscores"></ol>
+        </section>
+
+        <section class="screen" id="screenOnline" aria-labelledby="onlineTitle" hidden>
+          <h2 id="onlineTitle">Play online</h2>
+          <p>Make a room and send the code or the link to a friend, or type the code of their room.</p>
+          <div class="modes">
+            <button id="hostRoom" class="main" type="button">Make a room</button>
+          </div>
+          <div class="room" id="roomBox" hidden>
+            <p>Room code: <strong class="code" id="roomCode"></strong></p>
+            <div class="row">
+              <label class="visually-hidden" for="roomLink">Link to this room</label>
+              <input id="roomLink" readonly>
+              <button id="copyLink" type="button">Copy link</button>
+            </div>
+            <!-- Or send the link straight away: each opens that app or site with the message filled in. -->
+            <p class="share-title">Share the link</p>
+            <ul class="share-list" aria-label="Share the link">
+              <li><a id="shareWhatsApp" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="12" fill="#25d366"/><path d="M6.4 17.6l.9-3.1A5.7 5.7 0 1 1 9.6 16.7z" fill="none" stroke="#fff" stroke-width="1.6" stroke-linejoin="round"/><path d="M10 9.4c.2 1.9 2.4 4.1 4.3 4.3l.7-.9-1.1-.6-.6.5c-.8-.3-1.5-1-1.8-1.8l.5-.6-.6-1.1z" fill="#fff"/></svg>WhatsApp</a></li>
+              <li><a id="shareTelegram" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="12" fill="#2aabee"/><path d="M5.5 11.6l11.6-4.4c.5-.2 1 .1.8.9l-2 9.3c-.1.6-.6.8-1.1.5l-3-2.2-1.5 1.4c-.2.2-.4.2-.5-.1l.2-3 5.4-4.9-6.7 4.2-2.9-.9c-.6-.2-.6-.6.1-.8z" fill="#fff"/></svg>Telegram</a></li>
+              <li><a id="shareSms"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="12" fill="#34c759"/><path d="M12 6.5c-3.6 0-6.5 2.3-6.5 5.1 0 1.6.9 3 2.4 3.9l-.5 2.2 2.4-1.4c.7.2 1.4.3 2.2.3 3.6 0 6.5-2.3 6.5-5S15.6 6.5 12 6.5z" fill="#fff"/></svg>Messages</a></li>
+              <li><a id="shareMail"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="12" fill="#3b82f6"/><rect x="6" y="8" width="12" height="8.5" rx="1.2" fill="#fff"/><path d="M6.5 8.6l5.5 4.2 5.5-4.2" fill="none" stroke="#3b82f6" stroke-width="1.3"/></svg>E-mail</a></li>
+              <li id="shareMoreItem" hidden><button id="shareMore" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="12" fill="#4b4372"/><circle cx="7.5" cy="12" r="1.5" fill="#fff"/><circle cx="12" cy="12" r="1.5" fill="#fff"/><circle cx="16.5" cy="12" r="1.5" fill="#fff"/></svg>More…</button></li>
+            </ul>
+            <figure class="share-qr">
+              <svg id="shareQr" role="img" aria-label="QR code with the link to this room"></svg>
+              <figcaption>Or let your friend scan this code</figcaption>
+            </figure>
+          </div>
+          <form id="joinForm">
+            <label for="joinCode">Join a room</label>
+            <div class="row">
+              <input id="joinCode" maxlength="5" autocomplete="off" autocapitalize="characters" spellcheck="false" placeholder="Code">
+              <button type="submit">Join</button>
+            </div>
+          </form>
+          <p class="status" id="onlineStatus" role="status" aria-live="polite"></p>
+          <button id="onlineBack" type="button">Back</button>
+        </section>
+
+        <section class="screen" id="screenReady" aria-labelledby="readyTitle" hidden>
+          <h2 id="readyTitle">Ready?</h2>
+          <p>The match starts when both players are ready.</p>
+          <div class="modes">
+            <button id="readyButton" class="main" type="button">I'm ready</button>
+            <button id="readyLeave" type="button">Leave</button>
+          </div>
+          <p class="status" id="readyStatus" role="status" aria-live="polite"></p>
+        </section>
+
+        <section class="screen" id="screenResume" aria-labelledby="resumeTitle" hidden>
+          <h2 id="resumeTitle">Paused</h2>
+          <p>When you are both ready, a countdown from 3 starts the game again.</p>
+          <div class="modes">
+            <button id="resumeButton" class="main" type="button">I'm back, ready</button>
+            <button id="resumeLeave" type="button">Leave</button>
+          </div>
+          <p class="status" id="resumeStatus" role="status" aria-live="polite"></p>
+        </section>
+
+        <section class="screen" id="screenClear" aria-labelledby="clearTitle" hidden>
+          <h2 id="clearTitle">Level cleared</h2>
+          <p>Level bonus: <strong id="clearBonus">0</strong></p>
+          <p>Score: <strong id="clearScore">0</strong></p>
+          <button id="continue" class="main" type="button">Next level</button>
+        </section>
+
+        <section class="screen" id="screenPause" aria-labelledby="pauseTitle" hidden>
+          <h2 id="pauseTitle">Paused</h2>
+          <div class="modes">
+            <button id="resume" class="main" type="button">Resume</button>
+            <button id="pauseMenu" type="button">Main menu</button>
+          </div>
+        </section>
+
+        <section class="screen" id="screenEnd" aria-labelledby="endTitle" hidden>
+          <h2 id="endTitle">Game over</h2>
+          <div class="match-summary" id="matchSummary" hidden>
+            <p><span class="you">You <strong id="matchYou">0</strong></span> · <span class="them">Opponent <strong id="matchThem">0</strong></span></p>
+            <p id="matchNote"></p>
+          </div>
+          <p id="endSummary">Score: <strong id="endScore">0</strong> · reached level <strong id="endLevel">1</strong></p>
+          <form id="scoreForm" hidden>
+            <label for="playerName">A new high score! Your name:</label>
+            <div class="row">
+              <input id="playerName" maxlength="12" autocomplete="nickname" required>
+              <button class="main" type="submit">Save</button>
+            </div>
+          </form>
+          <div id="endBoard">
+            <h3>High scores</h3>
+            <ol class="highscores"></ol>
+          </div>
+          <div class="modes">
+            <button id="playAgain" class="main" type="button">Play again</button>
+            <button id="endMenu" type="button">Main menu</button>
+          </div>
+        </section>
+      </div>
+    </main>
+
+    <footer><a href="../">Arcade</a><span class="version" id="version" hidden></span></footer>
+  </div>
+</body>
+</html>

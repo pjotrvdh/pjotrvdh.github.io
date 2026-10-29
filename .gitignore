@@ -5,5 +5,7 @@ Thumbs.db
 /.vscode
 /.zed
 /.claude
-/node_modules
-/dist
+node_modules/
+dist/
+/.ddev/traefik
+/downloads
