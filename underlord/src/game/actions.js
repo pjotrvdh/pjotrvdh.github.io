@@ -2,8 +2,9 @@
  * What the player (and the Computer Assistant) can do: build and sell rooms, mark blocks, cast spells,
  * pick up, drop, dismiss and slap units. Input handling is in input.js; this is the game side.
  */
-import { CLAIM, HATCH, LAIR, LIB, N, ROCK, TRAIN, ix, rand, tx, ty } from './constants.js';
-import { CFG, KINDS, ROOMS, SPELLS } from './config.js';
+import { sound } from './audio.js';
+import { CLAIM, HATCH, HERO, LAIR, LIB, N, OWN, ROCK, TRAIN, ix, rand, tx, ty } from './constants.js';
+import { CFG, KINDS, ROOMS, SPELLS, isWorker } from './config.js';
 import { bedOwner, creatures, release, spawn, toPool } from './entities.js';
 import { kill } from './combat.js';
 import { G, app } from './state.js';
@@ -12,7 +13,7 @@ import { msg } from './ui.js';
 import { fx } from './world.js';
 
 export function recount() {
-    G.rc = [0, 0, 0, 0, 0, 0];
+    G.rc = [0, 0, 0, 0, 0, 0, 0];
     for (let i = 0; i < N; i++) {
         if (G.room[i]) {
             G.rc[G.room[i]]++;
@@ -33,6 +34,7 @@ export function build(i, r) {
     G.money -= c;
     G.room[i] = r;
     fx({ type: 'ring', x: tx(i) + 0.5, y: ty(i) + 0.5, dur: 0.4, col: ROOMS[r].col });
+    sound('build', tx(i) + 0.5, ty(i) + 0.5);
 
     return true;
 }
@@ -44,6 +46,7 @@ function sell(i) {
     }
     G.room[i] = 0;
     G.money += Math.floor(ROOMS[r].cost / 2);
+    sound('sell', tx(i) + 0.5, ty(i) + 0.5);
 }
 
 /** Does a drag in `mode` ('mark', 'unmark', 'sell' or a room code) change tile i? */
@@ -100,12 +103,20 @@ export function applyRect(mode, R) {
     }
 }
 
+/**
+ * Can unit d be dropped on tile i? As in Dungeon Keeper: creatures only on your own territory (or your
+ * portal), imps also on any discovered open ground, claimed or not.
+ */
+export function canDrop(i, d) {
+    return G.t[i] === CLAIM || ownPortal(i) || (isWorker(d) && !!G.seen[i] && walk(i));
+}
+
 /** Is the current tool usable on tile i (the hover outline: light = yes, red = no)? `ent` is the unit under the pointer. */
 export function toolValid(i, ent) {
     const tool = app.tool;
     if (tool === 'hand') {
         if (G.held.length) {
-            return G.t[i] === CLAIM || ownPortal(i);
+            return canDrop(i, G.held[G.held.length - 1]);
         }
 
         return !G.seen[i] || diggable(i) || !!ent;
@@ -158,13 +169,15 @@ export function cast(k, i, px, py) {
         }
         const e = spawn('imp', tx(i), ty(i));
         fx({ type: 'ring', x: e.x, y: e.y, dur: 0.6, col: '#e0483c' });
+        sound('portal', e.x, e.y);
     } else if (k === 'bolt') {
         if (!G.seen[i]) {
             return;
         }
         fx({ type: 'bolt', x: px, y: py, dur: 0.45, seed: rand(999) });
+        sound('thunder', px, py);
         for (const o of G.ents) {
-            if (o.dead || o.side !== 1) {
+            if (o.dead || o.side !== HERO) {
                 continue;
             }
             if (Math.hypot(o.x - px, o.y - py) < s.radius) {
@@ -181,8 +194,9 @@ export function cast(k, i, px, py) {
             return;
         }
         fx({ type: 'heal', x: px, y: py, dur: 0.6, r: s.radius });
+        sound('heal', px, py);
         for (const o of G.ents) {
-            if (!o.dead && o.side === 0 && Math.hypot(o.x - px, o.y - py) < s.radius) {
+            if (!o.dead && o.side === OWN && Math.hypot(o.x - px, o.y - py) < s.radius) {
                 o.hp = o.maxhp;
             }
         }
@@ -198,6 +212,7 @@ export function cast(k, i, px, py) {
             }
         }
         msg('Your creatures rally to arms.', 'rally', 'good');
+        sound('horn');
     }
     G.money -= c;
 }
@@ -210,6 +225,7 @@ export function pickUp(e) {
     }
     release(e);
     e.held = true;
+    sound('pickup');
     e.path = [];
     e.target = null;
     e.boost = 1;
@@ -228,7 +244,7 @@ export function dropHeld(i) {
     d.scan = 0;
     d.target = null;
     const r = G.room[i];
-    const k = d.kind !== 'imp' && !d.leaving;
+    const k = !isWorker(d) && !d.leaving;
     // Dropped on a free Lair tile, a creature moves its bed there; another creature's bed stays locked.
     const bed = k && r === LAIR && !bedOwner(i, d);
     if (bed) {
@@ -240,6 +256,7 @@ export function dropHeld(i) {
     d.timer = CFG.hand.dropStun;
     fx({ type: 'ring', x: d.x, y: d.y, dur: 0.4, col: '#eadcc6' });
     fx({ type: 'dust', x: d.x, y: d.y + 0.3, dur: 0.4, col: '#8a6446' });
+    sound('drop');
 }
 
 /** Sends the creature on top of the hand back through own portal i. Imps are dropped there instead. */
@@ -247,6 +264,7 @@ export function dismissHeld(i) {
     const d = G.held.pop();
     d.dead = true;
     toPool(d);
+    sound('portal');
     fx({ type: 'ring', x: tx(i) + 0.5, y: ty(i) + 0.5, dur: 0.6, col: '#c58cff' });
     msg('You dismissed your ' + KINDS[d.kind].n + ' through the portal.', 'dis' + d.id);
 }
@@ -254,6 +272,7 @@ export function dismissHeld(i) {
 // A creature that likes slaps (the Dark Mistress) takes no damage, is not interrupted and works and fights faster (joy()).
 export function slap(e) {
     e.slap = CFG.hand.slapTime;
+    sound('slap');
     if (KINDS[e.kind].likesSlaps) {
         fx({ type: 'text', x: e.x, y: e.y - 0.3, dur: 0.8, txt: 'Yes, master!', col: '#ff9ccf' });
 
@@ -267,7 +286,7 @@ export function slap(e) {
 
         return;
     }
-    if (e.kind !== 'imp' && e.state !== 'fight') {
+    if (!isWorker(e) && e.state !== 'fight') {
         release(e);
         e.state = 'think';
     }

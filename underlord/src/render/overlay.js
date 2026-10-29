@@ -4,6 +4,7 @@
  * ("+200", "Level 3", "Slap!").
  */
 import * as THREE from 'three';
+import { HERO, NEUTRAL } from '../game/constants.js';
 import { G } from '../game/state.js';
 
 const v = new THREE.Vector3();
@@ -37,7 +38,7 @@ export class Overlay {
             const hurt = e.hp < e.maxhp;
             const showLv = e.lvl > 1;
             const z = e.state === 'sleep' || e.state === 'guard';
-            if (!hurt && !showLv && !z && e.side !== 2) {
+            if (!hurt && !showLv && !z && e.side !== NEUTRAL) {
                 continue;
             }
             v.set(e.x, height + 0.12, e.y);
@@ -48,9 +49,9 @@ export class Overlay {
             live.add(e.id);
             const el = this.label(e.id);
             el.style.transform = `translate(${p.x.toFixed(1)}px, ${p.y.toFixed(1)}px) scale(${scale.toFixed(2)})`;
-            el.className = 'ulabel' + (e.side === 1 ? ' hero' : '');
+            el.className = 'ulabel' + (e.side === HERO ? ' hero' : '');
             const lv = el.children[0];
-            lv.textContent = e.side === 2 ? '?' : showLv ? e.lvl : '';
+            lv.textContent = e.side === NEUTRAL ? '?' : showLv ? e.lvl : '';
             const zz = el.children[1];
             zz.textContent = z ? 'z' : '';
             zz.style.transform = `translateY(${(-((time * 0.8 + e.id) % 1) * 10).toFixed(1)}px)`;

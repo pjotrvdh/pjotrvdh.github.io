@@ -7,6 +7,7 @@ import orc from './orc.js';
 import warlock from './warlock.js';
 import troll from './troll.js';
 import mistress from './mistress.js';
+import skeleton from './skeleton.js';
 
 export default {
     imp,
@@ -14,4 +15,5 @@ export default {
     warlock,
     troll,
     mistress,
+    skeleton,
 };

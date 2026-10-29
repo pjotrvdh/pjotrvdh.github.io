@@ -1,6 +1,6 @@
 # Underlord
 
-A browser game in the spirit of *Dungeon Keeper*. You are an evil overlord deep underground: dig into a cloud-covered map, claim territory, build rooms, attract creatures through portals and defend your Dungeon Heart against six invasions from the surface.
+A browser game in the spirit of *Dungeon Keeper*. You are an evil overlord deep underground: dig into a cloud-covered map (a new, randomly made level every game), claim territory, build rooms, attract creatures through portals and defend your Dungeon Heart against six invasions from the surface.
 
 The game is a web page built with [Vite](https://vite.dev) and drawn in 3D with [three.js](https://threejs.org), with models from Kenney and KayKit (see [`src/assets/README.md`](src/assets/README.md)). All game data (settings, creatures, heroes, rooms, spells and waves) lives in plain JavaScript files under [`src/config`](src/config). Play it at [pjotrvdh.github.io/underlord](https://pjotrvdh.github.io/underlord/). It is one of the games in the [Arcade](../README.md).
 
@@ -10,7 +10,7 @@ The game is a web page built with [Vite](https://vite.dev) and drawn in 3D with 
 - **Imps defend the Heart:** imps flee from heroes, but when the Dungeon Heart is under attack, the imps nearby rush in to fight.
 - **Walls:** idle imps reinforce the earth walls around your territory. Heroes take much longer to tunnel through a reinforced wall.
 - **Explore:** the map is hidden in clouds. Your units reveal what they can see, and walls block their sight. Gold seams and the portal near your Dungeon Heart shine through the clouds. Hidden caverns hold treasure chests, wandering creatures that join you, and a camp of sleeping heroes. Invading heroes show as white dots, on the map and the minimap, until they reach ground you have discovered; only then can you see which hero it is.
-- **Build:** you build rooms on claimed ground by clicking a tile, or dragging a box to place a whole room at once (as in Dungeon Keeper 2). The rooms are Treasury, Lair, Hatchery, Training Room and Library.
+- **Build:** you build rooms on claimed ground by clicking a tile, or dragging a box to place a whole room at once (as in Dungeon Keeper 2). The rooms are Treasury, Lair, Hatchery, Training Room, Library and Prison. With a Prison, heroes you defeat are knocked out: your imps carry them to a cell, where they starve and rise as Skeletons that fight for you.
 - **Creatures:** creatures only arrive through a portal you have claimed. Each one claims its own bed (a Lair tile) the first time it needs one; that tile is then locked for the others. Stronger creatures also need rooms of 9 or more tiles. Each map has a limited pool of creatures, and they want their wages on payday.
 - **Hand:** left-click a creature to pick it up (you can hold up to 8), then right-click your territory to drop the one picked up last.
   - A creature dropped into a Training Room, Library or Hatchery starts working there right away, with a small bonus.
@@ -37,12 +37,13 @@ The controls follow the original Dungeon Keeper, with Dungeon Keeper 2's box for
 | Drop the creature picked up last | right-click your territory (on your portal: dismiss it); on a touch screen, tap | |
 | Slap | right-click a creature with an empty hand, or the **Slap** tool | |
 | Put a room, spell or Sell away | right-click | `Esc` |
-| Scroll the map | hold the right (or middle) button and move, the pointer at the edge of the view, the **Look** tool, two-finger drag | arrow keys / WASD (`Shift`: faster) |
+| Scroll the map | hold the right (or middle) button and move, the pointer at the edge of the view, the **Look** tool, two-finger drag or scroll on a trackpad, the mouse wheel (`Shift`: sideways) | arrow keys / WASD (`Shift`: faster) |
 | Turn the view | **⟲ / ⟳** buttons | `Ctrl` + `←` / `→`, `Q` / `E` |
-| Zoom | mouse wheel, pinch, **+ / − / Fit** buttons | `Ctrl` + `↑` / `↓`; `M` shows the whole map |
+| Zoom | pinch, `Ctrl` + mouse wheel, **+ / − / Fit** buttons | `Ctrl` + `↑` / `↓`; `M` shows the whole map |
 | Jump to | | `H` Heart, `T` Treasury, `Shift`+`T` Training Room, `Shift`+`H` Hatchery, `Shift`+`L` Lair, `L` Library, `Ctrl`+`P` portal, `F` a fight (again: next room of that kind) |
 | Panels | the tabs | `1` Info, `2` Rooms, `3` Spells, `4` / `5` Creatures |
 | Pause | **Pause** button | `P` / `Space` |
+| Sound on / off | **Sound** button | `V` |
 | Game speed | **1×** button | `+` / `-` |
 | Cheats panel (after typing `iliketocheat`) | **Cheats** button | `` ` `` |
 

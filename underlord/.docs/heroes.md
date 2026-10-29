@@ -5,13 +5,13 @@ description: Underlord hero waves, marching/tunnelling, the Heart zap, the hero 
 
 ## When to use this
 
-- You touch `launchWave()`, the spawn queue in `update()`, `march()`, `dijkstra()`/`hcost()`, the Heart zap, `unknownHeroes()`, guards
+- You touch `launchWave()`, the spawn queue in `update()`, `march()`, `dijkstra()`/`hcost()`, the Heart zap, guards
 - You edit `underlord/src/config/waves.js`, `settings/waves.js`, `settings/heart.js` or `heroes/*.js`
 - Keywords: wave, invasion, gate, tunnel, dig, Heart, zap, guard, camp, white dot, Lord of the Land, bounty
 
 ## Heroes
 
-`underlord/src/config/heroes/` (order in `index.js`): Tunneller, Archer, Wizard, Knight, Lord of the Land. Per hero: `hp`, `attack`, `speed`, `range`, `rate`, `bounty`, `dig` (seconds per hit when tunnelling), `color`; the Lord has `big: true` (drawn larger). Only Dungeon Keeper (1997) heroes.
+`underlord/src/config/heroes/` (order in `index.js`): Tunneller, Thief, Archer, Wizard, Barbarian, Knight, Lord of the Land (Thief: fast and weak; Barbarian: a hard-hitting brawler). Per hero: `hp`, `attack`, `speed`, `range`, `rate`, `bounty`, `dig` (seconds per hit when tunnelling), `color`; the Lord has `big: true` (drawn larger). Only Dungeon Keeper (1997) heroes.
 
 ## Waves
 
@@ -21,19 +21,24 @@ description: Underlord hero waves, marching/tunnelling, the Heart zap, the hero 
 - `update()` spawns due entries at the gate with `mult = 1 + heroScalePerWave * (G.wave - 1)` (`settings/waves.js`, 0.12): wave 1 x1.00, wave 6 x1.60 on `hp`, `maxhp`, `atk`. Bounty, speed and dig time are not scaled.
 - HUD "Heroes": `wave N in m:ss`, then `final wave`.
 
-## Marching (`march()`)
+## Marching (`march()`, heroes.js)
 
 - State after spawn and after every `think` (unless `guard`).
 - Standing next to the Heart (`adjHeart`): every `rate` seconds `G.heartHP -= e.atk` (no random spread), Heart flash, Heart alarm that sends nearby imps to defend it ([imps](imps.md)), "Your Dungeon Heart is under attack!" (20 s message cooldown).
-- Otherwise: path from `dijkstra(here, adjHeart)`, recomputed every 5 s or when empty. Costs `hcost()`: walkable 1, earth 4, gold 6, reinforced wall 12; rock, gem, lava and Heart impassable.
-- Next step not walkable: if diggable, hit it every `dig` seconds (`G.hp--`, `openTile()` at 0, dust); if not diggable, drop the path and recompute.
+- After Dungeon Keeper, only heroes with `tunnels` (the Tunneller) dig. Each wave is one party (`e.party` = wave number, set at spawn).
+- Tunneller: path from `dijkstra(here, adjHeart)`, recomputed every 5 s or when empty. Costs `hcost()`: walkable 1, earth 4, gold 6, reinforced wall 12; rock, gem, lava and Heart impassable. Next step not walkable: if diggable, hit it every `dig` seconds (`G.hp--`, `openTile()` at 0, dust); if not, drop the path and recompute.
+- Every other hero (repath every 3 s), first match wins:
+  1. A Thief (`steals`), while you have gold and a reachable Treasury: walk there; on a Treasury tile it takes `steals` (200) gold (`e.carry`) and then runs back to the Hero Gate, where it vanishes with the gold ("A Thief got away ..."). Slain or captured, it drops the gold as a pile (`G.pile`) for your imps.
+  2. An open (walkable) way to the Heart: walk it.
+  3. Its party's Tunneller is alive and reachable: follow it through its tunnel.
+  4. Else wander (`wander()`): a random reachable tile 4+ tiles away within `settings/waves.js` `roam` (14) steps, a new one every 4-8 s. A wave whose Tunnellers all died roams the caverns and tunnels until a way opens or your creatures find it.
 - Tunnelling destroys gold: a gold tile opened by a hero becomes floor and its `G.gold` is lost. Dug tiles are unclaimed `FLOOR`; heroes never unclaim territory.
 - Combat interrupts marching ([combat](combat.md)): heroes scan for own units within 5 tiles.
 
 ## The Dungeon Heart
 
 - `settings/heart.js`: `hp` (2500), `zapDamage` (14), `zapInterval` (0.8 s), `zapRange` (2.9 tiles from the Heart centre).
-- `update()`: when `G.zapT <= 0`, the nearest hero (side 1, guards included) within range takes `zapDamage` (can `kill()`), then `zapT = zapInterval`. Without a target the timer stays at or below 0, so the next hero in range is shot at once.
+- `update()`: when `G.zapT <= 0`, the nearest hero (`HERO`, guards included) within range takes `zapDamage` (can `kill()`), then `zapT = zapInterval`. Without a target the timer stays at or below 0, so the next hero in range is shot at once.
 - No regeneration; only the "Restore Heart" cheat refills it. 0 -> loss.
 
 ## The hero camp (guards)

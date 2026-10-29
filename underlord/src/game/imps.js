@@ -2,13 +2,15 @@
  * Imp work (Dungeon Keeper style): digging marked blocks, hauling gold, claiming ground, opening chests
  * and reinforcing walls. impThink() picks the next job; doDig(), doClaim() and doReinforce() do it.
  */
+import { sound } from './audio.js';
 import { CLAIM, EARTH, FLOOR, GEM, GOLD, N4, PORTAL, TREAS, WALL, inb, ix, tx, ty } from './constants.js';
-import { CFG, WALL_HP } from './config.js';
+import { ASSETS, CFG, WALL_HP } from './config.js';
 import { go, openTile, release, reserve } from './entities.js';
 import { bfs } from './path.js';
 import { G } from './state.js';
 import { adjHeart, cap, diggable, nb, ti, walk } from './tiles.js';
 import { msg } from './ui.js';
+import { drop, haulJob } from './prison.js';
 import { fx } from './world.js';
 
 /** A marked, diggable block next to tile i that fewer than two imps work on (the least busy one), or -1. */
@@ -54,11 +56,13 @@ export function pickUpPile(e) {
     const a = Math.min(G.pile[i], IMP_POCKET - e.carry);
     G.pile[i] -= a;
     e.carry += a;
+    sound('coins', e.x, e.y);
     e.state = 'think';
 }
 
 export function impThink(e) {
     release(e);
+    drop(e);
     const here = ti(e);
     const full = G.money >= cap();
     if (e.carry >= 100 && !full) {
@@ -68,6 +72,10 @@ export function impThink(e) {
 
             return;
         }
+    }
+    // a knocked-out hero, to carry to the Prison
+    if (haulJob(e)) {
+        return;
     }
     let p = bfs(here, claimable, 1, walk, 2);
     if (p) {
@@ -173,7 +181,8 @@ export function doDig(e, dt) {
     } else if (t === GEM) {
         e.carry += 20;
     }
-    fx({ type: 'dust', x: (e.x + tx(j) + 0.5) / 2, y: (e.y + ty(j) + 0.5) / 2, dur: 0.35, col: t === EARTH ? '#8a6446' : t === WALL ? '#9a8a80' : '#f2cb55' });
+    sound(t === GOLD ? 'gold' : t === GEM ? 'gem' : 'dig', tx(j) + 0.5, ty(j) + 0.5);
+    fx({ type: 'dust', x: (e.x + tx(j) + 0.5) / 2, y: (e.y + ty(j) + 0.5) / 2, dur: 0.35, col: t === EARTH ? '#8a6446' : t === WALL ? '#9a8a80' : t === GEM ? ASSETS.gemColor : ASSETS.goldColor });
     // full: haul it (earth and walls), or for gold keep mining the seam out unless the treasuries are full
     const full = G.money >= cap();
     if (e.carry >= IMP_POCKET && (t === GOLD ? full : !full || t !== EARTH)) {
@@ -202,10 +211,12 @@ export function doReinforce(e, dt) {
     e.timer = 0.5;
     e.work = (e.work || 0) + 1;
     fx({ type: 'dust', x: (e.x + tx(j) + 0.5) / 2, y: (e.y + ty(j) + 0.5) / 2, dur: 0.3, col: '#b8a89a' });
+    sound('hammer', tx(j) + 0.5, ty(j) + 0.5);
     if (e.work >= 5) {
         e.work = 0;
         G.t[j] = WALL;
         G.hp[j] = WALL_HP;
+        sound('wall', tx(j) + 0.5, ty(j) + 0.5);
         e.state = 'think';
     }
 }
@@ -229,6 +240,7 @@ export function doClaim(e, dt) {
             G.t[i] = CLAIM;
         }
         fx({ type: 'ring', x: tx(i) + 0.5, y: ty(i) + 0.5, dur: 0.5, col: '#e0483c' });
+        sound('claim', tx(i) + 0.5, ty(i) + 0.5);
     }
     e.state = 'think';
 }

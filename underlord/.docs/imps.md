@@ -11,16 +11,17 @@ description: Imp AI in Underlord (impThink): digging, gold hauling, claiming, re
 
 ## Stats and sources
 
-- `underlord/src/config/creatures/imp.js`: `hp` 40, `speed` 3.0, `wage` 0. `attack` (3), `range`, `rate` are only used when defending the Heart.
+- `underlord/src/config/creatures/imp.js`: `hp` 40, `speed` 3.0, `wage` 0. `attack` (3), `range`, `rate` are only used when defending the Heart. `worker: true` is what the game checks (`isWorker(e)` in `config.js`), not the key: workers run `impThink` instead of `creatureThink`, never get hungry, have no bed or wage, are left out of `creatures()` and the creature list, and can be dropped on unclaimed ground. `portal: false`: imps come from Create Imp only.
 - `underlord/src/config/settings/imp.js`: `startCount` (4), `vision` (4, overrides the creature default), `baseCost`/`perImp` for Create Imp ([spells](spells.md)), `defendTime` (5 s) and `defendRange` (10 tiles) for defending the Heart.
 - Imps never eat, sleep, train, study, get paid or leave; they are not in `creatures()`.
 
 ## impThink(e) priority
 
-Runs from state `think`. First `release(e)` drops any reservation. `full = G.money >= cap()`.
+Runs from state `think`. First `release(e)` drops any reservation and `drop(e)` any prisoner it carried. `full = G.money >= cap()`.
 
 1. Carrying >= 100 and not full: walk to the nearest `depositGoal` tile (Treasury tile or walkable tile next to the Heart) -> `deposit`.
    - After an adjacent claim (step 2), not full and pocket not full: a gold pile (`G.pile`) within 20 steps -> walk onto it (`pickup`, 0.3 s; `pickUpPile()` takes as much as the pocket holds).
+   - Then `haulJob()`: a knocked-out hero to carry to a free Prison tile (`grab`, `jail`; see [prison](prison.md)).
 2. Claim nearby: a `FLOOR` tile or unowned `PORTAL`, not reserved, next to a `CLAIM` tile, path length <= 2 -> reserve it, `claim` with 1.2 s.
 3. Dig: nearest walkable tile next to a marked diggable block (`digTarget()`), -> reserve the block, `dig` with 0.15 s first hit.
    - `allowGold = !(full && carry >= 100)`: when full and loaded, only marked `EARTH` counts (no gold, gem or wall).

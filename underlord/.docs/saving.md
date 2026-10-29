@@ -13,7 +13,7 @@ description: Underlord save games: localStorage, SAVE_V format, autosave, saved 
 
 - One slot: `localStorage['underlord-save']`, JSON. `lsGet()` / `lsSet()` swallow errors (private mode, quota) and return `null` / `false`.
 - `localStorage['underlord-tab']` separately remembers the last panel tab.
-- `SAVE_V = 2`. `loadGame()` refuses any other `v` ("from an older version ... cannot be loaded").
+- `SAVE_V = 3` (3: the map grew to 80 x 52; older saves cannot load). `loadGame()` refuses any other `v` ("from an older version ... cannot be loaded").
 
 ## When it saves
 
@@ -33,14 +33,14 @@ rally {i, until} | null           (until is game time, G.time)
 ents: [{ SAVE_KEYS..., held }]
 ```
 
-- `SAVE_KEYS = ['id','kind','side','x','y','hp','maxhp','atk','lvl','xp','carry','hunger','guard','bed','leaving','fromPool']`.
+- `SAVE_KEYS = ['id','kind','side','x','y','hp','maxhp','atk','lvl','xp','carry','hunger','guard','bed','leaving','fromPool','payDue','cell','party']`.
 - `ents` is `G.ents` (held units included once, with `held: true`).
 - Not saved (reset on load): `state`, `path`, `next`, `timer`, `cd`, `slap`, `scan`, `ignoreT`, `target`, `resv`, `task`, `work`, `boost`, `after`, `face`, and the render hints `hitT`, `hurtT`, `digging`, `aim`; and on `G`: `res`, `fx`, `msgCd`, `crCycle`, `heartFlash`, `heartAlarm`, `zapT`, `visT`, `rc` (recounted), `over`, the Chronicle. The camera is not saved.
 
 ## Load (`deserialize()`)
 
 1. `newGame()` first (a throwaway map and imps; resets `G` but keeps `G.cpu`), then overwrite `G` from the save.
-2. Every saved entity is created with `spawn()` defaults, then `Object.assign`-ed with the saved fields. State becomes `neutral` (side 2), `guard` (guards), `march` (heroes) or `think` (own units); path empty.
+2. Every saved entity is created with `spawn()` defaults, then `Object.assign`-ed with the saved fields. State (`startState()`) becomes `neutral` (`NEUTRAL`), `jailed` or `out` (`PRISONER`, via `restorePrisoner()`; see [prison](prison.md)), `guard` (guards), `march` (heroes) or `think` (own units); path empty.
 3. `held` entities go back into both `G.ents` and `G.held`. Older saves listed held units twice; only the first entity per `id` is loaded.
 4. `pool` is merged over the `newGame()` pool, so a creature kind added later gets its config value.
 5. `recount()`, fog rebuilt, Chronicle cleared with "Saved game loaded.", `syncCpu()`. `loadGame()` then hides the overlay and sets `running` and unpaused.

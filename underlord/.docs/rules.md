@@ -56,6 +56,7 @@ description: Underlord's rules as the player experiences them (goal, gold, rooms
 | Hatchery | `HATCH` 3 | Hungry creatures eat here (hunger reset, +15% health) |
 | Training Room | `TRAIN` 4 | Creatures gain XP; costs `economy.js` `trainCost` gold per second per trainee |
 | Library | `LIB` 5 | Warlocks and Mistresses study; research unlocks spells |
+| Prison | `PRISON` 6 | One prisoner per tile: heroes your side defeats are knocked out, carried in by imps, and rise as Skeletons ([prison](prison.md)) |
 
 Mechanics of eating, sleeping, training, studying: [creatures](creatures.md).
 

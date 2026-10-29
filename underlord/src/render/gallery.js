@@ -7,10 +7,11 @@
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { ASSETS, KINDS } from '../game/config.js';
-import { CLIPS, Figure } from './units.js';
+import { CLIPS } from './poses.js';
+import { Figure } from './units.js';
 import { parts } from './models.js';
 
-const ACTS = ['idle', 'walk', 'run', 'attack', 'dig', 'claim', 'reinforce', 'train', 'study', 'eat', 'sleep', 'stun', 'hurt', 'held', 'guard', 'cheer', 'wave', 'die'];
+const ACTS = ['idle', 'walk', 'run', 'attack', 'dig', 'claim', 'reinforce', 'train', 'study', 'eat', 'sleep', 'sit', 'stun', 'hurt', 'held', 'guard', 'cheer', 'wave', 'die'];
 const SPACING = 1.3;
 
 export function showGallery() {
@@ -41,7 +42,7 @@ export function showGallery() {
     // one figure per unit kind, each standing on a stone tile
     const kinds = Object.keys(KINDS);
     const figures = kinds.map((kind) => {
-        const f = new Figure(kind, KINDS[kind].side || 0);
+        const f = new Figure(kind, KINDS[kind].side);
         f.gold.visible = false;
         const stand = new THREE.Group();
         stand.add(f.root);
@@ -62,7 +63,7 @@ export function showGallery() {
         const el = document.createElement('div');
         const cfg = ASSETS.units[f.kind] || {};
         el.className = 'gtag';
-        el.innerHTML = '<b>' + KINDS[f.kind].n + '</b><small>' + (cfg.model || 'built-in') + '</small>';
+        el.innerHTML = '<b>' + KINDS[f.kind].n + '</b><small>' + cfg.model + '</small>';
         labels.appendChild(el);
 
         return el;
@@ -76,10 +77,10 @@ export function showGallery() {
 
     const describe = (f) => {
         const cfg = ASSETS.units[f.kind] || {};
-        const clip = cfg.rig ? { ...CLIPS[cfg.rig], ...cfg.clips }[act] : '(built-in)';
+        const clip = { ...CLIPS, ...cfg.clips }[act];
         const held = [cfg.right, cfg.left].filter(Boolean).join(' + ');
 
-        return KINDS[f.kind].n + ': ' + (cfg.model || 'built-in') + ', height ' + (cfg.height || 0.6) + (cfg.width ? ', width ×' + cfg.width : '') + (held ? ', holds ' + held : '') + ', ' + act + ' = ' + (clip || 'missing, falls back to idle');
+        return KINDS[f.kind].n + ': ' + cfg.model + ', height ' + (cfg.height || 0.6) + (cfg.width ? ', width ×' + cfg.width : '') + (held ? ', holds ' + held : '') + ', ' + act + ' = ' + (clip || 'missing, falls back to idle');
     };
 
     /** Lays the shown figures out in a row and frames the camera on them. */
@@ -197,7 +198,6 @@ export function showGallery() {
     const frame = (now) => {
         const dt = Math.min(0.05, (now - last) / 1000);
         last = now;
-        const t = now / 1000;
         for (const f of figures) {
             if (!f.stand.visible) {
                 continue;
@@ -206,7 +206,6 @@ export function showGallery() {
                 f.body.rotation.y += dt * 0.8;
             }
             f.mixer?.update(dt);
-            f.animateBuiltIn(act, t);
         }
         controls.update();
         renderer.render(scene, camera);

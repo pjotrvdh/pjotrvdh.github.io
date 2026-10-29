@@ -4,8 +4,8 @@
  */
 
 /** Map size in tiles. */
-export const W = 40;
-export const H = 26;
+export const W = 80;
+export const H = 52;
 export const N = W * H;
 
 // Tile types (G.t). Saved games store these codes: changing them needs a new SAVE_V (see save.js).
@@ -21,13 +21,25 @@ export const GATE = 8;
 export const LAVA = 9;
 export const WALL = 10;
 
-// Room codes (G.room), 1..5 in the order of ROOM_IDS.
+// Sides (e.side): whose a unit is. Saved games store these codes.
+export const OWN = 0;
+export const HERO = 1;
+/** A wandering creature that joins you when your units meet it. */
+export const NEUTRAL = 2;
+/** A hero knocked out and taken prisoner (prison.js). */
+export const PRISONER = 3;
+
+/** Do units a and b fight each other? Only yours and the heroes do; wanderers and prisoners never. */
+export const foes = (a, b) => a.side !== b.side && a.side <= HERO && b.side <= HERO;
+
+// Room codes (G.room), 1..6 in the order of ROOM_IDS. Saved games store these codes: only add new ones at the end.
 export const TREAS = 1;
 export const LAIR = 2;
 export const HATCH = 3;
 export const TRAIN = 4;
 export const LIB = 5;
-export const ROOM_IDS = ['treasury', 'lair', 'hatchery', 'training', 'library'];
+export const PRISON = 6;
+export const ROOM_IDS = ['treasury', 'lair', 'hatchery', 'training', 'library', 'prison'];
 
 /** What a unit is doing, as shown in the hover info and the creature list. */
 export const STATE_EN = {
@@ -48,6 +60,14 @@ export const STATE_EN = {
     flee: 'fleeing',
     guard: 'guarding',
     neutral: 'wandering, unaligned',
+    collect: 'collecting its wage',
+    cheer: 'cheering',
+    pickup: 'picking up gold',
+    out: 'knocked out',
+    hauled: 'carried to the Prison',
+    jailed: 'imprisoned',
+    grab: 'fetching a prisoner',
+    jail: 'taking a prisoner to the Prison',
 };
 
 /** Tile names for the hover info (the portal has its own text). */

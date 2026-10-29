@@ -1,16 +1,56 @@
 /**
  * The clouds over undiscovered ground: a drifting cloud layer just above the blocks, opaque over every
- * unseen tile with soft edges. Gold and gems glint through it, and invading heroes in undiscovered
+ * unseen tile with soft edges. Gold and gems glint, through it and once discovered, and invading heroes in undiscovered
  * ground show as white dots on top of it (Dungeon Keeper style).
  */
 import * as THREE from 'three';
 import { GEM, GOLD, H, N, W, hash, tx, ty } from '../game/constants.js';
+import { ASSETS } from '../game/config.js';
 import { G } from '../game/state.js';
 import { unknownHeroes } from '../game/world.js';
 import { glowTexture } from './effects.js';
 import { TOP } from './terrain.js';
 
 export const FOG_Y = TOP + 0.1;
+
+/** A four-pointed sparkle (long rays across, short ones diagonal, a bright core) for the glints on gold and gems. */
+function starTexture() {
+    const size = 64;
+    const c = document.createElement('canvas');
+    c.width = c.height = size;
+    const g = c.getContext('2d');
+    const h = size / 2;
+    const ray = (angle, len, width) => {
+        g.save();
+        g.translate(h, h);
+        g.rotate(angle);
+        const gr = g.createLinearGradient(0, 0, len, 0);
+        gr.addColorStop(0, 'rgba(255,255,255,1)');
+        gr.addColorStop(1, 'rgba(255,255,255,0)');
+        g.fillStyle = gr;
+        g.beginPath();
+        g.moveTo(0, -width);
+        g.lineTo(len, 0);
+        g.lineTo(0, width);
+        g.closePath();
+        g.fill();
+        g.restore();
+    };
+    for (let k = 0; k < 4; k++) {
+        ray(k * Math.PI / 2, h, 3.2);
+        ray(Math.PI / 4 + k * Math.PI / 2, h * 0.45, 2);
+    }
+    const core = g.createRadialGradient(h, h, 0, h, h, h * 0.35);
+    core.addColorStop(0, 'rgba(255,255,255,1)');
+    core.addColorStop(1, 'rgba(255,255,255,0)');
+    g.fillStyle = core;
+    g.fillRect(0, 0, size, size);
+
+    return new THREE.CanvasTexture(c);
+}
+/** Most glints and hero dots drawn at once (a big map has a few hundred gold tiles). */
+const MAX_DOTS = 1024;
+const glint = new THREE.Color();
 
 export class Fog {
     constructor(scene) {
@@ -41,18 +81,18 @@ export class Fog {
         plane.renderOrder = 10;
         scene.add(plane);
         this.plane = plane;
-        const dots = (size) => {
+        const dots = (size, map = glowTexture()) => {
             const geo = new THREE.BufferGeometry();
-            geo.setAttribute('position', new THREE.BufferAttribute(new Float32Array(3 * 256), 3));
-            geo.setAttribute('color', new THREE.BufferAttribute(new Float32Array(3 * 256), 3));
-            const pts = new THREE.Points(geo, new THREE.PointsMaterial({ map: glowTexture(), size, vertexColors: true, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending }));
+            geo.setAttribute('position', new THREE.BufferAttribute(new Float32Array(3 * MAX_DOTS), 3));
+            geo.setAttribute('color', new THREE.BufferAttribute(new Float32Array(3 * MAX_DOTS), 3));
+            const pts = new THREE.Points(geo, new THREE.PointsMaterial({ map, size, vertexColors: true, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending }));
             pts.renderOrder = 11;
             pts.frustumCulled = false;
             scene.add(pts);
 
             return pts;
         };
-        this.glints = dots(0.55);
+        this.glints = dots(1.2, starTexture());
         this.heroes = dots(0.9);
         this.game = null;
     }
@@ -67,24 +107,26 @@ export class Fog {
             G.fogDirty = false;
             this.game = G;
         }
-        // gold and gems glint through the clouds
+        // gold and gems glint, through the clouds and on discovered seams alike
         let n = 0;
         const gp = this.glints.geometry.attributes.position;
         const gc = this.glints.geometry.attributes.color;
-        for (let i = 0; i < N && n < 256; i++) {
+        for (let i = 0; i < N && n < MAX_DOTS; i++) {
             const t = G.t[i];
-            if (G.seen[i] || (t !== GOLD && t !== GEM)) {
+            if (t !== GOLD && t !== GEM) {
                 continue;
             }
             const x = tx(i);
             const y = ty(i);
-            const tw = 0.45 + 0.55 * Math.max(0, Math.sin(time * 2.2 + hash(x, y) * 40));
-            gp.setXYZ(n, x + 0.3 + hash(x, y, 11) * 0.4, FOG_Y + 0.05, y + 0.3 + hash(x, y, 21) * 0.4);
-            if (t === GOLD) {
-                gc.setXYZ(n, 0.95 * tw, 0.72 * tw, 0.25 * tw);
-            } else {
-                gc.setXYZ(n, 0.35 * tw, 0.8 * tw, 0.95 * tw);
+            // through the clouds a steady twinkle; on a discovered seam now and then a short sparkle
+            const wave = Math.sin(time * (G.seen[i] ? 1.1 + hash(x, y, 31) : 2.2) + hash(x, y) * 40);
+            const tw = G.seen[i] ? Math.max(0, wave - 0.93) / 0.07 : 0.45 + 0.55 * Math.max(0, wave);
+            if (tw <= 0) {
+                continue;
             }
+            gp.setXYZ(n, x + 0.3 + hash(x, y, 11) * 0.4, FOG_Y + 0.05, y + 0.3 + hash(x, y, 21) * 0.4);
+            const c = glint.set(t === GOLD ? ASSETS.goldColor : ASSETS.gemColor).multiplyScalar(t === GOLD ? 1.15 : 1.6);
+            gc.setXYZ(n, c.r * tw, c.g * tw, c.b * tw);
             n++;
         }
         this.glints.geometry.setDrawRange(0, n);
@@ -95,7 +137,7 @@ export class Fog {
         const hp = this.heroes.geometry.attributes.position;
         const hc = this.heroes.geometry.attributes.color;
         for (const e of unknownHeroes()) {
-            if (n >= 256) {
+            if (n >= MAX_DOTS) {
                 break;
             }
             const p = 0.6 + 0.4 * Math.sin(time * 5 + e.id);

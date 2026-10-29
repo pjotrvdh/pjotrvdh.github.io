@@ -30,7 +30,7 @@ description: Underlord combat: enemy scanning, line of sight (clearShot), fight/
 
 ## attack(e, t)
 
-- Damage `e.atk * (0.85..1.15)`. Ranged (`range > 1.5`: Warlock, Archer, Wizard) shows a projectile; damage is instant.
+- Damage `e.atk * (0.85..1.15)`. Only `foes()` (constants.js) fight: neutrals and prisoners are never targets. Ranged (`range > 1.5`: Warlock, Archer, Wizard) shows a projectile; damage is instant.
 - Own attackers (imps included) gain `damage * 0.4` XP ([creatures](creatures.md)).
 - Hitting an own sleeping creature wakes it (`think`).
 - `t.hp <= 0` -> `kill(t)`.
@@ -54,7 +54,7 @@ description: Underlord combat: enemy scanning, line of sight (clearShot), fight/
 ## Gotchas
 
 - Bounties are lost when the treasury is full.
-- `attack()` damage to the Heart is separate: heroes hit the Heart from `march()`, not `fight()`, with flat `e.atk` ([heroes](heroes.md)).
+- `attack()` damage to the Heart is separate: heroes hit the Heart from `march()` (heroes.js), not `fight()`, with flat `e.atk` ([heroes](heroes.md)).
 - The chase BFS only uses walkable tiles; heroes only tunnel while marching.
 - Imps' `attack` / `range` / `rate` in `creatures/imp.js` are only used when they defend the Heart.
 

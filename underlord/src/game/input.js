@@ -8,19 +8,21 @@
  *   with an empty hand, slap your creature; with a room, Sell or a spell selected, go back to the hand.
  *   These happen on release; holding the right button and moving drags the map instead.
  * - Camera: arrow keys / WASD (Shift: faster), the pointer at the edge of the view, Ctrl + arrows to turn
- *   and zoom. Extras: right- or middle-drag moves the map, the mouse wheel zooms, Q / E turn.
+ *   and zoom. Extras: right- or middle-drag moves the map, scrolling (trackpad or wheel) moves it too,
+ *   a pinch or Ctrl + wheel zooms, Q / E turn.
  * - Keys: P pause, + / - game speed, 1-4 panels, H / T / L ... jump to the Heart or a room, F to a fight,
  *   M the whole map, Esc the hand.
  *
  * On a touch screen (no right button) a tap with creatures in hand drops them, and the Slap and Look
  * tools stand in for the right button and for dragging the map.
  */
-import { CLAIM, H, HATCH, LAIR, LIB, N, N4, TRAIN, TREAS, W, inb, ix, tx, ty } from './constants.js';
-import { ROOMS, SPELLS } from './config.js';
-import { applyRect, cast, dismissHeld, dropHeld, pickUp, slap } from './actions.js';
+import { H, HATCH, LAIR, LIB, N, N4, OWN, TRAIN, TREAS, W, inb, ix, tx, ty } from './constants.js';
+import { ROOMS, SPELLS, isWorker } from './config.js';
+import { applyRect, canDrop, cast, dismissHeld, dropHeld, pickUp, slap } from './actions.js';
 import { G, app } from './state.js';
 import { diggable, ownPortal } from './tiles.js';
-import { cheatKey, cheatsUnlocked, dragRect, msg, setSpeed, setTool, showTab, syncPause, toggleCheats, updateTip } from './ui.js';
+import { cheatKey, cheatsUnlocked, toggleCheats } from './cheats.js';
+import { dragRect, msg, setSpeed, setTool, showTab, syncPause, toggleSound, updateTip } from './ui.js';
 import { view } from '../render/view.js';
 
 const keys = new Set();
@@ -31,10 +33,10 @@ let pan = null;
 const EDGE = 16;
 
 /** Your unit under screen point (sx, sy), or null. */
-const ownUnitAt = (sx, sy) => view.pickUnit(sx, sy, (e) => e.side === 0);
+const ownUnitAt = (sx, sy) => view.pickUnit(sx, sy, (e) => e.side === OWN);
 
 function setHover(p) {
-    app.hover = { ...p, in: true, unit: p.x >= 0 ? view.pickUnit(p.sx, p.sy, (e) => e.side === 0 || !!G.seen[ix(Math.floor(e.x), Math.floor(e.y))]) : null };
+    app.hover = { ...p, in: true, unit: p.x >= 0 ? view.pickUnit(p.sx, p.sy, (e) => e.side === OWN || !!G.seen[ix(Math.floor(e.x), Math.floor(e.y))]) : null };
 }
 
 function screen(ev, cv) {
@@ -59,12 +61,13 @@ function cursor(cv, overUnit) {
 
 /** Drops (or, on your own portal, dismisses) the creature picked up last onto tile i. */
 function drop(i) {
-    if (ownPortal(i) && G.held[G.held.length - 1].kind !== 'imp') {
+    const d = G.held[G.held.length - 1];
+    if (ownPortal(i) && !isWorker(d)) {
         dismissHeld(i);
-    } else if (G.t[i] === CLAIM || ownPortal(i)) {
+    } else if (canDrop(i, d)) {
         dropHeld(i);
     } else {
-        msg('You can only drop creatures on your own territory.', 'dropbad', 'bad');
+        msg(isWorker(d) ? 'Imps can only be dropped on open ground you have discovered.' : 'You can only drop creatures on your own territory.', 'dropbad', 'bad');
     }
 }
 
@@ -306,13 +309,15 @@ function onKey(e) {
         view.rotate(k === 'q' ? -1 : 1);
     } else if (k === 'm') {
         view.fit();
+    } else if (k === 'v') {
+        toggleSound();
     } else if (G && e.key === 'h') {
         view.centerOn(G.hx, G.hy);
     } else if (G && ROOM_KEYS[e.key] && ROOM_KEYS[e.key][1] === e.shiftKey) {
         const [code] = ROOM_KEYS[e.key];
         jumpToRoom(code, ROOMS[code].n);
     } else if (G && k === 'f') {
-        const f = G.ents.find((u) => !u.dead && !u.held && u.state === 'fight' && (u.side === 0 || G.seen[ix(Math.floor(u.x), Math.floor(u.y))]));
+        const f = G.ents.find((u) => !u.dead && !u.held && u.state === 'fight' && (u.side === OWN || G.seen[ix(Math.floor(u.x), Math.floor(u.y))]));
         if (f) {
             view.centerOn(f.x - 0.5, f.y - 0.5);
         }
@@ -350,10 +355,20 @@ export function initInput() {
     cv.addEventListener('pointerleave', () => {
         app.hover.in = false;
     });
+    // Scrolling moves the map (a trackpad's two fingers, a mouse wheel; Shift for sideways). Zooming is a
+    // pinch on the trackpad (the browser sends it as a wheel with Ctrl), Ctrl + wheel, the + / - buttons
+    // or Ctrl + arrow keys, as in Dungeon Keeper.
     cv.addEventListener('wheel', (ev) => {
         ev.preventDefault();
-        const { sx, sy } = screen(ev, cv);
-        view.zoomAt(ev.deltaY < 0 ? 1.15 : 1 / 1.15, sx, sy);
+        const unit = ev.deltaMode === 1 ? 16 : ev.deltaMode === 2 ? cv.clientHeight : 1;
+        if (ev.ctrlKey || ev.metaKey) {
+            const { sx, sy } = screen(ev, cv);
+            view.zoomAt(Math.min(1.25, Math.max(0.8, Math.exp(-ev.deltaY * unit * 0.01))), sx, sy);
+        } else if (ev.shiftKey && !ev.deltaX) {
+            view.panPixels(ev.deltaY * unit, 0);
+        } else {
+            view.panPixels(ev.deltaX * unit, ev.deltaY * unit);
+        }
     }, { passive: false });
     addEventListener('keydown', (e) => {
         if (e.key === 'Shift') {

@@ -11,7 +11,7 @@ description: Twistball's three.js renderer: camera, lights, neon bands, palettes
 
 ## Interface
 
-- `createRenderer(canvas, tunnel)` returns `draw(state)`, `resize()`, `toTunnel(screenX, screenY)` (pointer → near-plane coordinates), `explode(side, paddle)`, `restore()`, `setPalette(palette)` and `palette()`. `game.js` uses nothing else, so the renderer can be swapped without touching the game.
+- `createRenderer(canvas, tunnel)` returns `draw(state)`, `resize()`, `toTunnel(screenX, screenY)` (pointer → near-plane coordinates), `explode(side, paddle)`, `restore()`, `setPalette(palette)` and `palette()`. The game (made in `context.js`) uses nothing else, so the renderer can be swapped without touching the game.
 - `draw()` reads `state.player`, `state.opponent`, `state.ball`, `state.ballVisible`, `state.paused`, `state.sparks` and `state.backFlash`.
 
 ## Scene

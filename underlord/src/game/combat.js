@@ -1,13 +1,15 @@
 /**
- * Fighting and invading: line of sight for shots, picking targets, attacks, kills and bounties, and
- * heroes marching (and tunnelling) to the Dungeon Heart.
+ * Fighting: line of sight for shots, picking targets, attacks, kills and bounties. How heroes move
+ * through the map is heroes.js.
  */
-import { inb, ix, tx, ty } from './constants.js';
-import { CFG, ECON, KINDS } from './config.js';
-import { addGold, gainXP, openTile, release, step } from './entities.js';
-import { bfs, dijkstra } from './path.js';
+import { sound } from './audio.js';
+import { HERO, OWN, foes, inb, ix } from './constants.js';
+import { CFG, ECON, KINDS, isWorker } from './config.js';
+import { addGold, gainXP, release, step } from './entities.js';
+import { bfs } from './path.js';
 import { G } from './state.js';
-import { adjHeart, diggable, ti, transp, walk } from './tiles.js';
+import { capture } from './prison.js';
+import { ti, transp, walk } from './tiles.js';
 import { msg } from './ui.js';
 import { fx } from './world.js';
 
@@ -37,12 +39,12 @@ export function clearShot(a, b) {
     return true;
 }
 
-/** The nearest enemy of e within R tiles that it has a clear shot at (neutrals never count). */
+/** The nearest enemy of e within R tiles that it has a clear shot at (neutrals and prisoners never count). */
 export function nearestEnemy(e, R) {
     let best = null;
     let bd = R * R;
     for (const o of G.ents) {
-        if (o.dead || o.held || o.side === e.side || o.side === 2) {
+        if (o.dead || o.held || !foes(e, o)) {
             continue;
         }
         const dx = o.x - e.x;
@@ -72,7 +74,7 @@ export function heartFoe(e) {
     let best = null;
     let bd = 1 / 0;
     for (const o of G.ents) {
-        if (o.dead || o.held || o.side !== 1 || Math.hypot(o.x - cx, o.y - cy) > CFG.heart.zapRange) {
+        if (o.dead || o.held || o.side !== HERO || Math.hypot(o.x - cx, o.y - cy) > CFG.heart.zapRange) {
             continue;
         }
         const d = Math.hypot(o.x - e.x, o.y - e.y);
@@ -88,18 +90,19 @@ export function heartFoe(e) {
 export function attack(e, t) {
     const k = KINDS[e.kind];
     const dmg = e.atk * (0.85 + Math.random() * 0.3);
+    sound(k.range > 1.5 ? 'shot' : 'hit', e.x, e.y);
     if (k.range > 1.5) {
-        fx({ type: 'proj', x: e.x, y: e.y, x1: t.x, y1: t.y, dur: 0.25, col: e.side ? '#bcd2f0' : '#c58cff' });
+        fx({ type: 'proj', x: e.x, y: e.y, x1: t.x, y1: t.y, dur: 0.25, col: e.side === HERO ? '#bcd2f0' : '#c58cff' });
     } else {
         fx({ type: 'dust', x: (e.x + t.x) / 2, y: (e.y + t.y) / 2, dur: 0.25, col: '#ffffff' });
     }
     e.hitT = 0.4;
     t.hp -= dmg;
     t.hurtT = 0.3;
-    if (e.side === 0) {
+    if (e.side === OWN) {
         gainXP(e, dmg * 0.4);
     }
-    if (t.side === 0 && t.kind !== 'imp' && t.state === 'sleep') {
+    if (t.side === OWN && !isWorker(t) && t.state === 'sleep') {
         t.state = 'think';
     }
     if (t.hp <= 0) {
@@ -107,13 +110,24 @@ export function attack(e, t) {
     }
 }
 
+/** A unit's health ran out: slain, or (a hero, with room in your Prison) knocked out and taken prisoner. */
 export function kill(t) {
-    t.dead = true;
-    release(t);
-    if (t.side === 1) {
+    if (t.side === HERO && t.carry > 0) {
+        // a Thief drops the gold it stole; your imps pick it up
+        G.pile[ti(t)] += t.carry;
+        t.carry = 0;
+    }
+    if (t.side === HERO) {
         const k = KINDS[t.kind];
         const a = addGold(Math.round(k.bounty * ECON.bountyMul));
         fx({ type: 'text', x: t.x, y: t.y, dur: 1.2, txt: '+' + a, col: '#e3b23c' });
+        if (capture(t)) {
+            return;
+        }
+    }
+    t.dead = true;
+    release(t);
+    if (t.side === HERO) {
         if (t.kind === 'lord') {
             msg('The Lord of the Land has fallen!', 'lord', 'good');
         }
@@ -121,12 +135,13 @@ export function kill(t) {
         msg((t.kind === 'imp' ? 'An imp' : 'Your ' + KINDS[t.kind].n) + ' has been slain.', 'die' + t.id, 'bad');
     }
     fx({ type: 'death', x: t.x, y: t.y, dur: 1.2, kind: t.kind, face: t.face, side: t.side });
+    sound('death', t.x, t.y);
 }
 
 /** State `fight`: chase the target and attack it when in range. */
 export function fight(e, dt) {
     const t = e.target;
-    if (!t || t.dead || t.held || t.side === e.side) {
+    if (!t || t.dead || t.held || !foes(e, t)) {
         e.state = 'think';
         e.target = null;
 
@@ -164,59 +179,6 @@ export function fight(e, dt) {
             return;
         }
         e.path = p;
-    }
-    step(e, dt);
-}
-
-/** State `march` (heroes): walk and tunnel towards the Heart, and hit it when next to it. */
-export function march(e, dt) {
-    const here = ti(e);
-    if (adjHeart(here)) {
-        e.aim = Math.atan2(G.hy + 0.5 - e.y, G.hx + 0.5 - e.x);
-        if (e.cd <= 0) {
-            e.cd = KINDS[e.kind].rate;
-            e.hitT = 0.4;
-            G.heartHP -= e.atk;
-            G.heartFlash = 0.25;
-            G.heartAlarm = CFG.imp.defendTime;
-            fx({ type: 'dust', x: G.hx + 0.5 + (e.x - G.hx - 0.5) * 0.4, y: G.hy + 0.5 + (e.y - G.hy - 0.5) * 0.4, dur: 0.3, col: '#ff6a4a' });
-            msg('Your Dungeon Heart is under attack!', 'heart', 'bad');
-        }
-
-        return;
-    }
-    e.repath -= dt;
-    if (!e.path.length || e.repath <= 0) {
-        e.repath = 5;
-        e.path = dijkstra(here, (i) => adjHeart(i)) || [];
-    }
-    const n = e.path[0];
-    if (n === undefined) {
-        return;
-    }
-    if (!walk(n)) {
-        if (!diggable(n)) {
-            e.path = [];
-
-            return;
-        }
-        e.face = Math.sign(tx(n) - tx(here)) || e.face;
-        e.aim = Math.atan2(ty(n) - ty(here), tx(n) - tx(here));
-        e.digging = 0.3;
-        e.timer -= dt;
-        if (e.timer > 0) {
-            return;
-        }
-        e.timer = KINDS[e.kind].dig;
-        if (G.hp[n] > 0) {
-            G.hp[n]--;
-        }
-        if (G.hp[n] <= 0) {
-            openTile(n);
-        }
-        fx({ type: 'dust', x: (e.x + tx(n) + 0.5) / 2, y: (e.y + ty(n) + 0.5) / 2, dur: 0.35, col: '#8a6446' });
-
-        return;
     }
     step(e, dt);
 }

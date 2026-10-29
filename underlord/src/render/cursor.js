@@ -3,7 +3,7 @@
  * red = it does not) and, while dragging, the rectangle with every tile it would change.
  */
 import * as THREE from 'three';
-import { inb, ix } from '../game/constants.js';
+import { OWN, inb, ix } from '../game/constants.js';
 import { affects, toolValid } from '../game/actions.js';
 import { G, app } from '../game/state.js';
 import { solid } from '../game/tiles.js';
@@ -62,7 +62,7 @@ export class Cursor {
             this.rect.scale.set(R.x1 - R.x0 + 1, 1, R.y1 - R.y0 + 1);
         } else if (app.hover.in && G && inb(app.hover.x, app.hover.y)) {
             const i = ix(app.hover.x, app.hover.y);
-            const ok = toolValid(i, app.hover.unit && app.hover.unit.side === 0 ? app.hover.unit : null);
+            const ok = toolValid(i, app.hover.unit && app.hover.unit.side === OWN ? app.hover.unit : null);
             this.outline.visible = true;
             this.outline.material.color.set(ok ? '#f0dcb4' : '#e0483c');
             this.outline.position.set(app.hover.x, surface(i) + 0.04, app.hover.y);

@@ -1,0 +1,32 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <!-- Plants vs. Zombies style (thin dark-brown outlines, soft shading), drawn after the Dungeon Keeper 1
+       thief: slight, in a grey hood and cloak, sly eyes over a mask, a dagger held low. Faces right; feet near y=58. -->
+  <defs>
+    <linearGradient id="cloak" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#9aa2ae"/>
+      <stop offset="1" stop-color="#454b55"/>
+    </linearGradient>
+    <linearGradient id="skin" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#f1cfa6"/>
+      <stop offset="1" stop-color="#bd875c"/>
+    </linearGradient>
+    <linearGradient id="blade" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#f2f5f7"/>
+      <stop offset="1" stop-color="#8f9aa2"/>
+    </linearGradient>
+  </defs>
+  <g stroke="#2b1b12" stroke-width="1.3" stroke-linejoin="round" stroke-linecap="round">
+    <path d="M27 46 L25 57 L31 57 L31 46 Z M35 46 L36 57 L42 57 L40 46 Z" fill="#3c3530"/>
+    <path d="M18 26 Q14 44 22 49 L42 49 Q48 44 45 27 Q36 20 31 20 Q23 20 18 26 Z" fill="url(#cloak)"/>
+    <path d="M28 30 L36 30 L35 46 L29 46 Z" fill="#5a4636"/>
+    <path d="M27 38 h10" fill="none" stroke-width="1.8"/>
+    <path d="M43 32 Q49 37 47 42" fill="none" stroke="#2b1b12" stroke-width="4.6"/>
+    <path d="M43 32 Q49 37 47 42" fill="none" stroke="#7c848f" stroke-width="2.8"/>
+    <path d="M47 41 L56 47 L54.5 49 L45.5 43 Z" fill="url(#blade)"/>
+    <path d="M45 40.5 L48 44.5" fill="none" stroke-width="2.4"/>
+    <path d="M20 16 Q20 2 33 2 Q46 2 46 16 Q44 23 33 23 Q22 23 20 16 Z" fill="url(#cloak)"/>
+    <path d="M25 14 Q25 7 33 7 Q41 7 41 14 L41 19 L25 19 Z" fill="url(#skin)"/>
+    <path d="M25 16 L41 16 L41 21 Q33 23 25 21 Z" fill="#3c3530"/>
+    <path d="M29 12.5 Q31 11 33 12.5 M35 12.5 Q37 11 39 12.5" fill="none" stroke-width="1.6"/>
+  </g>
+</svg>

@@ -18,6 +18,7 @@ description: Index of the root .docs wiki and of every game's wiki. Read when yo
 ## Game wikis
 
 - [../underlord/.docs/index.md](../underlord/.docs/index.md) — Underlord, the Dungeon Keeper-style game: rules, map, creatures, heroes, spells, saving and rendering.
+- [../learn-to-fly/.docs/index.md](../learn-to-fly/.docs/index.md) — Learn to Fly, the HTML5 remake of the Flash game: the SWF export, the Flash-style player, scenes and flight physics.
 - [../twistball/.docs/index.md](../twistball/.docs/index.md) — Twistball, tunnel pong: rules, physics, computer players, online play, rendering and audio.
 
 ## See also

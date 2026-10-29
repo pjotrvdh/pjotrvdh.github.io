@@ -12,6 +12,8 @@ export default {
     bounty: 60,
     /** Seconds per hit when tunnelling. */
     dig: 0.3,
+    /** Digs its way to your Heart; the rest of its wave follows the tunnel. In Dungeon Keeper only the dwarves dig. */
+    tunnels: true,
     /** Fallback colour when the SVG is missing. */
     color: '#b9824a',
 };

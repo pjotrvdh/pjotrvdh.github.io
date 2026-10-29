@@ -1,15 +1,16 @@
 /**
  * The dungeon itself, in blocks (KayKit Block Bits, one block per tile, see src/config/assets.js): full
  * blocks for earth, gold, gems, rock and reinforced walls, floor blocks sunk below the ground for open
- * tiles, plus dig marks, chests, the keeper emblem on claimed tiles and the jewel on reinforced walls.
+ * tiles, plus dig marks, chests, gold piles, the keeper emblem on claimed tiles, and the jewel and torches on reinforced walls.
  * Rebuilt whenever a seen tile changes.
  */
 import * as THREE from 'three';
-import { CLAIM, EARTH, FLOOR, GATE, GEM, GOLD, HEART, LAVA, N, PORTAL, ROCK, WALL, hash, inb, ix, tx, ty } from '../game/constants.js';
+import { CLAIM, EARTH, FLOOR, GATE, GEM, GOLD, HEART, LAVA, N, N4, PORTAL, ROCK, WALL, hash, inb, ix, tx, ty } from '../game/constants.js';
 import { ASSETS, ROOMS, WALL_HP } from '../game/config.js';
 import { G } from '../game/state.js';
 import { diggable, solid } from '../game/tiles.js';
 import { Instances, place } from './instances.js';
+import { parts } from './models.js';
 
 /** Height of a solid block. */
 export const TOP = 1;
@@ -20,6 +21,54 @@ const col = new THREE.Color();
 /** Block Bits blocks are 2 units on every side: half scale is one tile. */
 const BLOCK = 0.5;
 const WHITE = new THREE.Color(1, 1, 1);
+
+/**
+ * The gold block's material with every gold pixel of its texture recoloured in `assets.js` `gemColor`
+ * (same shading, ruby purple), so a gem seam looks like a gold seam with rubies.
+ */
+function gemMaterial(gold) {
+    const m = gold.clone();
+    const img = gold.map?.image;
+    if (!img) {
+        m.color.set(ASSETS.gemColor);
+
+        return m;
+    }
+    const c = document.createElement('canvas');
+    c.width = img.width;
+    c.height = img.height;
+    const g = c.getContext('2d');
+    g.drawImage(img, 0, 0);
+    const d = g.getImageData(0, 0, c.width, c.height);
+    const ruby = new THREE.Color(ASSETS.gemColor);
+    const p = d.data;
+    for (let k = 0; k < p.length; k += 4) {
+        const r = p[k];
+        const gr = p[k + 1];
+        const b = p[k + 2];
+        const max = Math.max(r, gr, b);
+        // gold: warm (red >= green > blue) and saturated
+        if (max > 40 && r >= gr && gr > b && (max - b) / max > 0.35) {
+            const l = (r + gr + b) / (3 * 170);
+            p[k] = Math.min(255, ruby.r * 255 * l * 1.3);
+            p[k + 1] = Math.min(255, ruby.g * 255 * l * 1.3);
+            p[k + 2] = Math.min(255, ruby.b * 255 * l * 1.3);
+        }
+    }
+    g.putImageData(d, 0, 0);
+    const t = new THREE.CanvasTexture(c);
+    t.flipY = gold.map.flipY;
+    t.colorSpace = gold.map.colorSpace;
+    t.wrapS = gold.map.wrapS;
+    t.wrapT = gold.map.wrapT;
+    t.magFilter = gold.map.magFilter;
+    t.minFilter = gold.map.minFilter;
+    m.map = t;
+
+    return m;
+}
+/** Chance that a side of a reinforced wall facing your ground carries a torch. */
+const TORCHES = 0.22;
 /** Brightness per block type: earth darker than the floors, so walls and floors read apart from above. */
 const SHADE = { [EARTH]: 0.62, [GOLD]: 0.85, [GEM]: 0.85, [ROCK]: 0.8, [WALL]: 1 };
 
@@ -72,7 +121,7 @@ export class Terrain {
         this.blocks = {
             [EARTH]: new Instances(this.group, A.earth),
             [GOLD]: new Instances(this.group, A.gold),
-            [GEM]: new Instances(this.group, A.gem),
+            [GEM]: new Instances(this.group, parts(A.gem).map((q) => ({ ...q, material: gemMaterial(q.material) }))),
             [ROCK]: new Instances(this.group, A.rock),
             [WALL]: new Instances(this.group, A.wall),
         };
@@ -80,6 +129,9 @@ export class Terrain {
         this.claimed = new Instances(this.group, A.claimed);
         this.lava = new Instances(this.group, A.lava);
         this.chests = new Instances(this.group, ASSETS.props.chest);
+        this.torches = new Instances(this.group, ASSETS.props.torch);
+        // a soft halo round each torch flame
+        this.halos = new Instances(this.group, [{ geometry: new THREE.SphereGeometry(0.1, 10, 8), material: new THREE.MeshBasicMaterial({ color: '#ff9a3c', transparent: true, opacity: 0.35, blending: THREE.AdditiveBlending, depthWrite: false }) }]);
         this.piles = [ASSETS.props.coinsSmall, ASSETS.props.coinsMedium, ASSETS.props.coinsLarge].map((file) => new Instances(this.group, file));
         const markMaterial = new THREE.MeshBasicMaterial({ map: markTexture(), transparent: true, depthWrite: false });
         this.marks = new Instances(this.group, [{ geometry: new THREE.PlaneGeometry(0.96, 0.96).rotateX(-Math.PI / 2), material: markMaterial }], { renderOrder: 12 }); // after the clouds (10), so marks show through them
@@ -118,8 +170,25 @@ export class Terrain {
         this.rebuild();
     }
 
+    /** Now and then a torch on a reinforced wall, on a side that faces your own ground. */
+    addTorches(x, y) {
+        N4.forEach(([dx, dy], k) => {
+            const a = x + dx;
+            const b = y + dy;
+            if (!inb(a, b) || hash(x, y, 20 + k) > TORCHES) {
+                return;
+            }
+            const j = ix(a, b);
+            if ((G.t[j] === CLAIM || G.t[j] === HEART) && G.seen[j]) {
+                this.torches.add(place(x + 0.5 + dx * 0.5, 0.5, y + 0.5 + dy * 0.5, Math.atan2(dx, dy), 0.45, m));
+                // the flame sits 0.55 up and 0.3 out in the model
+                this.halos.add(place(x + 0.5 + dx * 0.64, 0.76, y + 0.5 + dy * 0.64, 0, 1, m));
+            }
+        });
+    }
+
     rebuild() {
-        const parts = [...Object.values(this.blocks), this.floor, this.claimed, this.lava, this.chests, ...this.piles, this.marks, this.emblems, this.jewels];
+        const parts = [...Object.values(this.blocks), this.floor, this.claimed, this.lava, this.chests, this.torches, this.halos, ...this.piles, this.marks, this.emblems, this.jewels];
         for (const p of parts) {
             p.begin();
         }
@@ -143,6 +212,9 @@ export class Terrain {
                 this.blocks[kind].add(place(x + 0.5, TOP / 2, y + 0.5, turn, BLOCK, m), col);
                 if (keeperWall) {
                     this.jewels.add(place(x + 0.5, TOP + 0.02, y + 0.5, Math.PI / 4, 1, m));
+                }
+                if (t === WALL) {
+                    this.addTorches(x, y);
                 }
                 continue;
             }

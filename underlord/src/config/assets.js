@@ -20,15 +20,21 @@ export default {
     /** Your colour as the keeper: claimed floor, the emblem on it, the jewels on reinforced walls, your units' rings. */
     keeper: '#e0483c',
 
+    /** Gold seams on the minimap, their glints and the dust when imps mine them. */
+    goldColor: '#e2ad2c',
+
+    /** Ruby purple: the gems in gem seams (the gold of the gold block, recoloured), their glints, dust and the minimap. */
+    gemColor: '#a32a9c',
+
     /** Panel portraits per unit kind. */
-    icons: Object.fromEntries(['imp', 'orc', 'warlock', 'troll', 'mistress', 'tunneller', 'archer', 'wizard', 'knight', 'lord'].map((k) => [k, icon(k)])),
+    icons: Object.fromEntries(['imp', 'orc', 'warlock', 'troll', 'mistress', 'skeleton', 'tunneller', 'thief', 'archer', 'wizard', 'barbarian', 'knight', 'lord'].map((k) => [k, icon(k)])),
 
     /**
      * Unit figures, all KayKit Adventurers (they share one skeleton, animated with the Rig_Medium clips
      * in `rigs`). `model`: a .glb under models/; `height`: in tiles; `width`: extra breadth (1 = as
      * modelled); `tint`: multiplied into every colour; `tints`: per part, matched on the mesh name (a colour, or [colour, brightness]);
      * `hide`: parts left out; `shape`: 'hourglass' (a feminine torso); `headSize`: head scale (less chibi); `gloss`: shiny parts (leather); `borrow`: parts taken from another KayKit model; `extras`: built-in
-     * pieces on the head ('crown', 'horns'); `right` / `left`: a model held in that hand ('pickaxe', 'mattock' and 'whip' are built in); `clips`: Rig_Medium clips per activity that replace the defaults (`CLIPS` in src/render/units.js); `turn`: extra degrees a held item turns around its length, per hand ({ left: 90 }); `mirror`: activities whose clip plays mirrored, left and right swapped. Check them all
+     * pieces on the head ('crown', 'horns'); `right` / `left`: a model held in that hand ('pickaxe', 'mattock' and 'whip' are built in); `clips`: Rig_Medium clips per activity that replace the defaults (`CLIPS` in src/render/poses.js); `turn`: extra degrees a held item turns around its length, per hand ({ left: 90 }). Check them all
      * in the character viewer: the game with ?characters.
      */
     units: {
@@ -37,7 +43,6 @@ export default {
                 attack: 'Melee_1H_Attack_Chop'
             },
             model: 'kaykit/Rogue.glb',
-            rig: 'kaykit',
             height: 0.5,
             width: 1.1,
             hide: ['Cape'],
@@ -56,7 +61,6 @@ export default {
                 train: 'Melee_1H_Attack_Slice_Horizontal',
             },
             model: 'kaykit/Knight.glb',
-            rig: 'kaykit',
             height: 0.84,
             width: 1.1,
             hide: ['Visor'],
@@ -75,7 +79,6 @@ export default {
                 attack: 'Ranged_Magic_Shoot',
             },
             model: 'kaykit/Rogue_Hooded.glb',
-            rig: 'kaykit',
             height: 0.74,
             tint: '#b796e6',
             right: 'kaykit/staff.glb',
@@ -87,7 +90,6 @@ export default {
                 train: 'Push_Ups',
             },
             model: 'kaykit/Barbarian.glb',
-            rig: 'kaykit',
             height: 0.7,
             width: 1.2,
             hide: ['BearHat'],
@@ -104,7 +106,6 @@ export default {
                 train: 'Melee_1H_Attack_Slice_Horizontal',
             },
             model: 'kaykit/Rogue.glb',
-            rig: 'kaykit',
             height: 0.92,
             shape: 'hourglass',
             headSize: 0.78,
@@ -131,12 +132,20 @@ export default {
             },
             right: 'whip',
         },
+        skeleton: {
+            clips: {
+                attack: 'Melee_1H_Attack_Chop'
+            },
+            model: 'kaykit/Skeleton_Warrior.glb',
+            height: 0.78,
+            hide: ['Cloak'],
+            right: 'kaykit/Skeleton_Blade.glb',
+        },
         tunneller: {
             clips: {
                 attack: 'Melee_2H_Attack_Chop'
             },
             model: 'kaykit/Barbarian.glb',
-            rig: 'kaykit',
             height: 0.6,
             width: 1.25,
             hide: ['BearHat'],
@@ -154,12 +163,20 @@ export default {
             },
             right: 'mattock',
         },
+        thief: {
+            clips: {
+                attack: 'Melee_1H_Attack_Slice_Horizontal'
+            },
+            model: 'kaykit/Rogue_Hooded.glb',
+            height: 0.7,
+            tint: '#8c94a0',
+            right: 'kaykit/dagger.glb',
+        },
         archer: {
             clips: {
                 attack: 'Ranged_Bow_Release'
             },
             model: 'kaykit/Ranger.glb',
-            rig: 'kaykit',
             height: 0.76,
             left: 'kaykit/bow_withString.glb',
             turn: { left: 180 },
@@ -169,9 +186,17 @@ export default {
                 attack: 'Ranged_Magic_Shoot'
             },
             model: 'kaykit/Mage.glb',
-            rig: 'kaykit',
             height: 0.82,
             right: 'kaykit/staff.glb',
+        },
+        barbarian: {
+            clips: {
+                attack: 'Melee_2H_Attack_Chop'
+            },
+            model: 'kaykit/Barbarian.glb',
+            height: 0.84,
+            width: 1.15,
+            right: 'kaykit/axe_2handed.glb',
         },
         knight: {
             clips: {
@@ -179,7 +204,6 @@ export default {
                 guard: 'Melee_Blocking',
             },
             model: 'kaykit/Knight.glb',
-            rig: 'kaykit',
             height: 0.82,
             right: 'kaykit/sword_1handed.glb',
             left: 'kaykit/shield_badge_color.glb',
@@ -189,7 +213,6 @@ export default {
                 attack: 'Melee_2H_Attack_Chop'
             },
             model: 'kaykit/Knight.glb',
-            rig: 'kaykit',
             height: 0.82,
             tints: {
                 Helmet: [
@@ -226,7 +249,8 @@ export default {
     tiles: {
         earth: 'blocks/dirt.glb',
         gold: 'blocks/stone_with_gold.glb',
-        gem: 'blocks/stone_with_silver.glb',
+        /** The gold block, its gold recoloured with `gemColor` (terrain.js), so gem seams read like gold seams. */
+        gem: 'blocks/stone_with_gold.glb',
         rock: 'blocks/stone_dark.glb',
         wall: 'blocks/bricks_A.glb',
         floor: 'blocks/gravel.glb',
@@ -242,18 +266,27 @@ export default {
         coinsSmall: 'kaykit/coin_stack_small.glb',
         coinsMedium: 'kaykit/coin_stack_medium.glb',
         coinsLarge: 'kaykit/coin_stack_large.glb',
-        dummy: 'mini/wood-support.glb',
-        shield: 'mini/shield-round.glb',
-        sword: 'mini/weapon-sword.glb',
-        spear: 'mini/weapon-spear.glb',
+        /** Training Room: archery targets and racks of weapons (KayKit Mini-Game Variety Pack, Dungeon Pack 1.0). */
+        target: 'kaykit/targetStand.glb',
+        weaponRack: 'kaykit/weaponRack.glb',
+        /** Lair: a bed on the floor for every creature that has claimed one (KayKit Dungeon Pack 1.1). */
+        bed: 'kaykit/bed_floor.glb',
+        /** Library: filled bookcases (KayKit Dungeon Pack 1.0). */
+        bookcase: 'kaykit/bookcaseWideFilled.glb',
+        /** On your reinforced walls, facing your rooms and territory (KayKit Dungeon Pack 1.1). */
+        torch: 'kaykit/torch_mounted.glb',
         table: 'mini/table.glb',
         chair: 'mini/chair.glb',
         potion: 'mini/potion.glb',
         /** Held while eating (KayKit Restaurant Bits). */
         steak: 'kaykit/steak.glb',
+        /** Held while reinforcing a wall (KayKit RPG Tools Bits). */
+        hammer: 'kaykit/hammer.glb',
         /** Held open while studying (KayKit Adventurers). */
         book: 'kaykit/spellbook_open.glb',
         banner: 'mini/banner.glb',
+        /** Prison: iron bars along the room's outline (Kenney Graveyard Kit). */
+        bars: 'graveyard/iron-fence.glb',
         heartColumn: 'dungeon/template-detail.glb',
         portalArch: 'cave/gate.glb',
         heroGate: 'dungeon/gate-metal-bars.glb',

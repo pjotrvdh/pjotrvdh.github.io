@@ -13,7 +13,7 @@ description: Hub for the Underlord docs: what the game is, the loop, the source 
 
 - A Dungeon Keeper (1997)-style real-time game, drawn in 3D with three.js (Kenney and KayKit models). The player is a keeper: imps dig and claim, rooms attract and serve creatures, six hero waves march from a Hero Gate to the Dungeon Heart.
 - Win: every wave in `underlord/src/config/waves.js` has spawned and no non-guard hero is alive. Lose: the Heart's health reaches 0.
-- One map per game: 40 x 26 tiles (`W`, `H` in `underlord/src/game/constants.js`).
+- One map per game: 80 x 52 tiles (`W`, `H` in `underlord/src/game/constants.js`).
 - Only creatures and heroes from the original Dungeon Keeper belong in the game (see `AGENTS.md`).
 
 ## Game loop at a glance
@@ -37,24 +37,27 @@ description: Hub for the Underlord docs: what the game is, the loop, the source 
 | `underlord/index.html` | Page: header HUD, stage canvas and label layer, overlay card, control panel (`aside`) |
 | `underlord/src/main.js` | Imports styles + `game/index.js`; fills the version label |
 | `underlord/src/game/index.js` | Boot: config, UI, input, model loading, `newGame()`, the frame loop; `?characters` opens the viewer |
-| `underlord/src/game/constants.js` | Map size, tile and room codes, labels, tile-index helpers |
+| `underlord/src/game/constants.js` | Map size, tile, room and side codes (`OWN`, `HERO`, `NEUTRAL`, `PRISONER`, `foes()`), labels, tile-index helpers |
 | `underlord/src/game/state.js` | `G` (the game, replaced by `newGame()`) and `app` (running, speed, tool, hover, drag, tab) |
 | `underlord/src/game/config.js` | `applyConfig()`: `KINDS`, `ROOMS`, `SPELLS`, `ATTRACT`, ... from `src/config` |
 | `underlord/src/game/tiles.js`, `path.js` | Tile questions (`walk`, `diggable`, `solid`, `cap`, ...); `bfs()`, `dijkstra()` |
 | `underlord/src/game/map.js` | `genMap()`, `newGame()`, `vision()` |
 | `underlord/src/game/entities.js` | `spawn()`, movement, reservations, beds, XP, research, gold, leaving |
-| `underlord/src/game/imps.js`, `creatures.js`, `combat.js` | Imp work; creature AI, portal, payday; targeting, fights, kills, hero marching |
-| `underlord/src/game/world.js` | `update()`, `tick()` (the unit state machine), waves, win/loss, `fx()` |
+| `underlord/src/game/prison.js` | Prison: knocking heroes out, hauling, jailed prisoners rising as Skeletons |
+| `underlord/src/game/imps.js`, `creatures.js`, `combat.js`, `heroes.js` | Imp work; creature AI, portal, payday; targeting, fights, kills; how heroes move (tunnel, follow, wander, steal) |
+| `underlord/src/game/world.js` | `update()`, waves, win/loss, `fx()` |
+| `underlord/src/game/states.js` | `tick()`: the unit state machine (timers, treasure, hunger, lookout, then the `STATES` table) |
 | `underlord/src/game/actions.js` | Build, sell, mark, cast, pick up, drop, dismiss, slap |
 | `underlord/src/game/cpu.js`, `save.js` | Computer Assistant; save and load |
-| `underlord/src/game/ui.js`, `input.js` | HUD, panel, Chronicle, minimap, cheats; mouse, touch and keys |
+| `underlord/src/game/audio.js` | Sound effects and the cave ambience (Web Audio, no files) |
+| `underlord/src/game/ui.js`, `minimap.js`, `cheats.js`, `input.js` | HUD, panel, Chronicle; the minimap; the Cheats panel; mouse, touch and keys |
 | `underlord/src/render/` | The 3D view (three.js), see [rendering-and-ui](rendering-and-ui.md) |
 | `underlord/src/styles/underlord.css` | Layout, colours, system font stacks, labels over the map |
 | `underlord/src/config/index.js` | Combines all config into the object `applyConfig()` reads |
 | `underlord/src/config/settings/*.js` | Tunables: `economy`, `imp`, `heart`, `portal`, `waves`, `hand`, `assistant`, `walls` |
-| `underlord/src/config/creatures/*.js` | imp, orc, warlock, troll, mistress (order in `index.js`) |
-| `underlord/src/config/heroes/*.js` | tunneller, archer, wizard, knight, lord |
-| `underlord/src/config/rooms/*.js` | treasury, lair, hatchery, training, library |
+| `underlord/src/config/creatures/*.js` | imp, orc, warlock, troll, mistress, skeleton (order in `index.js`) |
+| `underlord/src/config/heroes/*.js` | tunneller, thief, archer, wizard, barbarian, knight, lord |
+| `underlord/src/config/rooms/*.js` | treasury, lair, hatchery, training, library, prison |
 | `underlord/src/config/spells/*.js` | imp (Create Imp), rally (Call to Arms), heal, bolt (Lightning) |
 | `underlord/src/config/waves.js` | Hero waves, in order |
 | `underlord/src/config/assets.js` | Which model (and portrait) is drawn for what |
@@ -70,6 +73,7 @@ description: Hub for the Underlord docs: what the game is, the loop, the source 
 | [map](map.md) | You touch `genMap()`, tile types, caverns, the portal, the gate, fog or vision |
 | [imps](imps.md) | You touch `impThink()`, digging, claiming, reinforcing, gold hauling, imp fleeing or imps defending the Heart |
 | [creatures](creatures.md) | You touch `creatureThink()`, hunger, beds, training, research, wages, leaving, neutrals |
+| [prison](prison.md) | You touch the Prison, prisoners (side `PRISONER`), imps hauling them, or the Skeleton |
 | [hand](hand.md) | You touch pick up / drop / dismiss (`pickUp()`, `dropHeld()`, `dismissHeld()`) or slapping (`slap()`) |
 | [combat](combat.md) | You touch targeting, `fight()`, `attack()`, `kill()`, XP, bounties or line of sight |
 | [heroes](heroes.md) | You touch waves, hero spawning, `march()`, tunnelling, the Heart zap, the hero camp, white dots |
@@ -82,7 +86,7 @@ description: Hub for the Underlord docs: what the game is, the loop, the source 
 ## Conventions for changes
 
 - Tunable numbers belong in `underlord/src/config/`, documented in their file. Config keys are fixed: logic, waves and assets refer to them.
-- Room codes are positional: `ROOM_IDS=['treasury','lair','hatchery','training','library']` maps to codes 1..5 (`TREAS`..`LIB`). `ROOMS` and the Rooms tab follow this hard-coded order; the order of `rooms/index.js` is not used.
+- Room codes are positional: `ROOM_IDS=['treasury','lair','hatchery','training','library','prison']` maps to codes 1..6 (`TREAS`..`PRISON`); saves store the codes, so add new rooms only at the end. `ROOMS` and the Rooms tab follow this hard-coded order; the order of `rooms/index.js` is not used.
 - The global game state is the object `G`, created in `newGame()`.
 - `npm run build` must succeed; check changes in the browser (`npm run dev`, `/underlord/`).
 

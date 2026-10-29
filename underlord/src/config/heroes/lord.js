@@ -10,7 +10,7 @@ export default {
     rate: 1.1,
     /** Gold for killing it. */
     bounty: 1000,
-    /** Seconds per hit when tunnelling. */
+    /** Seconds per hit when it tunnels (only heroes with `tunnels` dig, see tunneller.js). */
     dig: 0.6,
     /** A boss: drawn larger. */
     big: true,

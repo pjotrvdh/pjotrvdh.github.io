@@ -6,6 +6,7 @@ import lair from './lair.js';
 import hatchery from './hatchery.js';
 import training from './training.js';
 import library from './library.js';
+import prison from './prison.js';
 
 export default {
     treasury,
@@ -13,4 +14,5 @@ export default {
     hatchery,
     training,
     library,
+    prison,
 };
