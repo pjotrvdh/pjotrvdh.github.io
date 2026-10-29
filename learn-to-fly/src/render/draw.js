@@ -277,7 +277,8 @@ export class Renderer {
         /**
          * Shapes that go on to the window's left (or top) edge: a slice [a, b] of the shape (in its own
          * coordinates; x for `left`, y for `up`) is stretched from that edge to `from`, where the
-         * shape's land (or sky) starts (drawExtension()). Entries: {from, slice: [a, b], up?}.
+         * shape's land (or sky) starts, and over its first `overlap` units, which hides the shape's
+         * edge there (drawExtension()). Entries: {from, slice: [a, b], up?, overlap?}.
          */
         this.extend = new Map();
         this.fill = null;
@@ -337,14 +338,14 @@ export class Renderer {
      * Draws slice [a, b] of a shape stretched from the window's left edge to x `from` of the shape,
      * or with `up` from the top edge to y `from`.
      */
-    drawExtension(ctx, obj, m, cx, { from, slice: [a, b], up = false }) {
+    drawExtension(ctx, obj, m, cx, { from, slice: [a, b], up = false, overlap = 0 }) {
         const scale = up ? m[3] : m[0];
         const start = scale * from + (up ? m[5] : m[4]);
         if (start <= 0 || !scale) {
             return;
         }
-        // Overlap the shape a little, so no seam shows where it starts.
-        const end = start + 3 * Math.abs(scale);
+        // Over the shape's first `overlap` units (its edge), plus a pixel against seams.
+        const end = start + overlap * Math.abs(scale) + 1;
         const k = end / (scale * (b - a));
         const shift = -k * (scale * a + (up ? m[5] : m[4]));
         const stretched = multiply(up ? [1, 0, 0, k, 0, shift] : [k, 0, 0, 1, shift, 0], m);
@@ -516,19 +517,20 @@ export class Renderer {
         if (rect) {
             m = multiply(this.coverMatrix(rect), m);
         }
-        const extend = this.fill && this.extend.get(obj.id);
-        if (extend) {
-            this.drawExtension(ctx, obj, m, multiplyColor(parentCx, obj.cx), extend);
-        }
         const cx = multiplyColor(parentCx, obj.cx);
         if (cx && cx[3] <= 0 && cx[7] <= 0) {
             return;
         }
         if ((obj.filters?.length || BLEND[obj.blend]) && !this.inLayer) {
             this.drawLayer(ctx, obj, m, cx);
-            return;
+        } else {
+            this.drawContent(ctx, obj, m, cx);
         }
-        this.drawContent(ctx, obj, m, cx);
+        // Drawn over the shape's own edge, so its outline at `from` doesn't show.
+        const extend = this.fill && this.extend.get(obj.id);
+        if (extend) {
+            this.drawExtension(ctx, obj, m, cx, extend);
+        }
     }
 
     drawContent(ctx, obj, m, cx) {

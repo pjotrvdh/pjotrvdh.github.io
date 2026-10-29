@@ -80,6 +80,11 @@ canvas {
     cursor: pointer;
 }
 
+/* Hidden buttons (the Cheats button until the code is typed; full screen where it can't) stay hidden. */
+.ctl[hidden] {
+    display: none;
+}
+
 .ctl svg {
     width: 20px;
     height: 20px;
