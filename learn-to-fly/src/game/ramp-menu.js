@@ -4,9 +4,8 @@ import { achievementCount, KINDS, state } from './state.js';
 import { drawing, h, hideClips, money, registerScreen, showScreen, STATE_EVENT } from './ui.js';
 
 /*
- * The ramp menu (root frame 9, the "stage" label): the five ramps along the top, the picked ramp's
- * picture on the canvas (stagemc, sprite 457, one frame per ramp, with drifting clouds) and its four
- * achievements in a chalk panel. A ramp opens after a number of achievements over all ramps
+ * The ramp menu (root frame 9, the "stage" label): the five ramps and the picked ramp's four
+ * achievements in a chalk column in the bottom left corner, over the ramp's picture on the canvas (stagemc, sprite 457, one frame per ramp, with drifting clouds). A ramp opens after a number of achievements over all ramps
  * (config/ramps.js). "Fly!" starts the day on the picked ramp.
  */
 
@@ -36,15 +35,17 @@ function build() {
     const count = h('span', { class: 'count' });
     const list = h('ul', { class: 'achievements' });
     const fly = h('button', { type: 'button', class: 'chalk-button fly', onclick: onFly }, 'Fly!');
+    // One column in the bottom left corner, so the picture (and the penguin at its top) stays clear.
     const screen = h('section', { class: 'ramp-menu', 'aria-label': 'Pick a ramp' },
-        h('nav', { class: 'ramp-bar chalk-panel' }, h('span', { class: 'bar-title' }, 'Select Stage'), h('div', { class: 'ramp-buttons' }, buttons)),
-        h('div', { class: 'ramp-info chalk-panel' },
-            title,
-            note,
-            goal,
-            h('h3', {}, 'Achievements ', count),
-            list,
-            fly));
+        h('div', { class: 'ramp-column' },
+            h('nav', { class: 'ramp-bar chalk-panel' }, h('span', { class: 'bar-title' }, 'Select Stage'), h('div', { class: 'ramp-buttons' }, buttons)),
+            h('div', { class: 'ramp-info chalk-panel' },
+                title,
+                note,
+                goal,
+                h('h3', {}, 'Achievements ', count),
+                list,
+                fly)));
     registerScreen('ramps', screen);
     window.addEventListener(STATE_EVENT, () => {
         if (!screen.hidden) {

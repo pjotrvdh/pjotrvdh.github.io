@@ -24,8 +24,27 @@ const FLIGHT_FRAME = 11;
 const OVERLAYS = [108, 109, 119];
 /** Replaced by HTML: the original options menu (148), flight HUD (644) and score board (579). */
 const REPLACED = [148, 644, 579];
-/** The ramp menu's picture (457) sits below its old top bar: that area covers the window instead. */
-const COVERED = new Map([[457, [0, 101, 640, 481]]]);
+/**
+ * The ramp menu's picture (457) sits below its old top bar: that area covers the window instead,
+ * its top just below the window's top edge (the penguin of the high ramps stands at its very top);
+ * the sky (423, one colour) goes on up to the window's top edge.
+ */
+const COVERED = new Map([[457, { rect: [0, 101, 640, 481], top: 24 }]]);
+/**
+ * In the ramp menu the ice under the penguin ends in a cliff mid-picture: on the 5' and 10' ramps
+ * the iceberg shapes (431, 436), on the others the whole picture (440, 443, 446). A clean slice of
+ * it (snow on top, ice below, no penguin) continues it to the window's left edge, drawn over the
+ * cliff's first pixels so its edge line doesn't show. The sky (423)
+ * continues up to the top edge.
+ */
+const EXTENDED = new Map([
+    [423, { from: 0, slice: [0, 2], up: true }],
+    [431, { from: 285.4, slice: [362, 364], overlap: 6 }],
+    [436, { from: 247, slice: [326, 328], overlap: 6 }],
+    [440, { from: 235, slice: [300, 302], overlap: 6 }],
+    [443, { from: 239, slice: [281, 283], overlap: 6 }],
+    [446, { from: 234, slice: [270, 272], overlap: 6 }],
+]);
 /** The sky gradient (520) is 640 × 480: stretched over the window in flight. */
 const STRETCHED = [520];
 
@@ -39,6 +58,7 @@ player.renderer.overlays = new Set(OVERLAYS);
 player.renderer.skip = new Set(REPLACED);
 player.renderer.stretch = new Set(STRETCHED);
 player.renderer.coverRects = COVERED;
+player.renderer.extend = EXTENDED;
 
 /** On every scene change the root's handlers from the previous scene go (AS2 kept them, to no effect). */
 player.onRootFrame = (frame) => {
