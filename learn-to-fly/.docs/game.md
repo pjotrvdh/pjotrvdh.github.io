@@ -15,7 +15,7 @@ description: Learn to Fly's scenes, flight physics, money, shop, ramps and achie
 | 1-2 | debug, loader | `start.js`: straight on to `init` (the loader is not exported) |
 | 3, 5 | sponsor, intro | not used: not exported, never visited |
 | 4 | init | `start.js`: defaults (`freshState()`); the fades and the hidden options menu are placed here and stay; then `mainmenu` |
-| 6 | mainmenu | `menu.js`: opens finished (`menu2`, see `enterRootFrame()` in `start.js`). Play loads the save (shop if the first board was seen, else a new game), Clear Saved Data |
+| 6 | mainmenu | `menu.js`: opens finished (`menu2`, see `enterRootFrame()` in `start.js`). Play (or Space or Enter) loads the save (shop if the first board was seen, else a new game), Clear Saved Data |
 | 8 | shop | `shop.js` (HTML); saves the game |
 | 9 | stage | `ramp-menu.js` (an HTML column in the bottom left corner over the ramp's picture, whose ice runs on to the left edge): pick one of five ramps, Fly! |
 | 10 | dayintro | `day.js`: day + 1, tutorial boards in HTML (once each: start, first glider, first rocket) |
