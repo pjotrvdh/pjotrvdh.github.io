@@ -6,9 +6,10 @@ import { KINDS, save, state } from './state.js';
 import { stateChanged } from './ui.js';
 
 /*
- * The Cheats panel: hidden until someone types the cheat code (iliketocheat), for the current page
- * load only. A button in the control bar opens it: cash, every upgrade, every ramp, endless rocket
- * fuel and winning the game on the spot.
+ * The Cheats panel: hidden until someone types the cheat code (iliketocheat); typing it again hides
+ * it. It is hidden again after a reload. A button in the control bar opens it: cash, every upgrade,
+ * every ramp, endless rocket fuel and winning the game on the spot. Using any cheat marks the saved
+ * game (`state.cheated`, saved in `learn-to-fly-save`).
  */
 
 const CODE = 'iliketocheat';
@@ -85,6 +86,7 @@ export function setupCheats() {
         b.textContent = label(text);
         b.addEventListener('click', () => {
             status.textContent = run();
+            state.cheated = true;
             save();
             stateChanged();
             buttons.forEach((x, i) => {
@@ -119,11 +121,15 @@ export function setupCheats() {
             return;
         }
         typed = (typed + e.key.toLowerCase()).slice(-CODE.length);
-        if (typed === CODE && button.hidden) {
-            button.hidden = false;
-            panel.hidden = false;
-            button.setAttribute('aria-expanded', 'true');
-            status.textContent = 'Cheats unlocked';
+        if (typed !== CODE) {
+            return;
         }
+        typed = '';
+        // The code shows the Cheats button and panel, or hides them again.
+        const show = button.hidden;
+        button.hidden = !show;
+        panel.hidden = !show;
+        button.setAttribute('aria-expanded', String(show));
+        status.textContent = show ? 'Cheats unlocked' : '';
     });
 }

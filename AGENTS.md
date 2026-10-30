@@ -25,7 +25,7 @@ An HTML5 remake of the 2009 Flash game, aiming to behave 1-to-1 like the origina
 - Scripts keep the original's instance names and quirks; note any deliberate change in `learn-to-fly/.docs/game.md`. The loader, intro, MaxGames sponsor, version number and credit line are left out of the export (`LEFT_OUT` in the import tool).
 - The canvas fills the window edge to edge (backgrounds scaled up to the window; in flight more of the world) with an HTML control bar, HUD and score board over it (`controls.js`, `hud.js`).
 - The game starts in the main menu (no loader or intro). The shop, ramp menu, tutorial boards, achievements, end screen and clear-data question are HTML in chalk (inline SVG drawings, real text: `src/game/ui.js`, `src/styles/screens.css`); their canvas clips are hidden.
-- Typing `iliketocheat` unlocks the Cheats panel (`cheats.js`) for the current page load only.
+- Typing `iliketocheat` shows the Cheats panel (`cheats.js`) and typing it again hides it; a reload hides it. Using a cheat sets `cheated: true` in the saved game.
 - Games are saved in localStorage under `learn-to-fly-save`.
 
 ## Twistball (`twistball/`)

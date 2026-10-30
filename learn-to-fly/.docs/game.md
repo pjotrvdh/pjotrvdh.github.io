@@ -53,7 +53,7 @@ description: Learn to Fly's scenes, flight physics, money, shop, ramps and achie
 
 ## Cheats
 
-- `cheats.js`: typing `iliketocheat` anywhere shows a Cheats button in the control bar, for the current page load only. It offers +$1,000, +$10,000, every upgrade at its top level, every ramp open (by marking all achievements done, without their rewards), endless fuel (`cheats.endlessFuel`, read in `getAir()`) and "Win the game" (in flight: sets the distance past the finish line, so the flight's own rules play the ending).
+- `cheats.js`: typing `iliketocheat` anywhere shows a Cheats button (and its panel) in the control bar; typing it again hides them; after a reload they are hidden. Using any cheat sets `state.cheated` (`true`, saved with the game in `learn-to-fly-save`; a new game clears it). It offers +$1,000, +$10,000, every upgrade at its top level, every ramp open (by marking all achievements done, without their rewards), endless fuel (`cheats.endlessFuel`, read in `getAir()`) and "Win the game" (in flight: sets the distance past the finish line, so the flight's own rules play the ending).
 - Cheats save the game and call `stateChanged()` (`ui.js`), so an open shop or ramp menu redraws.
 
 ## Saving

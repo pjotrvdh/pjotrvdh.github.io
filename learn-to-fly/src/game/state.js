@@ -30,6 +30,8 @@ export function freshState() {
         keepPlaying: false,
         // infoboard1-3: the tutorial boards seen (start, first glider, first rocket).
         boards: [false, false, false],
+        // Set (and saved) once any cheat is used in this game; a new game clears it.
+        cheated: false,
     };
 }
 
