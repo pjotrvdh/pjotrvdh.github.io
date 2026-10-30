@@ -24,7 +24,7 @@ export const music = {
     /** Attaches a sound; `play` starts it now (the flight's beat starts at the jump instead). */
     attach(name, play = true) {
         this.stop();
-        const s = new Sound();
+        const s = new Sound('music');
         s.attachSound(name);
         s.onSoundComplete = () => s.start(0, 0);
         this.sound = s;

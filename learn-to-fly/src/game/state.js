@@ -35,12 +35,14 @@ export function freshState() {
 
 export const state = freshState();
 
-/** Options of the options menu (not saved, as in the original). */
+/** The settings (controls.js keeps them in localStorage `learn-to-fly-options`). */
 export const options = {
     quality: 3,
     skipCutscenes: false,
     showControls: true,
-    mute: false,
+    // Music and sound effects start off; the sound panel (or M) turns them on, and that choice is kept.
+    music: false,
+    sfx: false,
 };
 
 export function save() {

@@ -14,7 +14,7 @@ The graphics, animations, fonts and sounds come from the game's SWF, exported by
 - **Shop:** Ramp Height, Acceleration, Air Resistance, three gliders, three rockets and rocket fuel.
 - **Win:** fly 6000 ft. The end screen counts your days.
 - **Touch:** tap to click; in flight, hold the left or right third of the screen to tilt and the middle to fire the rocket.
-- **Controls** (top right): settings (day intro, control reminders), sound (M), pause (P or Esc) and full screen (F). The game and the settings are saved in your browser (localStorage).
+- **Controls** (top right): settings (day intro, control reminders), sound (music and sound effects, each on or off; both off until you turn them on; M switches both), pause (P or Esc) and full screen (F). The game and the settings are saved in your browser (localStorage).
 - **Cheats:** type `iliketocheat` during the game to unlock the Cheats panel (cash, all upgrades, all ramps, endless fuel, win). A reload locks it again.
 - The game fills the whole window: every scene goes edge to edge, in flight you see more of the sky and sea, and the motion follows your screen's refresh rate.
 

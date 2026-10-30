@@ -1,18 +1,22 @@
-import { createElement, Maximize, Minimize, Pause, Play, Settings, Volume2, VolumeX } from 'lucide';
+import { createElement, Maximize, Minimize, Pause, Play, Settings, Volume1, Volume2, VolumeX } from 'lucide';
 import { audio } from './audio.js';
 import { options } from './state.js';
 
 /*
- * The control bar in the top right corner: settings (day intro, control reminders), sound,
- * pause and full screen. Keys: M mutes, P or
- * Esc pauses, F toggles full screen. The settings are kept in localStorage (`learn-to-fly-options`).
+ * The control bar in the top right corner: settings (day intro, control reminders), sound (music
+ * and sound effects, each on or off; both off at first), pause and full screen. Keys: M switches all
+ * sound on or off, P or Esc pauses, F toggles full screen. The settings are kept in localStorage
+ * (`learn-to-fly-options`).
  */
 
 const KEY = 'learn-to-fly-options';
 
 function loadOptions() {
     try {
-        Object.assign(options, JSON.parse(localStorage.getItem(KEY) ?? '{}'));
+        const saved = JSON.parse(localStorage.getItem(KEY) ?? '{}');
+        // The old single mute switch is dropped: sound starts off until music or effects are switched on.
+        delete saved.mute;
+        Object.assign(options, saved);
     } catch {
         // No saved options.
     }
@@ -20,7 +24,7 @@ function loadOptions() {
 
 function saveOptions() {
     try {
-        localStorage.setItem(KEY, JSON.stringify({ skipCutscenes: options.skipCutscenes, showControls: options.showControls, mute: options.mute }));
+        localStorage.setItem(KEY, JSON.stringify({ skipCutscenes: options.skipCutscenes, showControls: options.showControls, music: options.music, sfx: options.sfx }));
     } catch {
         // Private mode: the options last until the page closes.
     }
@@ -56,7 +60,9 @@ export function setupControls(player) {
     const settings = iconButton('Settings', Settings);
     settings.setAttribute('aria-expanded', 'false');
     settings.setAttribute('aria-controls', 'settings');
-    const sound = iconButton('Sound off (M)', Volume2);
+    const sound = iconButton('Sound', VolumeX);
+    sound.setAttribute('aria-expanded', 'false');
+    sound.setAttribute('aria-controls', 'sound');
     const pause = iconButton('Pause (P)', Pause);
     const full = iconButton('Full screen (F)', Maximize);
 
@@ -74,6 +80,9 @@ export function setupControls(player) {
             saveOptions();
         });
         label.append(input, document.createTextNode(text));
+        label.sync = () => {
+            input.checked = get();
+        };
         return label;
     };
     panel.append(
@@ -81,17 +90,39 @@ export function setupControls(player) {
         toggle('Control reminders', () => options.showControls, (v) => { options.showControls = v; }),
     );
 
-    bar.append(settings, sound, pause, full, panel);
-
+    const soundPanel = document.createElement('div');
+    soundPanel.id = 'sound';
+    soundPanel.className = 'settings';
+    soundPanel.hidden = true;
     const applySound = () => {
-        audio.setVolume(options.mute ? 0 : 100);
-        setIcon(sound, options.mute ? VolumeX : Volume2, options.mute ? 'Sound on (M)' : 'Sound off (M)');
-        sound.setAttribute('aria-pressed', String(options.mute));
+        audio.setChannel('music', options.music);
+        audio.setChannel('sfx', options.sfx);
+        const on = Number(options.music) + Number(options.sfx);
+        setIcon(sound, [VolumeX, Volume1, Volume2][on], ['Sound: off (M)', 'Sound: partly on (M)', 'Sound: on (M)'][on]);
     };
+    const soundToggles = [
+        toggle('Music', () => options.music, (v) => { options.music = v; applySound(); }),
+        toggle('Sound effects', () => options.sfx, (v) => { options.sfx = v; applySound(); }),
+    ];
+    soundPanel.append(...soundToggles);
+
+    bar.append(settings, sound, pause, full, panel, soundPanel);
+
+    /** M: everything on when anything is off, else everything off. */
     const toggleSound = () => {
-        options.mute = !options.mute;
+        const on = !(options.music && options.sfx);
+        options.music = on;
+        options.sfx = on;
+        soundToggles.forEach((t) => t.sync());
         applySound();
         saveOptions();
+    };
+    const openPanel = (which) => {
+        for (const [p, b] of [[panel, settings], [soundPanel, sound]]) {
+            const open = p === which && p.hidden;
+            p.hidden = !open;
+            b.setAttribute('aria-expanded', String(open));
+        }
     };
     const setPaused = (on) => {
         state.paused = on;
@@ -114,17 +145,13 @@ export function setupControls(player) {
         full.hidden = true;
     }
 
-    settings.addEventListener('click', () => {
-        panel.hidden = !panel.hidden;
-        settings.setAttribute('aria-expanded', String(!panel.hidden));
-    });
-    sound.addEventListener('click', toggleSound);
+    settings.addEventListener('click', () => openPanel(panel));
+    sound.addEventListener('click', () => openPanel(soundPanel));
     pause.addEventListener('click', () => setPaused(!state.paused));
     full.addEventListener('click', toggleFull);
     document.addEventListener('pointerdown', (e) => {
-        if (!panel.hidden && !bar.contains(e.target)) {
-            panel.hidden = true;
-            settings.setAttribute('aria-expanded', 'false');
+        if (!bar.contains(e.target)) {
+            openPanel(null);
         }
     });
     window.addEventListener('keydown', (e) => {
