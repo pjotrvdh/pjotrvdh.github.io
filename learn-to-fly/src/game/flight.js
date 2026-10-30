@@ -196,8 +196,10 @@ function getAir(root) {
     const splash = root.c('splash');
     const B = P.bounce;
     if (f.speed >= B.minSpeed && player.rotation >= B.minAngle && player.rotation <= B.maxAngle) {
-        // Skimming the water: bounce back up.
+        // Skimming the water: bounce back up. Every skip pays a bonus (skipPay(), not in the original).
         player.y = sea.y;
+        f.skips += 1;
+        f.skipAt = performance.now();
         f.vx *= B.friction;
         f.vmag *= B.friction;
         f.vy = ((f.vx + f.vmag) / 2) * B.power;
@@ -410,12 +412,17 @@ function frame(root) {
     movecam(root, 220, 2.5, 0.7, 0.6);
 }
 
+/** The flight's cash, without the skip bonus. */
+const pay = () => Math.round(((Math.round(f.distance) + Math.round(f.maxaltitude)) * Math.round(f.duration)) / GAME.scoreDivisor);
+/** The skip bonus: a share of the flight's cash per skip on the water. */
+const skipPay = () => Math.round(pay() * GAME.skipBonus * f.skips);
+
 /** Any key or click on the score board: pay out and go to the shop. */
 function collect() {
     if (!f.finished || f.finishclick) {
         return;
     }
-    state.cash += Math.round(((Math.round(f.distance) + Math.round(f.maxaltitude)) * Math.round(f.duration)) / GAME.scoreDivisor);
+    state.cash += pay() + skipPay();
     f.finishclick = true;
     fade(true, true, 'shop');
 }
@@ -454,8 +461,10 @@ function startFlight(root) {
         finished: false,
         jet: null,
         hintTick: null,
+        skips: 0,
+        skipAt: -Infinity,
     });
-    Object.assign(rv, { rdis: '$0', rdis2: 0, rdur: '0.00', rdur2: 0, rdur3: 0, ralt: '$0', ralt2: 0, rtotal: '$0', rtotal2: 0, rtotal3: 0 });
+    Object.assign(rv, { rdis: '$0', rdis2: 0, rdur: '0.00', rdur2: 0, rdur3: 0, ralt: '$0', ralt2: 0, rtotal: '$0', rtotal2: 0, rtotal3: 0, rskip: '$0' });
     Object.assign(rv, { spehud: 0, reshud: 0, althud: 0, dishud: 0 });
     for (const kind of KINDS) {
         pending[kind] = false;
@@ -569,7 +578,9 @@ export default {
             },
             84: () => {
                 const rv = g.root.vars;
-                rv.rtotal3 = (Math.round(rv.rdis2) + Math.round(rv.ralt2)) * rv.rdur3;
+                // The skip bonus shows with the total and is part of it.
+                rv.rskip = `$${skipPay()}`;
+                rv.rtotal3 = (Math.round(rv.rdis2) + Math.round(rv.ralt2)) * rv.rdur3 + skipPay();
                 rv.rtotal = `$${Math.round(rv.rtotal3)}`;
             },
         },

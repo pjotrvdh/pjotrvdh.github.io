@@ -706,6 +706,35 @@ button {
     display: none;
 }
 
+/* A skip on the water: a chalk call above the penguin's path, in gold. */
+.skip-call {
+    position: fixed;
+    top: 22%;
+    left: 50%;
+    margin: 0;
+    padding: 6px 18px;
+    border-radius: 14px;
+    background: rgba(24, 52, 40, 0.86);
+    border: 2px solid var(--chalk-faint);
+    color: #ffd257;
+    font: clamp(24px, 4vmin, 38px) var(--hand);
+    white-space: nowrap;
+    transform: translateX(-50%);
+    pointer-events: none;
+    animation: skip-pop 0.35s ease-out;
+}
+
+.skip-call[hidden] {
+    display: none;
+}
+
+@keyframes skip-pop {
+    from {
+        opacity: 0;
+        transform: translateX(-50%) scale(0.7);
+    }
+}
+
 @media (max-width: 700px) {
     /* Below the control bar. */
     .flight-hint {
@@ -733,6 +762,7 @@ button {
     .end-card,
     .ach-card,
     .flight-hint,
+    .skip-call,
     .shake {
         animation: none;
     }

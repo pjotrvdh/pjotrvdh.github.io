@@ -1,3 +1,4 @@
+import GAME from '../config/game.js';
 import { g } from './context.js';
 import { f } from './flight.js';
 import { state, upgradeValue } from './state.js';
@@ -6,8 +7,12 @@ import { state, upgradeValue } from './state.js';
  * The flight HUD and the score board in HTML, in place of the dials (hudc) and chalk board (fboard)
  * of the SWF. They read the flight (`f` in flight.js) and the values the score board's timeline counts
  * up (`rdis`, `ralt`, `rdur`, `rtotal` on the root). Clicks go through to the game. On a touch
- * screen (body class `touch`, see input.js) the touch pad shows with the HUD.
+ * screen (body class `touch`, see input.js) the touch pad shows with the HUD. Every skip on the water
+ * shows a call for a moment, and the board a Water skips row (the skip bonus, not in the original).
  */
+
+/** How long the skip call stays, in ms. */
+const SKIP_CALL = 1200;
 
 const FLIGHT_FRAME = 11;
 /** Control reminders after the jump: [from tick, to tick, text], as long as the canvas's did. */
@@ -24,7 +29,7 @@ const TOUCH_HINTS = {
 };
 const $ = (id) => document.getElementById(id);
 const els = {};
-let shown = { hud: false, board: false, hint: false, pad: false };
+let shown = { hud: false, board: false, hint: false, pad: false, skip: false, skipRow: false };
 
 function setText(el, text) {
     if (el.textContent !== text) {
@@ -44,7 +49,7 @@ export const hud = {
     releasePad: () => {},
     update() {
         if (!els.hud) {
-            for (const id of ['hint', 'hud', 'board', 'pad', 'hSpeed', 'hSpeedBar', 'hAlt', 'hDist', 'hRes', 'hFuel', 'hFuelBar', 'bDist', 'bAlt', 'bDur', 'bTotal']) {
+            for (const id of ['hint', 'hud', 'board', 'pad', 'hSpeed', 'hSpeedBar', 'hAlt', 'hDist', 'hRes', 'hFuel', 'hFuelBar', 'bDist', 'bAlt', 'bDur', 'bTotal', 'skipCall', 'bSkipRow', 'bSkips', 'bSkip']) {
                 els[id] = $(id);
             }
         }
@@ -68,6 +73,12 @@ export const hud = {
         show(els.hint, 'hint', !!hint);
         if (hint) {
             setText(els.hint, hint);
+        }
+        const skipUp = inFlight && !f.finished && performance.now() - f.skipAt < SKIP_CALL;
+        show(els.skipCall, 'skip', skipUp);
+        if (skipUp) {
+            const bonus = `+${Math.round(f.skips * GAME.skipBonus * 100)}% cash`;
+            setText(els.skipCall, f.skips > 1 ? `Water skip ×${f.skips}! ${bonus}` : `Water skip! ${bonus}`);
         }
         show(els.board, 'board', boardUp);
         if (!inFlight) {
@@ -97,6 +108,9 @@ export const hud = {
             setText(els.bAlt, String(rv.ralt ?? '$0'));
             setText(els.bDur, String(rv.rdur ?? 'X0.0').replace(/^X/, '×'));
             setText(els.bTotal, String(rv.rtotal ?? '$0'));
+            show(els.bSkipRow, 'skipRow', f.skips > 0);
+            setText(els.bSkips, `×${f.skips}`);
+            setText(els.bSkip, String(rv.rskip ?? '$0'));
         }
     },
 };
