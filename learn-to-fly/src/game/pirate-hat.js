@@ -39,9 +39,16 @@ export const HAT = {
     ],
 };
 
-/** Gives a penguin the hat when the game has used a cheat (called for every placed clip). */
+/** Gives a penguin the hat when the game has used a cheat, and takes it off when not (called for every placed clip). */
 export function dressPenguin(clip) {
-    if (clip.id !== PENGUIN || !state.cheated || clip.get('piratehat')) {
+    if (clip.id !== PENGUIN) {
+        return;
+    }
+    if (!state.cheated) {
+        clip.get('piratehat')?.removeMovieClip();
+        return;
+    }
+    if (clip.get('piratehat')) {
         return;
     }
     const hat = new Graphic(clip.player, 'pirate-hat', HAT);

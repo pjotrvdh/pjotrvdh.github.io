@@ -61,7 +61,7 @@ description: Learn to Fly's scenes, flight physics, money, shop, ramps and achie
 
 - `state.js` keeps what the original's SharedObject kept; the shop frame saves.
 - localStorage has one key per value (`storage.js`), so it can be read and edited by hand in the dev tools (edit, then reload): `learn-to-fly.day`, `.cash`, `.ramp`, `.level.<rampHeight|rampSlide|aerodynamics|gliders|rockets|fuel>`, `.achievement.<1-5>.<distance|altitude|speed|duration>`, `.gameFinished`, `.keepPlaying`, `.cheated`, `.board.<1-3>`, and the settings `.option.*` (controls.js). Numbers and true/false as plain text; a value that doesn't read keeps its default, numbers are kept within their range (levels 1 to the top level, ramp 1-5, volumes 0-100). There is a saved game once `learn-to-fly.day` exists.
-- Changing a value while the game is open counts after a reload; until then the game's next save (the shop, a cheat) writes over it.
+- A value changed while the game is open shows at once: `watch()` in `storage.js` checks the game's keys twice a second (the dev tools don't tell the page) and on other tabs' storage events; `index.js` then reads the settings again (`reloadOptions()` in `controls.js`) or the saved game (`load()`), redraws the open screen (`stateChanged()`) and puts on or takes off the pirate hats. Reading the saved game drops what the game had not saved yet (a flight's pay before the shop saves). A flight in progress keeps the upgrades it started with.
 - The old format (JSON under `learn-to-fly-save` and `learn-to-fly-options`) is not read and is removed at start.
 
 ## Gotchas

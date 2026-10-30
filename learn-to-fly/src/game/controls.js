@@ -86,10 +86,11 @@ export function setupControls(player) {
         };
         return label;
     };
-    panel.append(
+    const settingToggles = [
         toggle('Day intro', () => !options.skipCutscenes, (v) => { options.skipCutscenes = !v; }),
         toggle('Control reminders', () => options.showControls, (v) => { options.showControls = v; }),
-    );
+    ];
+    panel.append(...settingToggles);
 
     const soundPanel = document.createElement('div');
     soundPanel.id = 'sound';
@@ -209,6 +210,13 @@ export function setupControls(player) {
     });
 
     applySound();
+    /** Reads the settings again (changed in localStorage by hand) and shows them. */
+    state.reloadOptions = () => {
+        loadOptions();
+        settingToggles.forEach((t) => t.sync());
+        soundSliders.forEach((s) => s.sync());
+        applySound();
+    };
     void player;
     return state;
 }
