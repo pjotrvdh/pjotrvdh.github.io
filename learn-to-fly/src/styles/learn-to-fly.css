@@ -173,6 +173,31 @@ canvas {
     font-size: 14px;
 }
 
+.settings label.volume {
+    display: grid;
+    grid-template-columns: 1fr 3.2em;
+    grid-template-areas: "name name" "slider value";
+    gap: 2px 8px;
+}
+
+.volume span {
+    grid-area: name;
+}
+
+.volume input {
+    grid-area: slider;
+    width: 100%;
+    height: auto;
+    accent-color: var(--accent);
+}
+
+.volume output {
+    grid-area: value;
+    color: var(--muted);
+    font-variant-numeric: tabular-nums;
+    text-align: right;
+}
+
 .settings input {
     width: 18px;
     height: 18px;

@@ -40,9 +40,11 @@ export const options = {
     quality: 3,
     skipCutscenes: false,
     showControls: true,
-    // Music and sound effects start off; the sound panel (or M) turns them on, and that choice is kept.
-    music: false,
-    sfx: false,
+    // Volumes, 0..100, set with the sound panel's sliders: music starts off, sound effects at full.
+    music: 0,
+    sfx: 100,
+    // The volumes before M muted everything (M again brings them back).
+    unmute: null,
 };
 
 export function save() {

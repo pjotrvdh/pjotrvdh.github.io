@@ -6,15 +6,15 @@ import { CHARS, EXPORTS, soundUrl } from '../render/library.js';
  * with an offset and loop count, has a volume and calls onSoundComplete. Timelines start event sounds
  * (StartSound) and streams.
  *
- * Two channels, each switched on or off in the sound panel (controls.js): `music` (the background
+ * Two channels, each with its own volume in the sound panel (controls.js): `music` (the background
  * music and the cutscenes' streamed soundtracks) and `sfx` (everything else).
  */
 
 const buffers = new Map();
 let ctx = null;
-/** The channels' gain nodes, by name; their on/off state is kept here until the context exists. */
+/** The channels' gain nodes, by name; their volumes (0..1) are kept here until the context exists. */
 const channels = { music: null, sfx: null };
-const channelOn = { music: true, sfx: true };
+const channelVolume = { music: 1, sfx: 1 };
 const playing = new Set();
 
 function context() {
@@ -22,7 +22,7 @@ function context() {
         ctx = new AudioContext();
         for (const name of Object.keys(channels)) {
             channels[name] = ctx.createGain();
-            channels[name].gain.value = channelOn[name] ? 1 : 0;
+            channels[name].gain.value = channelVolume[name];
             channels[name].connect(ctx.destination);
         }
     }
@@ -221,11 +221,11 @@ export const audio = {
         }
     },
 
-    /** Switches a channel ('music' or 'sfx') on or off. */
-    setChannel(name, on) {
-        channelOn[name] = on;
+    /** Sets a channel's ('music' or 'sfx') volume, 0..1. */
+    setChannel(name, volume) {
+        channelVolume[name] = volume;
         if (channels[name]) {
-            channels[name].gain.value = on ? 1 : 0;
+            channels[name].gain.value = volume;
         }
     },
 };

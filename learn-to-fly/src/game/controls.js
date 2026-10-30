@@ -3,10 +3,10 @@ import { audio } from './audio.js';
 import { options } from './state.js';
 
 /*
- * The control bar in the top right corner: settings (day intro, control reminders), sound (music
- * and sound effects, each on or off; both off at first), pause and full screen. Keys: M switches all
- * sound on or off, P or Esc pauses, F toggles full screen. The settings are kept in localStorage
- * (`learn-to-fly-options`).
+ * The control bar in the top right corner: settings (day intro, control reminders), sound (a
+ * volume slider each for music and sound effects; music starts off), pause and full screen. Keys: M
+ * mutes everything and brings the volumes back, P or Esc pauses, F toggles full screen. The settings
+ * are kept in localStorage (`learn-to-fly-options`).
  */
 
 const KEY = 'learn-to-fly-options';
@@ -14,8 +14,13 @@ const KEY = 'learn-to-fly-options';
 function loadOptions() {
     try {
         const saved = JSON.parse(localStorage.getItem(KEY) ?? '{}');
-        // The old single mute switch is dropped: sound starts off until music or effects are switched on.
+        // Older settings (a single mute switch, or music and effects as on/off) are dropped.
         delete saved.mute;
+        for (const k of ['music', 'sfx']) {
+            if (typeof saved[k] !== 'number') {
+                delete saved[k];
+            }
+        }
         Object.assign(options, saved);
     } catch {
         // No saved options.
@@ -95,25 +100,59 @@ export function setupControls(player) {
     soundPanel.className = 'settings';
     soundPanel.hidden = true;
     const applySound = () => {
-        audio.setChannel('music', options.music);
-        audio.setChannel('sfx', options.sfx);
-        const on = Number(options.music) + Number(options.sfx);
-        setIcon(sound, [VolumeX, Volume1, Volume2][on], ['Sound: off (M)', 'Sound: partly on (M)', 'Sound: on (M)'][on]);
+        audio.setChannel('music', options.music / 100);
+        audio.setChannel('sfx', options.sfx / 100);
+        const loudest = Math.max(options.music, options.sfx);
+        const level = loudest === 0 ? 0 : loudest < 50 ? 1 : 2;
+        setIcon(sound, [VolumeX, Volume1, Volume2][level], loudest === 0 ? 'Sound: off (M)' : 'Sound (M mutes)');
     };
-    const soundToggles = [
-        toggle('Music', () => options.music, (v) => { options.music = v; applySound(); }),
-        toggle('Sound effects', () => options.sfx, (v) => { options.sfx = v; applySound(); }),
-    ];
-    soundPanel.append(...soundToggles);
+    /** A volume slider, 0..100 in steps of 5, with its value shown next to it. */
+    const slider = (text, key) => {
+        const label = document.createElement('label');
+        label.className = 'volume';
+        const name = document.createElement('span');
+        name.textContent = text;
+        const input = document.createElement('input');
+        input.type = 'range';
+        input.min = '0';
+        input.max = '100';
+        input.step = '5';
+        const value = document.createElement('output');
+        const show = () => {
+            input.value = String(options[key]);
+            value.textContent = `${options[key]}%`;
+            input.setAttribute('aria-valuetext', `${options[key]} percent`);
+        };
+        input.addEventListener('input', () => {
+            options[key] = Number(input.value);
+            options.unmute = null;
+            show();
+            applySound();
+        });
+        input.addEventListener('change', saveOptions);
+        label.append(name, input, value);
+        label.sync = show;
+        show();
+        return label;
+    };
+    const soundSliders = [slider('Music', 'music'), slider('Sound effects', 'sfx')];
+    soundPanel.append(...soundSliders);
 
     bar.append(settings, sound, pause, full, panel, soundPanel);
 
-    /** M: everything on when anything is off, else everything off. */
+    /** M: mutes everything, and the next time brings the volumes back (or full volume if there were none). */
     const toggleSound = () => {
-        const on = !(options.music && options.sfx);
-        options.music = on;
-        options.sfx = on;
-        soundToggles.forEach((t) => t.sync());
+        if (options.music || options.sfx) {
+            options.unmute = { music: options.music, sfx: options.sfx };
+            options.music = 0;
+            options.sfx = 0;
+        } else {
+            const back = options.unmute ?? { music: 100, sfx: 100 };
+            options.music = back.music;
+            options.sfx = back.sfx;
+            options.unmute = null;
+        }
+        soundSliders.forEach((s) => s.sync());
         applySound();
         saveOptions();
     };
