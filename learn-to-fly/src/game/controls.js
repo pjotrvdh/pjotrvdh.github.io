@@ -1,7 +1,7 @@
 import { createElement, Maximize, Minimize, Pause, Play, Settings, Volume1, Volume2, VolumeX } from 'lucide';
 import { audio } from './audio.js';
 import { options } from './state.js';
-import { readBool, readNumber, write } from './storage.js';
+import { dropOldKey, readBool, readNumber, write } from './storage.js';
 
 /*
  * The control bar in the top right corner: settings (day intro, control reminders), sound (a
@@ -30,6 +30,26 @@ function saveOptions() {
     write('option.unmuteMusic', options.unmute?.music);
     write('option.unmuteSfx', options.unmute?.sfx);
 }
+
+// The earlier format kept the settings as JSON under learn-to-fly-options: converted once. (Older
+// settings in it, a single mute switch or music and effects as on/off, were already dropped then.)
+dropOldKey('learn-to-fly-options', (text) => {
+    const saved = JSON.parse(text);
+    const keep = { ...options };
+    for (const k of ['skipCutscenes', 'showControls']) {
+        if (typeof saved[k] === 'boolean') {
+            options[k] = saved[k];
+        }
+    }
+    for (const k of ['music', 'sfx']) {
+        if (typeof saved[k] === 'number') {
+            options[k] = saved[k];
+        }
+    }
+    options.unmute = saved.unmute ?? null;
+    saveOptions();
+    Object.assign(options, keep);
+});
 
 const icon = (node) => {
     const svg = createElement(node);

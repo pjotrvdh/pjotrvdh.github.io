@@ -33,7 +33,7 @@ description: Twistball's three.js renderer: camera, lights, neon bands, palettes
 ## Palettes (`palettes.js`)
 
 - Each palette has `name`, `background`, `walls` (ceiling, right, floor, left), `back`, `rails`, `rings` ("r, g, b"), `marker`, `near`/`far` (`edge`, `fill`), `nearRgb`/`farRgb` (spark colours), `ball` (three gradient stops), `ballGlow`, and `ui` (CSS variables `--bg`, `--panel`, `--line`, `--near`, `--far`, `--accent`).
-- The title screen shows every palette as a radio button with four swatches (you, opponent, ball, tunnel); the choice is stored as `twistball-palette`.
+- The title screen shows every palette as a radio button with four swatches (you, opponent, ball, tunnel); the choice is stored as `twistball.option.palette`.
 - Every palette must keep the `ui` text colours at WCAG AA contrast on `panel`.
 
 ## Gotchas

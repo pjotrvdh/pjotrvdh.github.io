@@ -11,6 +11,7 @@ import { creatures, need, research } from './entities.js';
 import { newGame } from './map.js';
 import { loadGame, saveGame } from './save.js';
 import { G, app } from './state.js';
+import { store } from './storage.js';
 import { anyPortal, cap } from './tiles.js';
 import { view } from '../render/view.js';
 
@@ -264,11 +265,7 @@ export function showTab(t) {
     for (const s of document.querySelectorAll('.tab')) {
         s.hidden = s.id !== 'tab-' + t;
     }
-    try {
-        localStorage.setItem('underlord-tab', t);
-    } catch {
-        // private mode: the tab is not remembered
-    }
+    store.write('option.tab', t);
     if (G) {
         ui();
     }
@@ -432,13 +429,6 @@ export function initUi() {
     if (w) {
         w.textContent = words(WAVES.length);
     }
-    try {
-        const t = localStorage.getItem('underlord-tab');
-        if (t) {
-            app.tab = t;
-        }
-    } catch {
-        // private mode
-    }
+    app.tab = store.read('option.tab') || app.tab;
     buildTools();
 }

@@ -7,9 +7,11 @@ import { applyConfig } from './config.js';
 import { initInput, keyPan } from './input.js';
 import { newGame } from './map.js';
 import { drawMini } from './minimap.js';
-import { refreshContinue, saveGame } from './save.js';
+import { isMuted, setMuted } from './audio.js';
+import { applySaveChanges, refreshContinue, saveGame } from './save.js';
 import { G, app } from './state.js';
-import { initUi, showTab, syncCpu, ui } from './ui.js';
+import { store } from './storage.js';
+import { initUi, showTab, syncCpu, syncSound, ui } from './ui.js';
 import { update } from './world.js';
 import { showGallery } from '../render/gallery.js';
 import { view } from '../render/view.js';
@@ -42,6 +44,20 @@ function startGame() {
     showTab(app.tab);
     syncCpu();
     refreshContinue();
+    // Values changed in localStorage by hand (or in another tab) show at once.
+    store.watch((keys) => {
+        if (keys.includes('option.sound') && isMuted() === store.readBool('option.sound', true)) {
+            setMuted(!isMuted());
+            syncSound();
+        }
+        const tab = store.read('option.tab');
+        if (keys.includes('option.tab') && tab && document.getElementById('tab-' + tab)) {
+            showTab(tab);
+        }
+        if (keys.some((key) => key.startsWith('save.'))) {
+            applySaveChanges(keys);
+        }
+    });
 
     let last = performance.now();
     let uiT = 0;

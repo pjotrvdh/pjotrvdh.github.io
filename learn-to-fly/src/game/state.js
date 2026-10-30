@@ -1,5 +1,5 @@
 import config from '../config/index.js';
-import { has, readBool, readNumber, write } from './storage.js';
+import { dropOldKey, has, readBool, readNumber, write } from './storage.js';
 
 /*
  * The saved game: what the original kept in its SharedObject "learntofly", one localStorage key per
@@ -88,6 +88,15 @@ export function load() {
     state.boards = fresh.boards.map((seen, i) => readBool(`board.${i + 1}`, seen));
     return true;
 }
+
+// The earlier format kept the game as JSON under learn-to-fly-save (the same fields): converted once.
+dropOldKey('learn-to-fly-save', (text) => {
+    const saved = JSON.parse(text);
+    const fresh = freshState();
+    Object.assign(state, fresh, saved, { levels: { ...fresh.levels, ...saved.levels } });
+    save();
+    Object.assign(state, freshState());
+});
 
 /** resetVars(): a new game, saved straight away. */
 export function reset() {
