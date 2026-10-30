@@ -10,8 +10,8 @@ import { setupInput } from './input.js';
 import { dressPenguin } from './pirate-hat.js';
 import scripts from './scripts.js';
 import { enterRootFrame } from './start.js';
-import { load, state } from './state.js';
-import { watch } from './storage.js';
+import { load, save, state } from './state.js';
+import { has, watch } from './storage.js';
 import { hideScreens, stateChanged } from './ui.js';
 
 /*
@@ -118,9 +118,12 @@ hud.releasePad = setupInput(player, canvas, toStage, unlockAudio).releasePad;
 const controls = setupControls(player);
 setupCheats();
 
-// A value changed in localStorage by hand shows at once: the settings, or the saved game (if there
-// is one) with the open screen, the HUD and the penguins' pirate hats.
-watch((keys) => {
+// localStorage holds the game as it is now: it is loaded at start, a value changed there by hand
+// shows at once (the settings, or the game with the open screen, the HUD and the penguins' pirate
+// hats), and twice a second what the game changed is written back (once a game was started: a new
+// game saves straight away). Outside changes are taken in first, so they are not overwritten.
+load();
+const check = watch((keys) => {
     if (keys.some((k) => k.startsWith('option.'))) {
         controls.reloadOptions();
     }
@@ -129,6 +132,12 @@ watch((keys) => {
         player.eachClip(dressPenguin);
     }
 });
+setInterval(() => {
+    check();
+    if (has('day')) {
+        save();
+    }
+}, 500);
 
 const step = 1000 / STAGE.fps;
 let last = performance.now();

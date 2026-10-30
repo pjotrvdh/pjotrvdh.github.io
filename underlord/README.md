@@ -22,7 +22,7 @@ The game is a web page built with [Vite](https://vite.dev) and drawn in 3D with 
 - **Control panel:** a minimap at the top (click it to jump there), then Info, Rooms, Spells and Creatures tabs. The Creatures tab shows, for each type, how many are idle, working and fighting. Click a number to pick one of them up, or right-click it to look at it.
 - **Computer Assistant:** the **C** button on the minimap lets the computer play for you, in one of four modes: Aggressive, Defensive, Construction only or Move only.
 - **Cheats:** type `iliketocheat` during the game to unlock the Cheats panel. A reload locks it again.
-- **Saving:** games are saved in your browser (localStorage). The game also autosaves every two minutes.
+- **Saving:** the running game is kept in your browser (localStorage) as you play, so a reload continues where you were. Save (and the autosave every two minutes) keeps a copy that Load brings back.
 - **Win:** survive all six hero waves. The last wave is led by the Lord of the Land. You lose when your Dungeon Heart is destroyed.
 
 ### Controls

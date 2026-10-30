@@ -1,7 +1,13 @@
 /**
- * Saved games: one slot in localStorage, one key per value under `underlord.save.` (storage.js), saved
- * with the Save button and every two minutes. SAVE_V is the format version; loadGame() refuses saves
- * of another version. A save value changed by hand also changes the running game (applySaveChanges()).
+ * The game in localStorage, one key per value (storage.js), in two slots with the same keys:
+ *   game.*   the running game, kept up to date twice a second (syncGame()): it is the truth, so a value
+ *            changed there by hand changes the game at once (applyGameChanges()), and a reload continues
+ *            where you were
+ *   save.*   the saved copy: the Save button and the autosave every two minutes copy the game here,
+ *            Load and "Load last save" bring it back
+ * SAVE_V is the format version; a slot of another version is not loaded.
+ * Only one tab keeps the running game (claimGame(), a Web Lock): a second tab waits on the intro card
+ * until the first one closes, so two tabs never write over each other's dungeon.
  */
 import { recount } from './actions.js';
 import { KINDS } from './config.js';
@@ -15,19 +21,20 @@ import { store } from './storage.js';
 import { clearLog, msg, syncCpu, syncPause } from './ui.js';
 
 const SAVE_V = 3;
-/** The per-tile arrays, saved as `save.map.<name>` (JSON lists), and their types. */
+/** The per-tile arrays, saved as `<slot>.map.<name>` (JSON lists), and their types. */
 const MAPS = { t: Uint8Array, room: Uint8Array, mark: Uint8Array, hp: Uint8Array, gold: Int16Array, seen: Uint8Array, loot: Int16Array, pile: Int16Array, pown: Uint8Array };
-/** The rest of `G` that is saved, as `save.<name>`: numbers, the level name (text) and JSON values. */
+/** The rest of `G` that is saved, as `<slot>.<name>`: numbers, the level name (text) and JSON values. */
 const NUMBERS = ['money', 'heartHP', 'heartMax', 'time', 'nextWave', 'wave', 'research', 'payT', 'portalT', 'idc', 'hx', 'hy'];
 const JSONS = ['spawnQ', 'cpu', 'pool', 'portals', 'portal', 'gate', 'rally'];
 const SAVE_KEYS = ['id', 'kind', 'side', 'x', 'y', 'hp', 'maxhp', 'atk', 'lvl', 'xp', 'carry', 'hunger', 'guard', 'bed', 'leaving', 'fromPool', 'payDue', 'cell', 'party'];
 
-function serialize() {
+/** The game as plain data; without `maps` the per-tile arrays are left out (syncGame() writes them itself). */
+function serialize(maps = true) {
     return {
         v: SAVE_V, savedAt: Date.now(),
-        t: Array.from(G.t), room: Array.from(G.room), mark: Array.from(G.mark), hp: Array.from(G.hp), gold: Array.from(G.gold), seen: Array.from(G.seen), loot: Array.from(G.loot), pile: Array.from(G.pile),
+        ...(maps ? Object.fromEntries(Object.keys(MAPS).map((name) => [name, Array.from(G[name])])) : {}),
         money: G.money, heartHP: G.heartHP, heartMax: G.heartMax, time: G.time, nextWave: G.nextWave, wave: G.wave, spawnQ: G.spawnQ, research: G.research,
-        cpu: G.cpu, payT: G.payT, pown: Array.from(G.pown), pool: G.pool, portals: G.portals, level: G.level, portalT: G.portalT, idc: G.idc, hx: G.hx, hy: G.hy, portal: G.portal, gate: G.gate, rally: G.rally,
+        cpu: G.cpu, payT: G.payT, pool: G.pool, portals: G.portals, level: G.level, portalT: G.portalT, idc: G.idc, hx: G.hx, hy: G.hy, portal: G.portal, gate: G.gate, rally: G.rally,
         ents: G.ents.filter((e) => !e.dead).map((e) => {
             const o = {};
             for (const k of SAVE_KEYS) {
@@ -80,7 +87,7 @@ function restoreUnit(o) {
     return e;
 }
 
-function deserialize(s) {
+function deserialize(s, message) {
     newGame();
     Object.assign(G, { ents: [], held: [], fx: [], res: new Map(), msgCd: {}, over: null });
     restoreFields(s);
@@ -95,61 +102,167 @@ function deserialize(s) {
     }
     recount();
     clearLog();
-    msg('Saved game loaded.');
+    msg(message);
     syncCpu();
 }
 
-/** The saved game as serialize() made it, or null when there is none. */
-function readSave() {
-    if (!store.has('save.version')) {
+/** A slot (`game` or `save`) as serialize() made it, or null when there is none. */
+function readSlot(slot) {
+    if (!store.has(slot + '.version')) {
         return null;
     }
-    const s = { v: store.readNumber('save.version', 0), savedAt: store.readNumber('save.savedAt', 0), level: store.read('save.level') ?? undefined };
+    const s = { v: store.readNumber(slot + '.version', 0), savedAt: store.readNumber(slot + '.savedAt', 0), level: store.read(slot + '.level') ?? undefined };
     for (const name of Object.keys(MAPS)) {
-        s[name] = store.readJson('save.map.' + name, undefined);
+        s[name] = store.readJson(`${slot}.map.${name}`, undefined);
     }
     for (const name of NUMBERS) {
-        s[name] = store.readFloat('save.' + name, undefined);
+        s[name] = store.readFloat(`${slot}.${name}`, undefined);
     }
     for (const name of JSONS) {
-        s[name] = store.readJson('save.' + name, undefined);
+        s[name] = store.readJson(`${slot}.${name}`, undefined);
     }
-    s.ents = store.keys('save.unit.').map((key) => store.readJson(key, null)).filter((o) => o && typeof o === 'object' && KINDS[o.kind]);
+    s.ents = store.keys(slot + '.unit.').map((key) => store.readJson(key, null)).filter((o) => o && typeof o === 'object' && KINDS[o.kind]);
 
     return s;
 }
 
-/** Writes a save made by serialize(), one key per value, and drops the keys of units that are gone. */
-function writeSave(d) {
+/**
+ * Writes a game made by serialize() into a slot, one key per value (unchanged values are skipped),
+ * and drops the keys of units that are gone. Returns false when a value could not be kept.
+ */
+function writeSlot(slot, d) {
     let ok = true;
     const keep = (key, value) => {
         ok = store.write(key, value) && ok;
     };
-    const units = new Set(d.ents.map((o) => 'save.unit.' + o.id));
-    for (const key of store.keys('save.unit.')) {
+    const units = new Set(d.ents.map((o) => `${slot}.unit.${o.id}`));
+    for (const key of store.keys(slot + '.unit.')) {
         if (!units.has(key)) {
             store.write(key, null);
         }
     }
     for (const o of d.ents) {
-        keep('save.unit.' + o.id, o);
+        keep(`${slot}.unit.${o.id}`, o);
     }
     for (const name of Object.keys(MAPS)) {
-        keep('save.map.' + name, d[name]);
+        if (d[name]) {
+            keep(`${slot}.map.${name}`, d[name]);
+        }
     }
     for (const name of [...NUMBERS, 'level', ...JSONS]) {
         // null (no rally, say) is kept as the text null, so it is not mistaken for a missing value.
-        keep('save.' + name, d[name] === null ? 'null' : d[name]);
+        keep(`${slot}.${name}`, d[name] === null ? 'null' : d[name]);
     }
-    keep('save.savedAt', d.savedAt);
-    keep('save.version', d.v);
+    if (slot === 'save') {
+        keep('save.savedAt', d.savedAt);
+    }
+    keep(slot + '.version', d.v);
 
     return ok;
 }
 
+/** Empties a slot. */
+function clearSlot(slot) {
+    for (const key of store.keys(slot + '.')) {
+        store.write(key, null);
+    }
+    if (slot === 'game') {
+        mapHash.clear();
+    }
+}
+
+/** A quick fingerprint of a tile array (FNV-1a over its values), so an unchanged map is not turned into text. */
+function hash(a) {
+    let h = 2166136261;
+    for (let i = 0; i < a.length; i++) {
+        h = Math.imul(h ^ a[i], 16777619);
+    }
+
+    return h;
+}
+
+/** The fingerprint of each map as last written to the game slot. */
+const mapHash = new Map();
+
+/** Writes the maps that changed since the last time into the game slot. */
+function syncMaps() {
+    for (const name of Object.keys(MAPS)) {
+        const h = hash(G[name]);
+        if (mapHash.get(name) !== h && store.write(`game.map.${name}`, Array.from(G[name]))) {
+            mapHash.set(name, h);
+        }
+    }
+}
+
+/** Whether this tab keeps the running game (see claimGame()). */
+let owner = false;
+
+/**
+ * Takes the running game for this tab with a Web Lock, held until the tab closes. While another tab
+ * has it, the intro card says so and New game and Continue wait; they come back once that tab is
+ * closed. Without Web Locks this tab simply keeps the game.
+ */
+export function claimGame() {
+    const take = () => {
+        owner = true;
+        document.getElementById('tabNote').hidden = true;
+        document.getElementById('bStart').disabled = false;
+        document.getElementById('bContinue').disabled = false;
+        refreshContinue();
+    };
+    if (!navigator.locks) {
+        take();
+
+        return;
+    }
+    navigator.locks.request('underlord.game', { ifAvailable: true }, (lock) => {
+        if (lock) {
+            take();
+
+            return new Promise(() => {});
+        }
+        document.getElementById('tabNote').hidden = false;
+        document.getElementById('bStart').disabled = true;
+        document.getElementById('bContinue').disabled = true;
+
+        // Wait for the other tab to close; reload what it left, then go on here.
+        return navigator.locks.request('underlord.game', () => {
+            take();
+
+            return new Promise(() => {});
+        });
+    });
+}
+
 // The earlier format kept the save as JSON under one key (`underlord-save`, the same fields): converted
-// once, of any version, so loadGame() still tells an older one apart.
-dropOldKey('underlord-save', (text) => writeSave(JSON.parse(text)));
+// once into the saved copy, of any version, so loading still tells an older one apart.
+dropOldKey('underlord-save', (text) => writeSlot('save', JSON.parse(text)));
+
+/**
+ * Keeps the `game` slot equal to the running game: first takes in what was changed there by hand
+ * (`check`, from store.watch()), then writes what the game changed. A finished game is removed, so
+ * Continue does not bring back a lost or won dungeon.
+ */
+export function syncGame(check) {
+    check();
+    if (!owner || !G || !app.running) {
+        return;
+    }
+    if (G.over) {
+        if (store.has('game.version')) {
+            clearSlot('game');
+            refreshContinue();
+        }
+
+        return;
+    }
+    const fresh = !store.has('game.version');
+    writeSlot('game', serialize(false));
+    syncMaps();
+    if (fresh) {
+        refreshContinue();
+    }
+}
 
 let saving = false;
 
@@ -159,7 +272,7 @@ export function saveGame(auto) {
     }
     saving = true;
     const d = serialize();
-    const ok = writeSave(d);
+    const ok = writeSlot('save', d);
     saving = false;
     const el = document.getElementById('savedAt');
     if (ok) {
@@ -177,8 +290,9 @@ export function saveGame(auto) {
     refreshContinue();
 }
 
-export function loadGame() {
-    const s = readSave();
+/** Loads a slot: the saved copy (Load, "Load last save"), or the running game (Continue). */
+export function loadGame(slot = 'save') {
+    const s = readSlot(slot);
     if (!s) {
         msg('No saved game found.', 'nosave', 'bad');
 
@@ -189,47 +303,56 @@ export function loadGame() {
 
         return;
     }
-    deserialize(s);
+    deserialize(s, slot === 'save' ? 'Saved game loaded.' : 'Welcome back to ' + (s.level || 'your realm') + '.');
     document.getElementById('ov').hidden = true;
     app.running = true;
     app.paused = false;
     syncPause();
+    // The game slot follows the loaded game straight away.
+    writeSlot('game', serialize(false));
+    syncMaps();
 }
 
-/** Shows "Continue saved game" and enables Load when a save exists. */
+/** Continue on the intro card: the running game, else the saved copy. */
+export function continueGame() {
+    loadGame(store.has('game.version') ? 'game' : 'save');
+}
+
+/** Shows Continue when there is a game to go on with, and enables Load when a saved copy exists. */
 export function refreshContinue() {
-    const s = store.has('save.version');
     const b = document.getElementById('bContinue');
     if (b) {
-        b.hidden = !s;
+        b.hidden = !store.has('game.version') && !store.has('save.version');
     }
-    document.getElementById('bLoad').disabled = !s;
+    document.getElementById('bLoad').disabled = !store.has('save.version');
 }
 
 /**
- * A save value changed by hand (or in another tab) also changes the running game: the fields of `G`,
- * the tile arrays and the units (a new unit key adds the unit, a removed one takes it away).
+ * A value of the running game changed by hand (or in another tab) changes the game at once: the
+ * fields of `G`, the tile arrays and the units (a new unit key adds the unit, a removed one takes it
+ * away). Changes to the saved copy only update Continue and Load.
  */
-export function applySaveChanges(keys) {
+export function applyGameChanges(keys) {
     refreshContinue();
-    if (!G || !app.running || G.over) {
+    const own = keys.filter((key) => key.startsWith('game.'));
+    if (!own.length || !G || !app.running || G.over) {
         return;
     }
-    const s = readSave();
+    const s = readSlot('game');
     if (!s) {
         return;
     }
-    const fields = keys.filter((key) => !key.startsWith('save.unit.'));
+    const fields = own.filter((key) => !key.startsWith('game.unit.'));
     if (fields.length) {
         const changed = {};
         for (const key of fields) {
-            const name = key.replace(/^save\.(map\.)?/, '');
+            const name = key.replace(/^game\.(map\.)?/, '');
             changed[name] = s[name];
         }
         restoreFields(changed);
     }
-    for (const key of keys.filter((key) => key.startsWith('save.unit.'))) {
-        const id = Number(key.slice('save.unit.'.length));
+    for (const key of own.filter((key) => key.startsWith('game.unit.'))) {
+        const id = Number(key.slice('game.unit.'.length));
         const o = store.readJson(key, null);
         const e = G.ents.find((u) => u.id === id && !u.dead);
         if (o && typeof o === 'object' && KINDS[o.kind]) {

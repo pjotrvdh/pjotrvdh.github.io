@@ -18,9 +18,10 @@ description: How the Arcade repository is laid out and how a game is added to th
 
 ## Saving
 
-- Every game saves through `storage(prefix)` from `shared/storage.js`: one localStorage key per value under `<slug>.` (`learn-to-fly.cash`, `twistball.option.palette`, `underlord.save.money`), numbers and true/false as plain text, lists and records as JSON. So a player can read and change each value by hand in the dev tools.
+- Every game saves through `storage(prefix)` from `shared/storage.js`: one localStorage key per value under `<slug>.` (`learn-to-fly.cash`, `twistball.option.palette`, `underlord.game.money`), numbers and true/false as plain text, lists and records as JSON. So a player can read and change each value by hand in the dev tools.
 - `read`, `write` (null removes; returns whether it was kept), `readNumber` (rounded) / `readFloat`, `readBool`, `readJson` and `keys(start)` all swallow storage errors (private mode, full storage) and fall back to the default.
-- `watch(onChange)` reports the keys changed outside the game (checked twice a second, and on other tabs' `storage` events); the game's own writes are not reported. Every game shows such a change at once.
+- localStorage is the truth: every game keeps what it would save there as it is now, not only at save points. Twistball writes each value the moment it changes; Learn to Fly and Underlord write what changed twice a second (`write()` skips a value that is already stored). A reload goes on with what is there.
+- `watch(onChange)` reports the keys changed outside the game (checked twice a second, and on other tabs' `storage` events); the game's own writes are not reported. Every game shows such a change at once. It returns its check: a game that writes on a timer calls it first, so an edit by hand is taken in rather than written over.
 - `dropOldKey(key, convert)` converts and removes a key of an earlier format: old saves keep working, so keep a conversion when the format changes again.
 
 ## The index page

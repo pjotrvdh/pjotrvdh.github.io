@@ -146,6 +146,6 @@ function end(win) {
     };
     const l = document.getElementById('bAgainLoad');
     if (l) {
-        l.onclick = () => loadGame();
+        l.onclick = () => loadGame('save');
     }
 }

@@ -9,7 +9,7 @@ import { isMuted, setMuted } from './audio.js';
 import { initCheats } from './cheats.js';
 import { creatures, need, research } from './entities.js';
 import { newGame } from './map.js';
-import { loadGame, saveGame } from './save.js';
+import { continueGame, loadGame, saveGame } from './save.js';
 import { G, app } from './state.js';
 import { store } from './storage.js';
 import { anyPortal, cap } from './tiles.js';
@@ -411,7 +411,7 @@ export function initUi() {
             saveGame(false);
         }
     };
-    $('bLoad').onclick = () => loadGame();
+    $('bLoad').onclick = () => loadGame('save');
     $('bPause').onclick = () => {
         app.paused = !app.paused;
         syncPause();
@@ -424,7 +424,7 @@ export function initUi() {
         $('ov').hidden = true;
         app.running = true;
     };
-    $('bContinue').onclick = () => loadGame();
+    $('bContinue').onclick = () => continueGame();
     const w = $('waveCount');
     if (w) {
         w.textContent = words(WAVES.length);
