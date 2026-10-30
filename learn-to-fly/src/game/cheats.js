@@ -10,7 +10,7 @@ import { stateChanged } from './ui.js';
  * The Cheats panel: hidden until someone types the cheat code (iliketocheat); typing it again hides
  * it. It is hidden again after a reload. A button in the control bar opens it: cash, every upgrade,
  * every ramp, endless rocket fuel and winning the game on the spot. Using any cheat marks the saved
- * game (`state.cheated`, saved in `learn-to-fly-save`).
+ * game (`state.cheated`, saved as learn-to-fly.cheated).
  */
 
 const CODE = 'iliketocheat';

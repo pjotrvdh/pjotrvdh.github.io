@@ -1,44 +1,34 @@
 import { createElement, Maximize, Minimize, Pause, Play, Settings, Volume1, Volume2, VolumeX } from 'lucide';
 import { audio } from './audio.js';
 import { options } from './state.js';
+import { readBool, readNumber, write } from './storage.js';
 
 /*
  * The control bar in the top right corner: settings (day intro, control reminders), sound (a
  * volume slider each for music and sound effects; music starts off), pause and full screen. Keys: M
  * mutes everything and brings the volumes back, P or Esc pauses, F toggles full screen. The settings
- * are kept in localStorage (`learn-to-fly-options`).
+ * are kept in localStorage, one key each (storage.js): learn-to-fly.option.dayIntro,
+ * .option.controlReminders, .option.music and .option.sfx (0-100), and while M has muted everything
+ * .option.unmuteMusic and .option.unmuteSfx.
  */
 
-const KEY = 'learn-to-fly-options';
-
 function loadOptions() {
-    try {
-        const saved = JSON.parse(localStorage.getItem(KEY) ?? '{}');
-        // Older settings (a single mute switch, or music and effects as on/off) are dropped.
-        delete saved.mute;
-        for (const k of ['music', 'sfx']) {
-            if (typeof saved[k] !== 'number') {
-                delete saved[k];
-            }
-        }
-        Object.assign(options, saved);
-    } catch {
-        // No saved options.
-    }
+    options.skipCutscenes = !readBool('option.dayIntro', !options.skipCutscenes);
+    options.showControls = readBool('option.controlReminders', options.showControls);
+    options.music = readNumber('option.music', options.music, 0, 100);
+    options.sfx = readNumber('option.sfx', options.sfx, 0, 100);
+    const music = readNumber('option.unmuteMusic', null, 0, 100);
+    const sfx = readNumber('option.unmuteSfx', null, 0, 100);
+    options.unmute = music === null && sfx === null ? null : { music: music ?? 0, sfx: sfx ?? 0 };
 }
 
 function saveOptions() {
-    try {
-        localStorage.setItem(KEY, JSON.stringify({
-            skipCutscenes: options.skipCutscenes,
-            showControls: options.showControls,
-            music: options.music,
-            sfx: options.sfx,
-            unmute: options.unmute,
-        }));
-    } catch {
-        // Private mode: the options last until the page closes.
-    }
+    write('option.dayIntro', !options.skipCutscenes);
+    write('option.controlReminders', options.showControls);
+    write('option.music', options.music);
+    write('option.sfx', options.sfx);
+    write('option.unmuteMusic', options.unmute?.music);
+    write('option.unmuteSfx', options.unmute?.sfx);
 }
 
 const icon = (node) => {
