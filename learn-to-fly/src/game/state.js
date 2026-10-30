@@ -43,7 +43,7 @@ export const options = {
     // Volumes, 0..100, set with the sound panel's sliders: music starts off, sound effects at full.
     music: 0,
     sfx: 100,
-    // The volumes before M muted everything (M again brings them back).
+    // The volumes before M muted everything (M again brings them back); saved too.
     unmute: null,
 };
 

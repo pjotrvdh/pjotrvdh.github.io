@@ -29,7 +29,13 @@ function loadOptions() {
 
 function saveOptions() {
     try {
-        localStorage.setItem(KEY, JSON.stringify({ skipCutscenes: options.skipCutscenes, showControls: options.showControls, music: options.music, sfx: options.sfx }));
+        localStorage.setItem(KEY, JSON.stringify({
+            skipCutscenes: options.skipCutscenes,
+            showControls: options.showControls,
+            music: options.music,
+            sfx: options.sfx,
+            unmute: options.unmute,
+        }));
     } catch {
         // Private mode: the options last until the page closes.
     }
@@ -128,8 +134,8 @@ export function setupControls(player) {
             options.unmute = null;
             show();
             applySound();
+            saveOptions();
         });
-        input.addEventListener('change', saveOptions);
         label.append(name, input, value);
         label.sync = show;
         show();
