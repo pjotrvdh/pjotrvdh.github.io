@@ -55,6 +55,7 @@ description: Learn to Fly's scenes, flight physics, money, shop, ramps and achie
 
 - `cheats.js`: typing `iliketocheat` anywhere shows a Cheats button (and its panel) in the control bar; typing it again hides them; after a reload they are hidden. Using any cheat sets `state.cheated` (`true`, saved with the game in `learn-to-fly-save`; a new game clears it). It offers +$1,000, +$10,000, every upgrade at its top level, every ramp open (by marking all achievements done, without their rewards), endless fuel (`cheats.endlessFuel`, read in `getAir()`) and "Win the game" (in flight: sets the distance past the finish line, so the flight's own rules play the ending).
 - Cheats save the game and call `stateChanged()` (`ui.js`), so an open shop or ramp menu redraws.
+- A game that used a cheat gets a pirate penguin: `pirate-hat.js` adds a vector tricorn (`HAT`, in the exported shape format) to every penguin (sprite 95) as it is placed (`player.onPlaced` in `index.js`), and to the ones on screen when a cheat is used.
 
 ## Saving
 

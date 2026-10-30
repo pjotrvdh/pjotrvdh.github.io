@@ -93,6 +93,8 @@ export class Player {
         }
         child.applyFrame(1, true);
         child.frame = 1;
+        // The game may add to a clip as it is placed (the pirate hat).
+        this.onPlaced?.(child);
         if (child.char.stream?.frame === 1) {
             this.syncStream(child);
         }
