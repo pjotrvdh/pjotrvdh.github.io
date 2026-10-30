@@ -6,7 +6,7 @@ The graphics, animations, fonts and sounds come from the game's SWF, exported by
 
 ## How to play
 
-- **Start** in the main menu with PLAY, Space or Enter. In the ramp menu ← → pick a ramp, Space goes to Fly! and Space again takes off.
+- **Start** in the main menu with PLAY, Space or Enter. In the ramp menu ← → pick a ramp, Space goes to Fly! and Space again takes off; it shows your glider and rocket, on the penguin and in the panel.
 - **Slide** down the ramp and wait until you reach the jump.
 - **Fly:** the left and right arrow keys tilt the penguin. Diving gains speed, pulling up gains height. With a glider, keep under its red "critical velocity" or the air brakes you hard.
 - **Rocket:** hold Space to burn fuel.

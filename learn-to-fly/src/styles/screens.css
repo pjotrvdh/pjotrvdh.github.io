@@ -448,6 +448,28 @@ button {
     color: var(--chalk-red);
 }
 
+.gear {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.3em 1em;
+    margin: 0.35em 0 0;
+}
+
+.gear-item {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35em;
+}
+
+.gear-item .sketch {
+    width: 1.5em;
+    color: var(--chalk-yellow);
+}
+
+.gear-none {
+    color: var(--chalk-dim);
+}
+
 .note:empty,
 .final-goal:empty {
     display: none;

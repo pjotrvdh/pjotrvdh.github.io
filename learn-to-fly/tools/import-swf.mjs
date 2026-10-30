@@ -28,9 +28,40 @@ const TARGET = 'learn-to-fly/src/assets';
  * animation 31, texts 32-35 and version number 39), the sponsor intro (sprite 103 with 65, 44-47),
  * the MaxGames logo (bitmaps 36, 43, shape 37, buttons 38 and "Play more games at" 310), its jingle
  * (41), the intro cutscene (259) and the main menu's "A game by Light Bringer" (262). The game starts
- * in the main menu (src/game/start.js).
+ * in the main menu (src/game/start.js). And the penguin drawn on the 5' and 10' ramp pictures (433,
+ * 437; see PICTURE_PENGUINS).
  */
-const LEFT_OUT = new Set([9, 11, 31, 32, 33, 34, 35, 36, 37, 38, 39, 41, 43, 44, 45, 46, 47, 65, 103, 259, 262, 310]);
+const LEFT_OUT = new Set([9, 11, 31, 32, 33, 34, 35, 36, 37, 38, 39, 41, 43, 44, 45, 46, 47, 65, 103, 259, 262, 310, 433, 437]);
+
+/**
+ * The penguin drawn into the ramp menu's pictures (sprite 457) is left out, so the game can put the
+ * real penguin there, with the glider and rocket you own (src/game/ramp-menu.js): on the 5' and 10'
+ * ramps it is its own shape (433, 437, in LEFT_OUT); on the others it is part of the picture's shape,
+ * and the paths inside this box (picture coordinates) are dropped.
+ */
+const PICTURE_PENGUINS = {
+    440: [267, 39, 294, 75],
+    443: [258, 24, 279, 49],
+    446: [256, 0, 271, 19],
+};
+
+/** The bounds [x0, y0, x1, y1] of SVG path data (its points; good enough for whole small shapes). */
+function pathBounds(d) {
+    const n = d.match(/-?[\d.]+/g).map(Number);
+    const xs = n.filter((_, i) => i % 2 === 0);
+    const ys = n.filter((_, i) => i % 2 === 1);
+    return [Math.min(...xs), Math.min(...ys), Math.max(...xs), Math.max(...ys)];
+}
+
+function dropPicturePenguins(chars) {
+    for (const [id, [x0, y0, x1, y1]] of Object.entries(PICTURE_PENGUINS)) {
+        const c = chars[id];
+        c.paths = c.paths.filter(([, , d]) => {
+            const b = pathBounds(d);
+            return !(b[0] >= x0 && b[1] >= y0 && b[2] <= x1 && b[3] <= y1);
+        });
+    }
+}
 
 /**
  * Shapes drawn here instead of exported: the rocket flames (shapes 73 and 76, in sprites 74 and 77)
@@ -1115,6 +1146,7 @@ for (const [id, shape] of Object.entries(REDRAWN)) {
     out.chars[id] = shape;
 }
 dropBitmapFills(out.chars);
+dropPicturePenguins(out.chars);
 
 for (const id of LEFT_OUT) {
     delete out.chars[id];
