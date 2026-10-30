@@ -15,7 +15,7 @@ The graphics, animations, fonts and sounds come from the game's SWF, exported by
 - **Shop:** Ramp Height, Acceleration, Air Resistance, three gliders, three rockets and rocket fuel.
 - **Win:** fly 6000 ft. The end screen counts your days.
 - **Touch:** tap to click; in flight, hold the left or right third of the screen to tilt and the middle to fire the rocket.
-- **Controls** (top right): settings (day intro, control reminders), sound (a volume slider each for music and sound effects; music starts off; M mutes and unmutes), pause (P or Esc) and full screen (F). The game and the settings are saved in your browser (localStorage).
+- **Controls** (top right): settings (day intro, control reminders), sound (a volume slider each for music and sound effects; music starts off; M mutes and unmutes), pause (P or Esc) and full screen (F). The game and the settings are saved in your browser's localStorage, one key per value (`learn-to-fly.cash`, `learn-to-fly.level.gliders`, `learn-to-fly.option.music`, …), so you can change them by hand in the dev tools; the game shows a change at once.
 - **Cheats:** type `iliketocheat` during the game to show the Cheats panel (cash, all upgrades, all ramps, endless fuel, win); type it again to hide it. A reload hides it too. Using a cheat is remembered in the saved game, and the penguin wears a pirate hat from then on.
 - The game fills the whole window: every scene goes edge to edge, in flight you see more of the sky and sea, and the motion follows your screen's refresh rate.
 

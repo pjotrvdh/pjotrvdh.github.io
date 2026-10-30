@@ -6,6 +6,7 @@
 import { sounds } from './audio.js';
 import { $, CPUS, LEVELS, R, clock, far, isSolo, near, state } from './context.js';
 import { loadHighScores } from './highscores.js';
+import { store } from './storage.js';
 
 function lives(paddleState, max) {
     return '●'.repeat(Math.max(0, paddleState.lives)) + '○'.repeat(Math.max(0, max - paddleState.lives));
@@ -154,38 +155,32 @@ export function cancelCountdown() {
 
 /* ---------- title screen settings ---------- */
 
-/** A setting kept in this browser: read it into the element, and write it back on every change. */
-function remember(id, key, fallback) {
-    try {
-        $(id).value = localStorage.getItem(key) ?? fallback;
-    } catch {
-        // Not remembered: the fallback.
-    }
-    if (!$(id).value) {
-        $(id).value = fallback;
-    }
-    $(id).addEventListener('change', () => {
-        try {
-            localStorage.setItem(key, $(id).value);
-        } catch {
-            // Not remembering it is fine.
+/** The title screen's choices kept in this browser: element id, storage key and default. */
+const REMEMBERED = [['startLevel', 'option.startLevel', '1'], ['cpuKind', 'option.cpu', 'auto']];
+
+/** Reads the remembered choices and name into the title screen (again after a change in localStorage). */
+export function reloadMenus() {
+    for (const [id, key, fallback] of REMEMBERED) {
+        $(id).value = store.read(key) ?? fallback;
+        if (!$(id).value) {
+            $(id).value = fallback;
         }
-    });
+    }
+    if (document.activeElement !== $('playerName')) {
+        $('playerName').value = store.read('name') ?? '';
+    }
 }
 
 /** Fills the title screen's choices (start level, kind of computer, match speed) and the remembered name. */
 export function initMenus() {
     $('speed').value = String(R.matchLevel);
     $('startLevel').replaceChildren(...LEVELS.map((_, index) => Object.assign(document.createElement('option'), { value: String(index + 1), textContent: String(index + 1) })));
-    remember('startLevel', 'twistball-start-level', '1');
     $('cpuKind').replaceChildren(
         Object.assign(document.createElement('option'), { value: 'auto', textContent: 'Auto (a random one every level)' }),
         ...Object.entries(CPUS).map(([key, cpu]) => Object.assign(document.createElement('option'), { value: key, textContent: `${cpu.name}: ${cpu.about}` })),
     );
-    remember('cpuKind', 'twistball-cpu', 'auto');
-    try {
-        $('playerName').value = localStorage.getItem('twistball-name') ?? '';
-    } catch {
-        // No remembered name.
+    for (const [id, key] of REMEMBERED) {
+        $(id).addEventListener('change', () => store.write(key, $(id).value));
     }
+    reloadMenus();
 }

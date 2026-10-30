@@ -11,7 +11,7 @@ description: Twistball's rules: modes, lives, levels, auto-serve countdown, scor
 
 ## Modes (`state.kind`)
 
-- **`solo`**: you (near) against the CPU (far). Ten levels from `levels.js`; the start level and the kind of computer (or Auto) are picked on the title screen (remembered as `twistball-start-level` and `twistball-cpu`). You have `playerLives` (5) for the whole game; the CPU has `opponentLives` (3) per level.
+- **`solo`**: you (near) against the CPU (far). Ten levels from `levels.js`; the start level and the kind of computer (or Auto) are picked on the title screen (remembered as `twistball.option.startLevel` and `twistball.option.cpu`). You have `playerLives` (5) for the whole game; the CPU has `opponentLives` (3) per level.
 - **`online`**: two people, see [online.md](online.md). Both have `matchLives` (5); the speed (a level from `levels.js`) is the host's choice on the title screen. Both score; see Scoring.
 - **`demo`**: CPU vs CPU at the chosen speed, two different random kinds of computer every match (see [computer-players.md](computer-players.md)), `matchLives` each; after a match the next one starts by itself after `demoRestartDelay` (3 s). Esc goes back to the menu; on a touch screen a tap on the tunnel does.
 
@@ -39,7 +39,7 @@ description: Twistball's rules: modes, lives, levels, auto-serve countdown, scor
 - On top: `curveBonus` (50) when the spin is ≥ `curveThreshold` (1.2), or `superCurveBonus` (150) when ≥ `superCurveThreshold` (2.6); and `accuracyBonus` (100) when the ball hits within `accuracyZone` (25 %) of your paddle's centre ("Bullseye!").
 - Bonus calls (`callBonus()`): your own as "Super curve! +200"; the other side's in its colour with its name ("Opponent: Bullseye! +200"). None in CPU vs CPU, where the computer scores a bonus on nearly every return.
 - The level bonus (solo) starts at `levelBonus` (3000) and drops `levelBonusPerSecond` (40) while the ball is in play; it is added when you clear the level.
-- High scores (`highscores.js`): top `highScores` (10) entries in `twistball-highscores`, each with name, score, level reached and `from` (start level; shown as "level 7 (from 3)").
+- High scores (`highscores.js`): top `highScores` (10) entries in `twistball.highscore.<place>.*`, each with name, score, level reached and `from` (start level; shown as "level 7 (from 3)").
 
 ## Screen on
 

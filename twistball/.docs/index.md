@@ -45,7 +45,7 @@ description: Hub of the Twistball wiki (3D tunnel pong). Read first when working
 ## Gotchas
 
 - Text uses system fonts only (DIN-like HUD stack, monospaced HUD numbers); never add a font file. See [../../.docs/build.md](../../.docs/build.md).
-- `localStorage` keys are prefixed `twistball-`: `twistball-highscores`, `twistball-name`, `twistball-palette`, `twistball-start-level`, `twistball-cpu`.
+- localStorage has one key per value under `twistball.` (`src/game/storage.js`, see [../../.docs/arcade.md](../../.docs/arcade.md)): `option.palette`, `option.startLevel`, `option.cpu`, `name` and the high scores `highscore.<place>.<name|score|level|from|date>`. A value changed by hand shows at once (`store.watch()` in `game.js`: the palette, the title screen's choices and name, the high score lists). The old `twistball-*` keys are converted once and removed.
 
 ## See also
 

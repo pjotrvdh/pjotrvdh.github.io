@@ -5,14 +5,22 @@ description: Underlord save games: localStorage, SAVE_V format, autosave, saved 
 
 ## When to use this
 
-- You touch `serialize()`, `deserialize()`, `saveGame()`, `loadGame()`, `lsGet()`/`lsSet()`, `refreshContinue()`, `SAVE_V` or `SAVE_KEYS` (all in `underlord/src/game/save.js`)
+- You touch `serialize()`, `deserialize()`, `saveGame()`, `loadGame()`, `readSave()`/`writeSave()`, `applySaveChanges()`, `refreshContinue()`, `SAVE_V` or `SAVE_KEYS` (all in `underlord/src/game/save.js`)
 - You add a field to `G` or to entities and it must survive a reload
 - Keywords: save, load, continue, autosave, localStorage, version, compatibility
 
 ## Storage
 
-- One slot: `localStorage['underlord-save']`, JSON. `lsGet()` / `lsSet()` swallow errors (private mode, quota) and return `null` / `false`.
-- `localStorage['underlord-tab']` separately remembers the last panel tab.
+- One slot, one localStorage key per value under `underlord.save.` (`src/game/storage.js`, see [../../.docs/arcade.md](../../.docs/arcade.md)), so it can be edited by hand in the dev tools:
+  - `save.version` (`SAVE_V`; a save exists once it is there), `save.savedAt`
+  - `save.<money|heartHP|heartMax|time|nextWave|wave|research|payT|portalT|idc|hx|hy>` numbers, `save.level` text
+  - `save.<spawnQ|cpu|pool|portals|portal|gate|rally>` JSON (`null` for no rally)
+  - `save.map.<t|room|mark|hp|gold|seen|loot|pile|pown>` the per-tile arrays as JSON lists (`MAPS`)
+  - `save.unit.<id>` one JSON record per unit (`SAVE_KEYS` and `held`); `writeSave()` removes the keys of units that are gone.
+- `readSave()` puts them back together as `serialize()` made them; a missing or broken value is left out and keeps its `newGame()` value. `writeSave()` returns false when a key could not be written (private mode, quota).
+- A save value changed by hand (or in another tab) also changes the running game at once (`store.watch()` in `index.js` -> `applySaveChanges()`): fields of `G` and tile arrays are put in, a changed unit gets the new fields, a new unit key adds the unit and a removed one takes it away. On the intro card it only updates Continue.
+- Settings: `underlord.option.sound` (true/false) and `underlord.option.tab` (the last panel tab), also shown at once when changed.
+- The old format (JSON under `underlord-save`, and `underlord-sound` / `underlord-tab`) is converted once at start, of any version, and removed; `loadGame()` still refuses an old version.
 - `SAVE_V = 3` (3: the map grew to 80 x 52; older saves cannot load). `loadGame()` refuses any other `v` ("from an older version ... cannot be loaded").
 
 ## When it saves

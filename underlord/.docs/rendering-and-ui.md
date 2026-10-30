@@ -76,7 +76,7 @@ description: Underlord's 3D view (three.js: camera, picking, terrain, rooms, uni
 
 - Header stats: Gold `money / cap`, Imps, Creatures `count / Lair tiles`, Research, Payday `m:ss · due g` (red when due > gold), Heroes `wave N in m:ss` (plus `(paused)` while the cheat holds it) / `final wave`, Heart bar. Buttons: Save, Load, Cheats (hidden), Pause/Resume, speed `1× 2× 3×`.
 - Tools (`buildTools()`): Hand / Slap / Look; Rooms tab: each room + Sell; Spells tab: every spell (cost or "research N", disabled while locked).
-- Tabs (`showTab()`, remembered in `localStorage['underlord-tab']`): Info (payday and research gauges, portal pool list), Rooms, Spells, Creatures (idle/working/fighting per kind with SVG portraits from `assets.js` `icons`, list by kind and level).
+- Tabs (`showTab()`, remembered as `underlord.option.tab`): Info (payday and research gauges, portal pool list), Rooms, Spells, Creatures (idle/working/fighting per kind with SVG portraits from `assets.js` `icons`, list by kind and level).
 - `#info`: hover details for the unit (`app.hover.unit`) or tile under the pointer, or help for the current tool.
 - Chronicle `#log`: `msg(text, key, cls)` prepends, keeps 7; the same `key` is muted for 20 s of game time. Banner for waves; overlay card for intro and end.
 - Minimap (`drawMini()`, minimap.js): one cell per tile (unseen = cloud colour, or dark gold / dark ruby for unseen gold / gems; seams in `assets.js` `goldColor` / `gemColor`; rooms in their colour), portals, white dots, units, and the camera's view trapezoid. Click or drag it to look there.
@@ -97,7 +97,7 @@ description: Underlord's 3D view (three.js: camera, picking, terrain, rooms, uni
 - Made on the fly with the Web Audio API, no sound files (like Twistball). The audio context starts on the first click or key press; that gesture also starts the ambience: a low, slowly breathing cave drone and a water drop every 2.5-9 s.
 - `sound(name, x, y)` plays one effect from `SOUNDS` (filtered noise and oscillators, through a short generated cave echo). With a map position it fades with the distance from the middle of the view (`view.focus()`) and is skipped when far off screen; zoomed out it is quieter. `gap` per sound is the shortest time between two of the same, so a crew of imps does not turn into noise.
 - Called by the game where things happen: dig / gold / gem (imps and tunnelling heroes), hammer and wall (reinforcing), claim, coins (deposit, pile, wage, theft), payday, hit, shot, death, knockout, heart (hit) and zap, build, sell, pickup, drop, slap, portal (arrivals, dismissals, Create Imp, a Skeleton rising), heal, thunder, horn (a wave, Call to Arms), chime (research), win, lose.
-- The header's Sound button (`bSound`) and `V` mute it (`setMuted()`); remembered in localStorage `underlord-sound`.
+- The header's Sound button (`bSound`) and `V` mute it (`setMuted()`); remembered as `underlord.option.sound`.
 
 ## Fonts and accessibility
 

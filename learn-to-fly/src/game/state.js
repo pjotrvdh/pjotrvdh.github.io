@@ -1,11 +1,13 @@
 import config from '../config/index.js';
+import { dropOldKey, has, readBool, readNumber, write } from './storage.js';
 
 /*
- * The saved game: what the original kept in its SharedObject "learntofly". The names in comments
- * are the original variables.
+ * The saved game: what the original kept in its SharedObject "learntofly", one localStorage key per
+ * value (storage.js): learn-to-fly.day, .cash, .ramp, .level.<upgrade>, .achievement.<ramp 1-5>.<kind>,
+ * .gameFinished, .keepPlaying, .cheated and .board.<1-3>. The names in comments are the original
+ * variables.
  */
 
-const KEY = 'learn-to-fly-save';
 const KINDS = ['distance', 'altitude', 'speed', 'duration'];
 
 export { KINDS };
@@ -37,7 +39,7 @@ export function freshState() {
 
 export const state = freshState();
 
-/** The settings (controls.js keeps them in localStorage `learn-to-fly-options`). */
+/** The settings (controls.js keeps them in localStorage, as learn-to-fly.option.*). */
 export const options = {
     quality: 3,
     skipCutscenes: false,
@@ -50,27 +52,51 @@ export const options = {
 };
 
 export function save() {
-    try {
-        localStorage.setItem(KEY, JSON.stringify(state));
-    } catch {
-        // Private mode or full storage: the game still plays.
+    write('day', state.day);
+    write('cash', state.cash);
+    write('ramp', state.ramp);
+    for (const [name, level] of Object.entries(state.levels)) {
+        write(`level.${name}`, level);
     }
+    state.achievements.forEach((done, i) => {
+        for (const kind of KINDS) {
+            write(`achievement.${i + 1}.${kind}`, done[kind]);
+        }
+    });
+    write('gameFinished', state.gameFinished);
+    write('keepPlaying', state.keepPlaying);
+    write('cheated', state.cheated);
+    state.boards.forEach((seen, i) => write(`board.${i + 1}`, seen));
 }
 
-/** Loads the saved game into `state`; false when there is none. */
+/** Loads the saved game into `state`; false when there is none. Values that don't read keep their defaults. */
 export function load() {
-    try {
-        const saved = JSON.parse(localStorage.getItem(KEY) ?? 'null');
-        if (!saved) {
-            return false;
-        }
-        const fresh = freshState();
-        Object.assign(state, fresh, saved, { levels: { ...fresh.levels, ...saved.levels } });
-        return true;
-    } catch {
+    if (!has('day')) {
         return false;
     }
+    const fresh = freshState();
+    state.day = readNumber('day', fresh.day, 0);
+    state.cash = readNumber('cash', fresh.cash, 0);
+    state.ramp = readNumber('ramp', fresh.ramp, 1, config.ramps.length);
+    for (const name of Object.keys(fresh.levels)) {
+        state.levels[name] = readNumber(`level.${name}`, fresh.levels[name], 1, config.upgrades[name].values.length);
+    }
+    state.achievements = fresh.achievements.map((done, i) => Object.fromEntries(KINDS.map((kind) => [kind, readBool(`achievement.${i + 1}.${kind}`, done[kind])])));
+    state.gameFinished = readBool('gameFinished', fresh.gameFinished);
+    state.keepPlaying = readBool('keepPlaying', fresh.keepPlaying);
+    state.cheated = readBool('cheated', fresh.cheated);
+    state.boards = fresh.boards.map((seen, i) => readBool(`board.${i + 1}`, seen));
+    return true;
 }
+
+// The earlier format kept the game as JSON under learn-to-fly-save (the same fields): converted once.
+dropOldKey('learn-to-fly-save', (text) => {
+    const saved = JSON.parse(text);
+    const fresh = freshState();
+    Object.assign(state, fresh, saved, { levels: { ...fresh.levels, ...saved.levels } });
+    save();
+    Object.assign(state, freshState());
+});
 
 /** resetVars(): a new game, saved straight away. */
 export function reset() {

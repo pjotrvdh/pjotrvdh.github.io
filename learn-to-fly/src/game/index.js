@@ -8,10 +8,11 @@ import { endFlight, f } from './flight.js';
 import { hud } from './hud.js';
 import { setupInput } from './input.js';
 import { dressPenguin } from './pirate-hat.js';
-import { hideScreens } from './ui.js';
 import scripts from './scripts.js';
 import { enterRootFrame } from './start.js';
-import { state } from './state.js';
+import { load, state } from './state.js';
+import { watch } from './storage.js';
+import { hideScreens, stateChanged } from './ui.js';
 
 /*
  * Boots the game. The canvas fills the window: every scene is drawn edge to edge, with its
@@ -116,6 +117,18 @@ const toStage = (x, y) => ({ x: (x - view.ox) / view.s, y: (y - view.oy) / view.
 hud.releasePad = setupInput(player, canvas, toStage, unlockAudio).releasePad;
 const controls = setupControls(player);
 setupCheats();
+
+// A value changed in localStorage by hand shows at once: the settings, or the saved game (if there
+// is one) with the open screen, the HUD and the penguins' pirate hats.
+watch((keys) => {
+    if (keys.some((k) => k.startsWith('option.'))) {
+        controls.reloadOptions();
+    }
+    if (keys.some((k) => !k.startsWith('option.')) && load()) {
+        stateChanged();
+        player.eachClip(dressPenguin);
+    }
+});
 
 const step = 1000 / STAGE.fps;
 let last = performance.now();

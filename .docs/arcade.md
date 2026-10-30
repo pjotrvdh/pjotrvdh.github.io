@@ -14,6 +14,14 @@ description: How the Arcade repository is laid out and how a game is added to th
 - The repository is `pjotrvdh/pjotrvdh.github.io`; GitHub Pages serves it at the root, `https://pjotrvdh.github.io/`.
 - The root is the Arcade index. Every game is a folder named after its slug (`underlord/`, `twistball/`, `learn-to-fly/`), served at `/<slug>/`.
 - Every game folder is an npm workspace listed in the root `package.json` (`workspaces`), with its own `package.json`, `vite.config.js`, `index.html`, `cover.svg`, `README.md` and `.docs/`.
+- `shared/` holds code the games share at run time: `shared/storage.js` (see Saving below).
+
+## Saving
+
+- Every game saves through `storage(prefix)` from `shared/storage.js`: one localStorage key per value under `<slug>.` (`learn-to-fly.cash`, `twistball.option.palette`, `underlord.save.money`), numbers and true/false as plain text, lists and records as JSON. So a player can read and change each value by hand in the dev tools.
+- `read`, `write` (null removes; returns whether it was kept), `readNumber` (rounded) / `readFloat`, `readBool`, `readJson` and `keys(start)` all swallow storage errors (private mode, full storage) and fall back to the default.
+- `watch(onChange)` reports the keys changed outside the game (checked twice a second, and on other tabs' `storage` events); the game's own writes are not reported. Every game shows such a change at once.
+- `dropOldKey(key, convert)` converts and removes a key of an earlier format: old saves keep working, so keep a conversion when the format changes again.
 
 ## The index page
 
@@ -33,7 +41,7 @@ description: How the Arcade repository is laid out and how a game is added to th
 ## Gotchas
 
 - `public/404.html` is GitHub Pages' not-found page and also redirects the old `/Underlord/` URL (the game's first home) to `/underlord/`. A real `Underlord/` folder can't exist next to `underlord/`: macOS file systems are case-insensitive.
-- `localStorage` is per origin, so every game shares `pjotrvdh.github.io`: prefix every key with the game slug (`underlord-save`, `twistball-highscores`).
+- `localStorage` is per origin, so every game shares `pjotrvdh.github.io`: prefix every key with the game slug (`storage('<slug>.')`).
 
 ## See also
 

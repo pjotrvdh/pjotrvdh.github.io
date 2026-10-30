@@ -12,7 +12,7 @@ description: How Twistball's computer players track the ball, move and serve. Re
 ## Kinds of computer (`cpus.js`)
 
 - Every CPU paddle has a kind (`side.cpu`): **Calm** (slow, straight, little spin), **Aggressive** (fast, sharp angles, harder returns, follows the ball), **Trickster** (lots of spin and now and then a doubled "wild" curve) and **Wall** (reads the ball early, plain returns). Each kind changes the level's values rather than replacing them, so levels still get harder whichever kind plays.
-- Solo: picked on the title screen ("1 player: computer", remembered as `twistball-cpu`), or **Auto** for a random kind every level (`pickSoloCpu()` in `startLevel()`). The far paddle's name is the kind's name, and the level call says it ("Level 3 · Trickster").
+- Solo: picked on the title screen ("1 player: computer", remembered as `twistball.option.cpu`), or **Auto** for a random kind every level (`pickSoloCpu()` in `startLevel()`). The far paddle's name is the kind's name, and the level call says it ("Level 3 · Trickster").
 - CPU vs CPU: always two different kinds, picked at random for every match (`startGame('demo')`); the title-screen choice does not apply.
 
 ## How a CPU paddle moves (`moveCpu(side, dt)`)

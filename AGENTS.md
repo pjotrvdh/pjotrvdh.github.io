@@ -11,6 +11,7 @@ Arcade is the owner's collection of browser games, published at https://pjotrvdh
 
 - The root is the Arcade index: `index.html`, `src/` (`games.js` lists the games, `main.js` renders the index) and `vite.config.js`.
 - Every game lives in its own folder (for example `underlord/`), as an npm workspace listed in the root `package.json`, with a 16:9 `cover.svg` and an entry in `src/games.js`. The slug is the folder name and the URL: `/underlord/`.
+- Every game saves through `shared/storage.js`: one localStorage key per value under `<slug>.`, editable by hand in the dev tools and shown in the game at once (`watch()`); old formats are converted (`dropOldKey()`), so old saves keep working. See [.docs/arcade.md](.docs/arcade.md).
 - Every page builds to one self-contained HTML file (JS, CSS, SVGs and favicon embedded) with `singleFilePage()` from `tools/vite.js`. Do not add files a build would have to ship separately; the one exception is Underlord's 3D models (`underlord/models`, copied next to the page with `singleFilePage({ copy: ['models'] })`).
 - `npm run build` builds every workspace, then the index, and copies each game's `dist/` to `dist/<slug>`. The `github pages` workflow publishes `dist/` on every push to `main`.
 - `public/404.html` is GitHub Pages' not-found page and also redirects the old `/Underlord/` URL to `/underlord/`.
@@ -26,7 +27,7 @@ An HTML5 remake of the 2009 Flash game, aiming to behave 1-to-1 like the origina
 - The canvas fills the window edge to edge (backgrounds scaled up to the window; in flight more of the world) with an HTML control bar, HUD and score board over it (`controls.js`, `hud.js`).
 - The game starts in the main menu (no loader or intro). The shop, ramp menu, tutorial boards, achievements, end screen and clear-data question are HTML in chalk (inline SVG drawings, real text: `src/game/ui.js`, `src/styles/screens.css`); their canvas clips are hidden.
 - Typing `iliketocheat` shows the Cheats panel (`cheats.js`) and typing it again hides it; a reload hides it. Using a cheat sets `cheated: true` in the saved game.
-- Games are saved in localStorage under `learn-to-fly-save`.
+- Games and settings are saved under `learn-to-fly.` (`learn-to-fly.cash`, `learn-to-fly.level.fuel`, `learn-to-fly.option.music`, …).
 
 ## Twistball (`twistball/`)
 
@@ -46,7 +47,7 @@ A Dungeon Keeper-style game in 3D (three.js). `underlord/index.html` is the page
 - **Only creatures and heroes from the original Dungeon Keeper (1997)** are in the game; don't introduce others.
 - 3D models are CC0 KayKit Block Bits (the dungeon blocks), Kenney (props, portal, Heart columns, Hero Gate) and KayKit Adventurers (every unit) `.glb` files in `underlord/models`, copied from `./downloads` (git-ignored) by `underlord/tools/import-models.mjs`; `underlord/src/config/assets.js` maps them. Keep new units in the KayKit style (borrow parts, tint, built-in pieces) and check them in the character viewer (`/underlord/?characters`). Panel portraits are SVGs in `underlord/src/assets/units` (Plants vs. Zombies style). See `underlord/src/assets/README.md`. The logo is an SVG (`underlord/src/assets/brand/logo.svg`), not a font.
 - Typing `iliketocheat` unlocks the Cheats panel for the current page load only.
-- Games are saved in localStorage under `underlord-save`.
+- Games are saved under `underlord.save.` (one key per value and per unit), settings under `underlord.option.`.
 
 ## Checks
 

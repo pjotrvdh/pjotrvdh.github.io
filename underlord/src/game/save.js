@@ -1,16 +1,25 @@
 /**
- * Saved games: one slot in localStorage ('underlord-save'), saved with the Save button and every two
- * minutes. SAVE_V is the format version; loadGame() refuses saves of another version.
+ * Saved games: one slot in localStorage, one key per value under `underlord.save.` (storage.js), saved
+ * with the Save button and every two minutes. SAVE_V is the format version; loadGame() refuses saves
+ * of another version. A save value changed by hand also changes the running game (applySaveChanges()).
  */
 import { recount } from './actions.js';
+import { KINDS } from './config.js';
 import { HERO, NEUTRAL, PRISONER } from './constants.js';
 import { spawn } from './entities.js';
 import { newGame } from './map.js';
 import { restorePrisoner } from './prison.js';
 import { G, app } from './state.js';
+import { dropOldKey } from '../../../shared/storage.js';
+import { store } from './storage.js';
 import { clearLog, msg, syncCpu, syncPause } from './ui.js';
 
 const SAVE_V = 3;
+/** The per-tile arrays, saved as `save.map.<name>` (JSON lists), and their types. */
+const MAPS = { t: Uint8Array, room: Uint8Array, mark: Uint8Array, hp: Uint8Array, gold: Int16Array, seen: Uint8Array, loot: Int16Array, pile: Int16Array, pown: Uint8Array };
+/** The rest of `G` that is saved, as `save.<name>`: numbers, the level name (text) and JSON values. */
+const NUMBERS = ['money', 'heartHP', 'heartMax', 'time', 'nextWave', 'wave', 'research', 'payT', 'portalT', 'idc', 'hx', 'hy'];
+const JSONS = ['spawnQ', 'cpu', 'pool', 'portals', 'portal', 'gate', 'rally'];
 const SAVE_KEYS = ['id', 'kind', 'side', 'x', 'y', 'hp', 'maxhp', 'atk', 'lvl', 'xp', 'carry', 'hunger', 'guard', 'bed', 'leaving', 'fromPool', 'payDue', 'cell', 'party'];
 
 function serialize() {
@@ -40,15 +49,41 @@ function startState(e) {
     }
 }
 
+/** Puts the saved fields of `G` (all but the units) into the game; a missing or broken one keeps its value. */
+function restoreFields(s) {
+    for (const [name, Type] of Object.entries(MAPS)) {
+        if (Array.isArray(s[name]) && s[name].length === G.room.length) {
+            G[name] = Type.from(s[name]);
+        }
+    }
+    for (const name of [...NUMBERS, 'level', ...JSONS]) {
+        if (s[name] !== undefined) {
+            G[name] = name === 'pool' ? { ...G.pool, ...s.pool } : s[name];
+        }
+    }
+    G.spawnQ ||= [];
+    G.fogDirty = true;
+}
+
+/** A saved unit, made with spawn() defaults and then given the saved fields. */
+function restoreUnit(o) {
+    const e = spawn(o.kind, 0, 0);
+    G.ents.pop();
+    Object.assign(e, o);
+    startState(e);
+    e.path = [];
+    if (o.held) {
+        e.held = true;
+        G.held.push(e);
+    }
+
+    return e;
+}
+
 function deserialize(s) {
     newGame();
-    const A = (C, a) => C.from(a);
-    Object.assign(G, {
-        t: A(Uint8Array, s.t), room: A(Uint8Array, s.room), mark: A(Uint8Array, s.mark), hp: A(Uint8Array, s.hp), gold: A(Int16Array, s.gold), seen: A(Uint8Array, s.seen), loot: A(Int16Array, s.loot), pile: A(Int16Array, s.pile ?? s.loot.map(() => 0)),
-        money: s.money, heartHP: s.heartHP, heartMax: s.heartMax, time: s.time, nextWave: s.nextWave, wave: s.wave, spawnQ: s.spawnQ || [], research: s.research,
-        cpu: s.cpu || G.cpu, payT: s.payT, pown: A(Uint8Array, s.pown), pool: { ...G.pool, ...s.pool }, portals: s.portals, level: s.level || 'your realm', portalT: s.portalT, idc: s.idc, hx: s.hx, hy: s.hy, portal: s.portal, gate: s.gate, rally: s.rally,
-        ents: [], held: [], fx: [], res: new Map(), msgCd: {}, over: null,
-    });
+    Object.assign(G, { ents: [], held: [], fx: [], res: new Map(), msgCd: {}, over: null });
+    restoreFields(s);
     // Saves made before held units stopped being written twice list them twice: keep the first copy of each id.
     const ids = new Set();
     for (const o of s.ents) {
@@ -56,44 +91,65 @@ function deserialize(s) {
             continue;
         }
         ids.add(o.id);
-        const e = spawn(o.kind, 0, 0);
-        G.ents.pop();
-        Object.assign(e, o);
-        startState(e);
-        e.path = [];
-        if (o.held) {
-            e.held = true;
-            G.held.push(e);
-        }
-        G.ents.push(e);
+        G.ents.push(restoreUnit(o));
     }
     recount();
-    G.fogDirty = true;
     clearLog();
     msg('Saved game loaded.');
     syncCpu();
 }
 
-// Games are saved in this browser (localStorage).
-function lsGet() {
-    try {
-        const s = localStorage.getItem('underlord-save');
-
-        return s ? JSON.parse(s) : null;
-    } catch {
+/** The saved game as serialize() made it, or null when there is none. */
+function readSave() {
+    if (!store.has('save.version')) {
         return null;
     }
-}
-
-function lsSet(d) {
-    try {
-        localStorage.setItem('underlord-save', JSON.stringify(d));
-
-        return true;
-    } catch {
-        return false;
+    const s = { v: store.readNumber('save.version', 0), savedAt: store.readNumber('save.savedAt', 0), level: store.read('save.level') ?? undefined };
+    for (const name of Object.keys(MAPS)) {
+        s[name] = store.readJson('save.map.' + name, undefined);
     }
+    for (const name of NUMBERS) {
+        s[name] = store.readFloat('save.' + name, undefined);
+    }
+    for (const name of JSONS) {
+        s[name] = store.readJson('save.' + name, undefined);
+    }
+    s.ents = store.keys('save.unit.').map((key) => store.readJson(key, null)).filter((o) => o && typeof o === 'object' && KINDS[o.kind]);
+
+    return s;
 }
+
+/** Writes a save made by serialize(), one key per value, and drops the keys of units that are gone. */
+function writeSave(d) {
+    let ok = true;
+    const keep = (key, value) => {
+        ok = store.write(key, value) && ok;
+    };
+    const units = new Set(d.ents.map((o) => 'save.unit.' + o.id));
+    for (const key of store.keys('save.unit.')) {
+        if (!units.has(key)) {
+            store.write(key, null);
+        }
+    }
+    for (const o of d.ents) {
+        keep('save.unit.' + o.id, o);
+    }
+    for (const name of Object.keys(MAPS)) {
+        keep('save.map.' + name, d[name]);
+    }
+    for (const name of [...NUMBERS, 'level', ...JSONS]) {
+        // null (no rally, say) is kept as the text null, so it is not mistaken for a missing value.
+        keep('save.' + name, d[name] === null ? 'null' : d[name]);
+    }
+    keep('save.savedAt', d.savedAt);
+    keep('save.version', d.v);
+
+    return ok;
+}
+
+// The earlier format kept the save as JSON under one key (`underlord-save`, the same fields): converted
+// once, of any version, so loadGame() still tells an older one apart.
+dropOldKey('underlord-save', (text) => writeSave(JSON.parse(text)));
 
 let saving = false;
 
@@ -103,7 +159,7 @@ export function saveGame(auto) {
     }
     saving = true;
     const d = serialize();
-    const ok = lsSet(d);
+    const ok = writeSave(d);
     saving = false;
     const el = document.getElementById('savedAt');
     if (ok) {
@@ -122,7 +178,7 @@ export function saveGame(auto) {
 }
 
 export function loadGame() {
-    const s = lsGet();
+    const s = readSave();
     if (!s) {
         msg('No saved game found.', 'nosave', 'bad');
 
@@ -142,10 +198,51 @@ export function loadGame() {
 
 /** Shows "Continue saved game" and enables Load when a save exists. */
 export function refreshContinue() {
-    const s = lsGet();
+    const s = store.has('save.version');
     const b = document.getElementById('bContinue');
     if (b) {
         b.hidden = !s;
     }
     document.getElementById('bLoad').disabled = !s;
+}
+
+/**
+ * A save value changed by hand (or in another tab) also changes the running game: the fields of `G`,
+ * the tile arrays and the units (a new unit key adds the unit, a removed one takes it away).
+ */
+export function applySaveChanges(keys) {
+    refreshContinue();
+    if (!G || !app.running || G.over) {
+        return;
+    }
+    const s = readSave();
+    if (!s) {
+        return;
+    }
+    const fields = keys.filter((key) => !key.startsWith('save.unit.'));
+    if (fields.length) {
+        const changed = {};
+        for (const key of fields) {
+            const name = key.replace(/^save\.(map\.)?/, '');
+            changed[name] = s[name];
+        }
+        restoreFields(changed);
+    }
+    for (const key of keys.filter((key) => key.startsWith('save.unit.'))) {
+        const id = Number(key.slice('save.unit.'.length));
+        const o = store.readJson(key, null);
+        const e = G.ents.find((u) => u.id === id && !u.dead);
+        if (o && typeof o === 'object' && KINDS[o.kind]) {
+            if (e) {
+                Object.assign(e, Object.fromEntries(SAVE_KEYS.filter((k) => k !== 'id' && o[k] !== undefined).map((k) => [k, o[k]])));
+            } else {
+                G.ents.push(restoreUnit({ ...o, id }));
+            }
+        } else if (e && !store.has(key)) {
+            e.dead = true;
+            G.held = G.held.filter((u) => u !== e);
+        }
+    }
+    recount();
+    syncCpu();
 }

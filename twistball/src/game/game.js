@@ -16,10 +16,11 @@ import { addHighScore, qualifies } from './highscores.js';
 import { initInput } from './input.js';
 import { cleanCode, isValidCode } from './net.js';
 import { emit, hostRoom, inRoom, initOnline, joinRoom, leaveOnline, openOnline, openReady, readyToResume, readyUp, send, sendState } from './online.js';
-import { initPalettes } from './palette-menu.js';
+import { initPalettes, reloadPalette } from './palette-menu.js';
 import { accent, ageEffects, moveBall, moveHuman, movePaddles, spark } from './physics.js';
-import { call, cancelCountdown, initMenus, renderHighScores, resetServeCountdown, setHint, showScreen, showServeCountdown, startCountdown, updateHud } from './screens.js';
+import { call, cancelCountdown, initMenus, reloadMenus, renderHighScores, resetServeCountdown, setHint, showScreen, showServeCountdown, startCountdown, updateHud } from './screens.js';
 import { initShare } from './share.js';
+import { store } from './storage.js';
 import { keepAwake } from './wake.js';
 
 /* ---------- events: what the host also sends to the guest ---------- */
@@ -412,11 +413,7 @@ function playAgain() {
 function saveScore(event) {
     event.preventDefault();
     const name = $('playerName').value.trim().slice(0, 12) || 'Anonymous';
-    try {
-        localStorage.setItem('twistball-name', name);
-    } catch {
-        // Not remembering the name is fine.
-    }
+    store.write('name', name);
     addHighScore({ name, score: state.score, level: state.level + 1, from: state.startLevel + 1, date: new Date().toISOString() }, R.highScores);
     $('scoreForm').hidden = true;
     $('endBoard').hidden = false;
@@ -557,6 +554,16 @@ initShare();
 initMenus();
 initPalettes();
 renderHighScores();
+// Values changed in localStorage by hand (or in another tab) show at once.
+store.watch((keys) => {
+    if (keys.includes('option.palette')) {
+        reloadPalette();
+    }
+    reloadMenus();
+    if (keys.some((key) => key.startsWith('highscore.'))) {
+        renderHighScores();
+    }
+});
 updateHud();
 showScreen('screenTitle');
 requestAnimationFrame(frame);

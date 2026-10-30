@@ -5,6 +5,7 @@
  * cave drone with dripping water plays underneath while a game runs. The audio starts on the first click
  * or key press, as browsers require; the speaker button (or V) mutes it, remembered in this browser.
  */
+import { store } from './storage.js';
 import { view } from '../render/view.js';
 
 let ctx = null;
@@ -14,11 +15,7 @@ let muted = false;
 let ambient = null;
 const last = {};
 
-try {
-    muted = localStorage.getItem('underlord-sound') === 'off';
-} catch {
-    // no storage: sound stays on
-}
+muted = !store.readBool('option.sound', true);
 
 /** The audio graph, made on first use: everything -> master -> (dry + cave echo) -> speakers. */
 function audio() {
@@ -311,11 +308,7 @@ export const isMuted = () => muted;
 /** Sound on or off (remembered in this browser). */
 export function setMuted(m) {
     muted = m;
-    try {
-        localStorage.setItem('underlord-sound', m ? 'off' : 'on');
-    } catch {
-        // not remembered
-    }
+    store.write('option.sound', !m);
     if (master) {
         master.gain.setTargetAtTime(m ? 0 : 0.8, ctx.currentTime, 0.05);
     }
