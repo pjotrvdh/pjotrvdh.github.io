@@ -1,6 +1,6 @@
 /*
  * localStorage for a game, one key per value under the game's prefix (`learn-to-fly.cash`,
- * `twistball.option.palette`, `underlord.save.money`, …), so each value can be read and changed by
+ * `twistball.option.palette`, `underlord.game.money`, …), so each value can be read and changed by
  * hand in the browser's dev tools: numbers and true/false as plain text, lists and records as JSON.
  * A value that doesn't read (missing, not a number, not true/false, broken JSON) falls back to its
  * default. Every access is guarded: in private mode or with full storage the game still plays, it
@@ -34,6 +34,9 @@ export function storage(prefix) {
                 known.delete(prefix + key);
             } else {
                 const text = typeof value === 'object' ? JSON.stringify(value) : String(value);
+                if (known.get(prefix + key) === text && localStorage.getItem(prefix + key) === text) {
+                    return true;
+                }
                 localStorage.setItem(prefix + key, text);
                 known.set(prefix + key, text);
             }
@@ -105,7 +108,8 @@ export function storage(prefix) {
         /**
          * Calls onChange(keys) with the keys (without the prefix) whose values changed outside the
          * game: checked twice a second (the dev tools don't tell the page) and on other tabs'
-         * storage events.
+         * storage events. Returns the check itself, for a game that writes on a timer and must take in
+         * outside changes first.
          */
         watch(onChange) {
             for (const [key, value] of snapshot()) {
@@ -130,6 +134,7 @@ export function storage(prefix) {
             };
             setInterval(check, 500);
             window.addEventListener('storage', check);
+            return check;
         },
     };
 }

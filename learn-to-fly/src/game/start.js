@@ -1,6 +1,6 @@
 import { g, music } from './context.js';
 import { clearData } from './menu.js';
-import { freshState, state } from './state.js';
+import { freshState, load, state } from './state.js';
 
 /*
  * The start: the root's first frames go straight to init (frame 4), which places the scene fades,
@@ -35,7 +35,11 @@ export default {
             1: (root) => root.gotoAndPlay('init'),
             2: (root) => root.gotoAndPlay('init'),
             4: (root) => {
+                // The original's init: fresh values. localStorage holds the game as it is now, so it
+                // is read straight back (the original only read it on Play), or the twice-a-second
+                // sync would write the fresh values over it.
                 Object.assign(state, freshState());
+                load();
                 root.gotoAndPlay('mainmenu');
             },
         },

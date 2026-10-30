@@ -11,7 +11,7 @@ Arcade is the owner's collection of browser games, published at https://pjotrvdh
 
 - The root is the Arcade index: `index.html`, `src/` (`games.js` lists the games, `main.js` renders the index) and `vite.config.js`.
 - Every game lives in its own folder (for example `underlord/`), as an npm workspace listed in the root `package.json`, with a 16:9 `cover.svg` and an entry in `src/games.js`. The slug is the folder name and the URL: `/underlord/`.
-- Every game saves through `shared/storage.js`: one localStorage key per value under `<slug>.`, editable by hand in the dev tools and shown in the game at once (`watch()`); old formats are converted (`dropOldKey()`), so old saves keep working. See [.docs/arcade.md](.docs/arcade.md).
+- Every game saves through `shared/storage.js`: one localStorage key per value under `<slug>.`, always holding the game as it is now (localStorage is the truth; Learn to Fly and Underlord keep it in one tab at a time, `shared/one-tab.js`), editable by hand in the dev tools and shown in the game at once (`watch()`); old formats are converted (`dropOldKey()`), so old saves keep working. See [.docs/arcade.md](.docs/arcade.md).
 - Every page builds to one self-contained HTML file (JS, CSS, SVGs and favicon embedded) with `singleFilePage()` from `tools/vite.js`. Do not add files a build would have to ship separately; the one exception is Underlord's 3D models (`underlord/models`, copied next to the page with `singleFilePage({ copy: ['models'] })`).
 - `npm run build` builds every workspace, then the index, and copies each game's `dist/` to `dist/<slug>`. The `github pages` workflow publishes `dist/` on every push to `main`.
 - `public/404.html` is GitHub Pages' not-found page and also redirects the old `/Underlord/` URL to `/underlord/`.
@@ -47,7 +47,7 @@ A Dungeon Keeper-style game in 3D (three.js). `underlord/index.html` is the page
 - **Only creatures and heroes from the original Dungeon Keeper (1997)** are in the game; don't introduce others.
 - 3D models are CC0 KayKit Block Bits (the dungeon blocks), Kenney (props, portal, Heart columns, Hero Gate) and KayKit Adventurers (every unit) `.glb` files in `underlord/models`, copied from `./downloads` (git-ignored) by `underlord/tools/import-models.mjs`; `underlord/src/config/assets.js` maps them. Keep new units in the KayKit style (borrow parts, tint, built-in pieces) and check them in the character viewer (`/underlord/?characters`). Panel portraits are SVGs in `underlord/src/assets/units` (Plants vs. Zombies style). See `underlord/src/assets/README.md`. The logo is an SVG (`underlord/src/assets/brand/logo.svg`), not a font.
 - Typing `iliketocheat` unlocks the Cheats panel for the current page load only.
-- Games are saved under `underlord.save.` (one key per value and per unit), settings under `underlord.option.`.
+- The running game is kept under `underlord.game.` (one key per value and per unit), the copy that Save, the autosave and Load use under `underlord.save.`, settings under `underlord.option.`.
 
 ## Checks
 

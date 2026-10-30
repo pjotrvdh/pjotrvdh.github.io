@@ -8,7 +8,7 @@ import { initInput, keyPan } from './input.js';
 import { newGame } from './map.js';
 import { drawMini } from './minimap.js';
 import { isMuted, setMuted } from './audio.js';
-import { applySaveChanges, refreshContinue, saveGame } from './save.js';
+import { applyGameChanges, claimGame, refreshContinue, saveGame, syncGame } from './save.js';
 import { G, app } from './state.js';
 import { store } from './storage.js';
 import { initUi, showTab, syncCpu, syncSound, ui } from './ui.js';
@@ -44,8 +44,10 @@ function startGame() {
     showTab(app.tab);
     syncCpu();
     refreshContinue();
-    // Values changed in localStorage by hand (or in another tab) show at once.
-    store.watch((keys) => {
+    claimGame();
+    // localStorage holds the running game (save.js): values changed there by hand show at once, and
+    // what the game changes is written back twice a second.
+    const check = store.watch((keys) => {
         if (keys.includes('option.sound') && isMuted() === store.readBool('option.sound', true)) {
             setMuted(!isMuted());
             syncSound();
@@ -54,10 +56,11 @@ function startGame() {
         if (keys.includes('option.tab') && tab && document.getElementById('tab-' + tab)) {
             showTab(tab);
         }
-        if (keys.some((key) => key.startsWith('save.'))) {
-            applySaveChanges(keys);
+        if (keys.some((key) => key.startsWith('game.') || key.startsWith('save.'))) {
+            applyGameChanges(keys);
         }
     });
+    setInterval(() => syncGame(check), 500);
 
     let last = performance.now();
     let uiT = 0;
