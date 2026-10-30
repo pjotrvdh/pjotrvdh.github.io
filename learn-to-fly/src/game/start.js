@@ -1,6 +1,6 @@
-import { audio, g, music } from './context.js';
+import { g, music } from './context.js';
 import { clearData } from './menu.js';
-import { freshState, options, state } from './state.js';
+import { freshState, state } from './state.js';
 
 /*
  * The start: the root's first frames go straight to init (frame 4), which places the scene fades,
@@ -36,7 +36,6 @@ export default {
             2: (root) => root.gotoAndPlay('init'),
             4: (root) => {
                 Object.assign(state, freshState());
-                audio.setVolume(options.mute ? 0 : 100);
                 root.gotoAndPlay('mainmenu');
             },
         },

@@ -15,9 +15,9 @@ description: Learn to Fly's scenes, flight physics, money, shop, ramps and achie
 | 1-2 | debug, loader | `start.js`: straight on to `init` (the loader is not exported) |
 | 3, 5 | sponsor, intro | not used: not exported, never visited |
 | 4 | init | `start.js`: defaults (`freshState()`); the fades and the hidden options menu are placed here and stay; then `mainmenu` |
-| 6 | mainmenu | `menu.js`: opens finished (`menu2`, see `enterRootFrame()` in `start.js`). Play loads the save (shop if the first board was seen, else a new game), Clear Saved Data |
+| 6 | mainmenu | `menu.js`: opens finished (`menu2`, see `enterRootFrame()` in `start.js`). Play (or Space or Enter) loads the save (shop if the first board was seen, else a new game), Clear Saved Data |
 | 8 | shop | `shop.js` (HTML); saves the game |
-| 9 | stage | `ramp-menu.js` (an HTML column in the bottom left corner over the ramp's picture, whose ice runs on to the left edge): pick one of five ramps, Fly! |
+| 9 | stage | `ramp-menu.js` (an HTML column in the bottom left corner over the ramp's picture, whose ice runs on to the left edge): pick one of five ramps, Fly!. The ramps are a radio group: ← → pick, Space goes to Fly!, Space on Fly! starts (`onKey()`) |
 | 10 | dayintro | `day.js`: day + 1, tutorial boards in HTML (once each: start, first glider, first rocket) |
 | 11 | game | `flight.js` |
 | 12 | achievements | `achievements.js` (HTML): one card per achievement won, click to collect |
@@ -47,12 +47,13 @@ description: Learn to Fly's scenes, flight physics, money, shop, ramps and achie
 - Screens (`ui.js`: `h()`, `registerScreen()`, `showScreen()`, the chalk drawings in `DRAWINGS`; styles in `src/styles/screens.css`): shop, ramp menu, tutorial boards, achievements, end screen, clear data. Every root frame change hides them (`hideScreens()` in index.js); the frame's script shows its own and hides the canvas clips it replaces (`hideClips()`: hidden clips can't be clicked either).
 - Touch (`input.js`): a tap is a click. A touch sets the body class `touch` (a mouse clears it; it starts on with a coarse pointer). In flight the touch pad (`#pad`, shown by `hud.js` with the HUD) holds the keys: ◀ ▶ in the bottom left corner, the rocket (only with a rocket; dimmed without fuel) in the bottom right. A finger can slide between buttons, several fingers work at once; hiding the pad or leaving the window lets go. The HUD fits between the buttons, or above them on a tall screen. With `touch`, the control reminders and tutorial boards name the buttons instead of the keys.
 - The scene fades draw on their own canvas (`#fx`) above the screens.
-- `controls.js`: the control bar (settings, sound, pause, full screen; M, P/Esc, F); the SWF's options menu is hidden (`options.js`). Settings: day intro (`skipCutscenes`: with it off and no board to show, the flight starts at once), control reminders, mute; kept in localStorage `learn-to-fly-options`.
+- `controls.js`: the control bar (settings, sound, pause, full screen; M, P/Esc, F); the SWF's options menu is hidden (`options.js`). Settings: day intro (`skipCutscenes`: with it off and no board to show, the flight starts at once) and control reminders. The sound panel has a volume slider each for music and sound effects (`music`, `sfx`, 0–100; music starts at 0, effects at 100); M mutes both and brings them back (`unmute`). All saved on every change in localStorage `learn-to-fly-options` (older `mute` or on/off values there are ignored).
+- `audio.js` plays on two channels: `music` (the background music, `Sound('music')` in `context.js`, and the cutscenes' streams) and `sfx` (every other sound); `audio.setChannel()` sets one's volume.
 - `hud.js` with the HTML in `index.html`: the control reminders after the jump, the flight HUD (speed with the glider's red zone, altitude, distance, resistance, fuel) and the score board, reading `f` and the root's `rdis`, `ralt`, `rdur`, `rtotal`. The HUD shows with every glider level.
 
 ## Cheats
 
-- `cheats.js`: typing `iliketocheat` anywhere shows a Cheats button in the control bar, for the current page load only. It offers +$1,000, +$10,000, every upgrade at its top level, every ramp open (by marking all achievements done, without their rewards), endless fuel (`cheats.endlessFuel`, read in `getAir()`) and "Win the game" (in flight: sets the distance past the finish line, so the flight's own rules play the ending).
+- `cheats.js`: typing `iliketocheat` anywhere shows a Cheats button (and its panel) in the control bar; typing it again hides them; after a reload they are hidden. Using any cheat sets `state.cheated` (`true`, saved with the game in `learn-to-fly-save`; a new game clears it). It offers +$1,000, +$10,000, every upgrade at its top level, every ramp open (by marking all achievements done, without their rewards), endless fuel (`cheats.endlessFuel`, read in `getAir()`) and "Win the game" (in flight: sets the distance past the finish line, so the flight's own rules play the ending).
 - Cheats save the game and call `stateChanged()` (`ui.js`), so an open shop or ramp menu redraws.
 
 ## Saving

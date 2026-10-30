@@ -22,9 +22,11 @@ let picked = 1;
 let leaving = false;
 
 function build() {
+    // A radio group: ← → pick a ramp, Space goes on to Fly! (see onKey()).
     const buttons = config.ramps.map((ramp, i) => h('button', {
         type: 'button',
         class: 'ramp-button',
+        role: 'radio',
         'aria-label': ramp.name,
         onclick: () => pick(i + 1),
         onpointerenter: (e) => e.pointerType === 'mouse' && pick(i + 1),
@@ -38,7 +40,7 @@ function build() {
     // One column in the bottom left corner, so the picture (and the penguin at its top) stays clear.
     const screen = h('section', { class: 'ramp-menu', 'aria-label': 'Pick a ramp' },
         h('div', { class: 'ramp-column' },
-            h('nav', { class: 'ramp-bar chalk-panel' }, h('span', { class: 'bar-title' }, 'Select Stage'), h('div', { class: 'ramp-buttons' }, buttons)),
+            h('nav', { class: 'ramp-bar chalk-panel' }, h('span', { class: 'bar-title' }, 'Select Stage'), h('div', { class: 'ramp-buttons', role: 'radiogroup', 'aria-label': 'Ramp' }, buttons)),
             h('div', { class: 'ramp-info chalk-panel' },
                 title,
                 note,
@@ -53,6 +55,34 @@ function build() {
         }
     });
     Object.assign(ui, { screen, buttons, title, note, goal, count, list, fly });
+    window.addEventListener('keydown', onKey);
+}
+
+/**
+ * Keys in the ramp menu: ← and → pick the previous or next ramp (focusing it), Space on a ramp (or
+ * anywhere but Fly!) goes on to Fly!, and Space on Fly! starts the flight. (Space is handled here
+ * because input.js blocks its default action, which would otherwise click the focused button.)
+ */
+function onKey(e) {
+    if (ui.screen.hidden || leaving || e.ctrlKey || e.metaKey || e.altKey) {
+        return;
+    }
+    if (e.target instanceof HTMLElement && e.target.closest('.controls')) {
+        return;
+    }
+    if (e.code === 'ArrowLeft' || e.code === 'ArrowRight') {
+        e.preventDefault();
+        const n = Math.min(config.ramps.length, Math.max(1, picked + (e.code === 'ArrowLeft' ? -1 : 1)));
+        pick(n);
+        ui.buttons[n - 1].focus();
+    } else if (e.code === 'Space' && !e.repeat) {
+        e.preventDefault();
+        if (document.activeElement === ui.fly) {
+            onFly();
+        } else {
+            ui.fly.focus();
+        }
+    }
 }
 
 function unlocked(n) {
@@ -73,7 +103,9 @@ function render() {
     ui.buttons.forEach((b, i) => {
         b.classList.toggle('picked', i + 1 === picked);
         b.classList.toggle('locked', !unlocked(i + 1));
-        b.setAttribute('aria-pressed', String(i + 1 === picked));
+        b.setAttribute('aria-checked', String(i + 1 === picked));
+        // Only the picked ramp is a tab stop (the arrows move within the group).
+        b.tabIndex = i + 1 === picked ? 0 : -1;
     });
     const ramp = config.ramps[picked - 1];
     const open = unlocked(picked);
@@ -114,6 +146,8 @@ function rampMenu(root) {
     }
     pick(picked);
     showScreen('ramps');
+    // The keyboard starts on the picked ramp.
+    ui.buttons[picked - 1].focus({ preventScroll: true });
 }
 
 /** The picture of each ramp (sprite 457, one frame per ramp) has drifting clouds. */

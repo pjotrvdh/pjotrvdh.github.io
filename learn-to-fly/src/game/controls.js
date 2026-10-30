@@ -1,18 +1,27 @@
-import { createElement, Maximize, Minimize, Pause, Play, Settings, Volume2, VolumeX } from 'lucide';
+import { createElement, Maximize, Minimize, Pause, Play, Settings, Volume1, Volume2, VolumeX } from 'lucide';
 import { audio } from './audio.js';
 import { options } from './state.js';
 
 /*
- * The control bar in the top right corner: settings (day intro, control reminders), sound,
- * pause and full screen. Keys: M mutes, P or
- * Esc pauses, F toggles full screen. The settings are kept in localStorage (`learn-to-fly-options`).
+ * The control bar in the top right corner: settings (day intro, control reminders), sound (a
+ * volume slider each for music and sound effects; music starts off), pause and full screen. Keys: M
+ * mutes everything and brings the volumes back, P or Esc pauses, F toggles full screen. The settings
+ * are kept in localStorage (`learn-to-fly-options`).
  */
 
 const KEY = 'learn-to-fly-options';
 
 function loadOptions() {
     try {
-        Object.assign(options, JSON.parse(localStorage.getItem(KEY) ?? '{}'));
+        const saved = JSON.parse(localStorage.getItem(KEY) ?? '{}');
+        // Older settings (a single mute switch, or music and effects as on/off) are dropped.
+        delete saved.mute;
+        for (const k of ['music', 'sfx']) {
+            if (typeof saved[k] !== 'number') {
+                delete saved[k];
+            }
+        }
+        Object.assign(options, saved);
     } catch {
         // No saved options.
     }
@@ -20,7 +29,13 @@ function loadOptions() {
 
 function saveOptions() {
     try {
-        localStorage.setItem(KEY, JSON.stringify({ skipCutscenes: options.skipCutscenes, showControls: options.showControls, mute: options.mute }));
+        localStorage.setItem(KEY, JSON.stringify({
+            skipCutscenes: options.skipCutscenes,
+            showControls: options.showControls,
+            music: options.music,
+            sfx: options.sfx,
+            unmute: options.unmute,
+        }));
     } catch {
         // Private mode: the options last until the page closes.
     }
@@ -56,7 +71,9 @@ export function setupControls(player) {
     const settings = iconButton('Settings', Settings);
     settings.setAttribute('aria-expanded', 'false');
     settings.setAttribute('aria-controls', 'settings');
-    const sound = iconButton('Sound off (M)', Volume2);
+    const sound = iconButton('Sound', VolumeX);
+    sound.setAttribute('aria-expanded', 'false');
+    sound.setAttribute('aria-controls', 'sound');
     const pause = iconButton('Pause (P)', Pause);
     const full = iconButton('Full screen (F)', Maximize);
 
@@ -74,6 +91,9 @@ export function setupControls(player) {
             saveOptions();
         });
         label.append(input, document.createTextNode(text));
+        label.sync = () => {
+            input.checked = get();
+        };
         return label;
     };
     panel.append(
@@ -81,17 +101,73 @@ export function setupControls(player) {
         toggle('Control reminders', () => options.showControls, (v) => { options.showControls = v; }),
     );
 
-    bar.append(settings, sound, pause, full, panel);
-
+    const soundPanel = document.createElement('div');
+    soundPanel.id = 'sound';
+    soundPanel.className = 'settings';
+    soundPanel.hidden = true;
     const applySound = () => {
-        audio.setVolume(options.mute ? 0 : 100);
-        setIcon(sound, options.mute ? VolumeX : Volume2, options.mute ? 'Sound on (M)' : 'Sound off (M)');
-        sound.setAttribute('aria-pressed', String(options.mute));
+        audio.setChannel('music', options.music / 100);
+        audio.setChannel('sfx', options.sfx / 100);
+        const loudest = Math.max(options.music, options.sfx);
+        const level = loudest === 0 ? 0 : loudest < 50 ? 1 : 2;
+        setIcon(sound, [VolumeX, Volume1, Volume2][level], loudest === 0 ? 'Sound: off (M)' : 'Sound (M mutes)');
     };
+    /** A volume slider, 0..100 in steps of 5, with its value shown next to it. */
+    const slider = (text, key) => {
+        const label = document.createElement('label');
+        label.className = 'volume';
+        const name = document.createElement('span');
+        name.textContent = text;
+        const input = document.createElement('input');
+        input.type = 'range';
+        input.min = '0';
+        input.max = '100';
+        input.step = '5';
+        const value = document.createElement('output');
+        const show = () => {
+            input.value = String(options[key]);
+            value.textContent = `${options[key]}%`;
+            input.setAttribute('aria-valuetext', `${options[key]} percent`);
+        };
+        input.addEventListener('input', () => {
+            options[key] = Number(input.value);
+            options.unmute = null;
+            show();
+            applySound();
+            saveOptions();
+        });
+        label.append(name, input, value);
+        label.sync = show;
+        show();
+        return label;
+    };
+    const soundSliders = [slider('Music', 'music'), slider('Sound effects', 'sfx')];
+    soundPanel.append(...soundSliders);
+
+    bar.append(settings, sound, pause, full, panel, soundPanel);
+
+    /** M: mutes everything, and the next time brings the volumes back (or full volume if there were none). */
     const toggleSound = () => {
-        options.mute = !options.mute;
+        if (options.music || options.sfx) {
+            options.unmute = { music: options.music, sfx: options.sfx };
+            options.music = 0;
+            options.sfx = 0;
+        } else {
+            const back = options.unmute ?? { music: 100, sfx: 100 };
+            options.music = back.music;
+            options.sfx = back.sfx;
+            options.unmute = null;
+        }
+        soundSliders.forEach((s) => s.sync());
         applySound();
         saveOptions();
+    };
+    const openPanel = (which) => {
+        for (const [p, b] of [[panel, settings], [soundPanel, sound]]) {
+            const open = p === which && p.hidden;
+            p.hidden = !open;
+            b.setAttribute('aria-expanded', String(open));
+        }
     };
     const setPaused = (on) => {
         state.paused = on;
@@ -114,17 +190,13 @@ export function setupControls(player) {
         full.hidden = true;
     }
 
-    settings.addEventListener('click', () => {
-        panel.hidden = !panel.hidden;
-        settings.setAttribute('aria-expanded', String(!panel.hidden));
-    });
-    sound.addEventListener('click', toggleSound);
+    settings.addEventListener('click', () => openPanel(panel));
+    sound.addEventListener('click', () => openPanel(soundPanel));
     pause.addEventListener('click', () => setPaused(!state.paused));
     full.addEventListener('click', toggleFull);
     document.addEventListener('pointerdown', (e) => {
-        if (!panel.hidden && !bar.contains(e.target)) {
-            panel.hidden = true;
-            settings.setAttribute('aria-expanded', 'false');
+        if (!bar.contains(e.target)) {
+            openPanel(null);
         }
     });
     window.addEventListener('keydown', (e) => {

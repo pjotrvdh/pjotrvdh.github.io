@@ -4,19 +4,27 @@ import { CHARS, EXPORTS, soundUrl } from '../render/library.js';
  * Sound with the Web Audio API: the original MP3s, played the way the AS2 Sound object and the
  * timelines did. A Sound (new Sound() in the scripts) attaches an exported sound by name, starts it
  * with an offset and loop count, has a volume and calls onSoundComplete. Timelines start event sounds
- * (StartSound) and streams. The master volume is the "mute" option.
+ * (StartSound) and streams.
+ *
+ * Two channels, each with its own volume in the sound panel (controls.js): `music` (the background
+ * music and the cutscenes' streamed soundtracks) and `sfx` (everything else).
  */
 
 const buffers = new Map();
 let ctx = null;
-let master = null;
+/** The channels' gain nodes, by name; their volumes (0..1) are kept here until the context exists. */
+const channels = { music: null, sfx: null };
+const channelVolume = { music: 1, sfx: 1 };
 const playing = new Set();
 
 function context() {
     if (!ctx) {
         ctx = new AudioContext();
-        master = ctx.createGain();
-        master.connect(ctx.destination);
+        for (const name of Object.keys(channels)) {
+            channels[name] = ctx.createGain();
+            channels[name].gain.value = channelVolume[name];
+            channels[name].connect(ctx.destination);
+        }
     }
     return ctx;
 }
@@ -51,7 +59,7 @@ export function preloadSounds() {
 
 /** One playing sound: a buffer source with its own gain. */
 class Voice {
-    constructor(file, { offset = 0, loops = 0, volume = 1, onEnd = null, id = null } = {}) {
+    constructor(file, { offset = 0, loops = 0, volume = 1, onEnd = null, id = null, channel = 'sfx' } = {}) {
         this.file = file;
         this.id = id;
         this.stopped = false;
@@ -59,7 +67,7 @@ class Voice {
         this.offset = offset;
         this.gain = context().createGain();
         this.gain.gain.value = volume;
-        this.gain.connect(master);
+        this.gain.connect(channels[channel]);
         this.onEnd = onEnd;
         playing.add(this);
         load(file).then((buffer) => {
@@ -125,9 +133,10 @@ class Voice {
     }
 }
 
-/** The AS2 Sound object. */
+/** The AS2 Sound object. `channel` is 'sfx' unless set to 'music' (context.js does for the music). */
 export class Sound {
-    constructor() {
+    constructor(channel = 'sfx') {
+        this.channel = channel;
         this.file = null;
         this.volume = 100;
         this.voice = null;
@@ -149,6 +158,7 @@ export class Sound {
             offset,
             loops,
             volume: this.volume / 100,
+            channel: this.channel,
             onEnd: () => this.onSoundComplete?.call(this),
         });
     }
@@ -189,9 +199,9 @@ export const audio = {
         new Voice(file, { loops: info.loops ?? 0, id });
     },
 
-    /** A timeline's stream sound, from an offset in seconds; returns something with stop(). */
+    /** A timeline's stream sound (a cutscene's soundtrack), from an offset in seconds; returns something with stop(). */
     playStream(file, offset) {
-        return new Voice(file, { offset });
+        return new Voice(file, { offset, channel: 'music' });
     },
 
     /** stopAllSounds(). */
@@ -211,9 +221,11 @@ export const audio = {
         }
     },
 
-    /** The global volume, 0..100 (the original's _root.globalSound.setVolume()). */
-    setVolume(v) {
-        context();
-        master.gain.value = v / 100;
+    /** Sets a channel's ('music' or 'sfx') volume, 0..1. */
+    setChannel(name, volume) {
+        channelVolume[name] = volume;
+        if (channels[name]) {
+            channels[name].gain.value = volume;
+        }
     },
 };

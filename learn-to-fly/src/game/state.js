@@ -30,17 +30,23 @@ export function freshState() {
         keepPlaying: false,
         // infoboard1-3: the tutorial boards seen (start, first glider, first rocket).
         boards: [false, false, false],
+        // Set (and saved) once any cheat is used in this game; a new game clears it.
+        cheated: false,
     };
 }
 
 export const state = freshState();
 
-/** Options of the options menu (not saved, as in the original). */
+/** The settings (controls.js keeps them in localStorage `learn-to-fly-options`). */
 export const options = {
     quality: 3,
     skipCutscenes: false,
     showControls: true,
-    mute: false,
+    // Volumes, 0..100, set with the sound panel's sliders: music starts off, sound effects at full.
+    music: 0,
+    sfx: 100,
+    // The volumes before M muted everything (M again brings them back); saved too.
+    unmute: null,
 };
 
 export function save() {
