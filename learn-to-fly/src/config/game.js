@@ -9,6 +9,11 @@ export default {
      * the duration as a multiplier (duration / 10), at most 3.
      */
     scoreDivisor: 10,
+    /**
+     * Every skip on the water (a bounce off the sea) adds this share of the flight's cash on top, so
+     * three skips pay 30% more. Not in the original.
+     */
+    skipBonus: 0.1,
     maxBoardDuration: 30,
     /**
      * End texts by number of days: the first entry whose `over` is below the days played picks the

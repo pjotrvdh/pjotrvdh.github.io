@@ -18,6 +18,8 @@
 
   <!-- In flight: the control reminders (src/game/hud.js). -->
   <p class="flight-hint" id="hint" hidden></p>
+  <!-- In flight: a call for every skip on the water (src/game/hud.js). -->
+  <p class="skip-call" id="skipCall" hidden></p>
 
   <!-- In flight: speed, altitude, distance, air resistance and fuel (src/game/hud.js). -->
   <div class="hud" id="hud" hidden>
@@ -45,6 +47,7 @@
       <div><dt>Distance</dt><dd id="bDist">$0</dd></div>
       <div><dt>Max altitude</dt><dd id="bAlt">$0</dd></div>
       <div><dt>Flight duration</dt><dd id="bDur">×0.0</dd></div>
+      <div id="bSkipRow" hidden><dt>Water skips <span id="bSkips"></span></dt><dd id="bSkip">$0</dd></div>
       <div class="total"><dt>Total</dt><dd id="bTotal">$0</dd></div>
     </dl>
     <p>Click or press any key to continue</p>

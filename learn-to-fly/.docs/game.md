@@ -31,12 +31,13 @@ description: Learn to Fly's scenes, flight physics, money, shop, ramps and achie
 - Ramp: the penguin moves `vmag` along its angle; `settle()` snaps it onto the ramp shape with `hitTest`, half a pixel at a time; the slope 40 px ahead sets the angle and the speed gain (`rampSlide`).
 - Past the ramp's end it jumps: speed becomes `vx`/`vy`, the angle (degrees) gets the glider's `sink`.
 - Air: arrows turn (more when slow), Space burns fuel. The glide ratio follows `(vmag − fallSpeed) / (glideSpeed − fallSpeed)` by at most 0.05 a frame; movement mixes gliding along the angle with free fall. Above `criticalSpeed` the drag grows fast.
-- Sea: flat (rotation 75-105°) and at least 20 px/frame bounces; else the penguin dives, floats up and the flight ends when it is slower than 0.7.
+- Sea: flat (rotation 75-105°) and at least 20 px/frame bounces (a skip, counted in `f.skips`); else the penguin dives, floats up and the flight ends when it is slower than 0.7.
 - The camera moves the world (`movecam()`), not the penguin; clouds are recycled ahead of the penguin (`getCloud()`).
 
 ## Money and achievements
 
 - Cash after a flight: `round((round(distance) + round(maxaltitude)) × round(duration) / 10)`; the board shows the duration as ×0.1 per unit, at most ×3, but the payout uses it uncapped (original).
+- Skip bonus (not in the original): every skip on the water adds `skipBonus` (10%, `config/game.js`) of that cash on top (`skipPay()`). Each skip shows a gold call ("Water skip ×2! +20% cash", `#skipCall`, 1.2 s) and the score board a Water skips row (only after a skip) whose amount is part of the total.
 - Quirks kept from the original: the final distance is × 0.4; on diving in, `maxaltitude` is doubled to quadrupled (the altitude achievement uses half of it); duration starts at 9.5 and adds 0.02 a frame; glide-time achievements use `(duration − 9.5) / 0.6`.
 - Achievements per ramp and their rewards: `config/ramps.js`. A ramp opens after `unlock` achievements over all ramps.
 - Shop (`config/upgrades.js`): hovering a level shows that level's price; buying a level several steps up costs only that level's price (original). Fuel is for sale once you own a rocket.

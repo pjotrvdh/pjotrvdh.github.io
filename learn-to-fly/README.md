@@ -10,7 +10,7 @@ The graphics, animations, fonts and sounds come from the game's SWF, exported by
 - **Slide** down the ramp and wait until you reach the jump.
 - **Fly:** the left and right arrow keys tilt the penguin. Diving gains speed, pulling up gains height. With a glider, keep under its red "critical velocity" or the air brakes you hard.
 - **Rocket:** hold Space to burn fuel.
-- **Bounce:** hit the water flat and fast enough and you skip back up.
+- **Bounce:** hit the water flat and fast enough and you skip back up. Every skip adds 10% to the flight's cash (a skip bonus the original doesn't have).
 - **Cash:** (distance + altitude) × flight time / 10, after every flight. Each of the five ramps has four achievements (distance, altitude, speed, glide time) with a cash reward; achievements open the bigger ramps.
 - **Shop:** Ramp Height, Acceleration, Air Resistance, three gliders, three rockets and rocket fuel.
 - **Win:** fly 6000 ft. The end screen counts your days.
