@@ -237,6 +237,7 @@ export function setupControls(player) {
         soundSliders.forEach((s) => s.sync());
         applySound();
     };
+    state.setPaused = setPaused;
     void player;
     return state;
 }

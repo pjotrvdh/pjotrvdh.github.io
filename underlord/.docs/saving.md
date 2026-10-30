@@ -14,7 +14,7 @@ description: Underlord in localStorage: the live game, the saved copy, SAVE_V, a
 - Two slots with the same keys, one localStorage key per value (`src/game/storage.js`, see [../../.docs/arcade.md](../../.docs/arcade.md)), so they can be edited by hand in the dev tools:
   - `underlord.game.*`: the running game, the truth. `syncGame()` (every 0.5 s from `index.js`) writes what changed while `running`; a finished game (`G.over`) is removed.
     - The maps are written only when they changed: `syncMaps()` keeps an FNV-1a fingerprint per array (`mapHash`) and turns an array into text only when its fingerprint moved.
-    - One tab at a time: `claimGame()` takes the Web Lock `underlord.game` for the life of the tab. A second tab shows `#tabNote` ("This dungeon is open in another tab") with New game and Continue disabled, waits for the lock, and once the first tab closes enables them again (Continue then loads what that tab left). Without Web Locks a tab just keeps the game.
+    - One tab at a time: `claimGame()` calls `oneTab('underlord.game', …)` (shared/one-tab.js, see [../../.docs/arcade.md](../../.docs/arcade.md)). Another tab shows a modal over the page and writes nothing (`owner`); taking the game away pauses a running game. Taken back, a running game loads `game.*` (what the other tab left), or returns to the intro card when that game ended.
   - `underlord.save.*`: the saved copy, written by Save and the autosave, brought back by Load and "Load last save".
 - Keys per slot (`<slot>` is `game` or `save`):
   - `<slot>.version` (`SAVE_V`; the slot exists once it is there); `save.savedAt`

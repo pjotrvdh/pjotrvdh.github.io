@@ -6,8 +6,9 @@
  *   save.*   the saved copy: the Save button and the autosave every two minutes copy the game here,
  *            Load and "Load last save" bring it back
  * SAVE_V is the format version; a slot of another version is not loaded.
- * Only one tab keeps the running game (claimGame(), a Web Lock): a second tab waits on the intro card
- * until the first one closes, so two tabs never write over each other's dungeon.
+ * Only one tab keeps the running game (claimGame(), a Web Lock via shared/one-tab.js): another tab
+ * shows a modal until the first one closes or it takes the game over, so two tabs never write over
+ * each other's dungeon.
  */
 import { recount } from './actions.js';
 import { KINDS } from './config.js';
@@ -16,6 +17,7 @@ import { spawn } from './entities.js';
 import { newGame } from './map.js';
 import { restorePrisoner } from './prison.js';
 import { G, app } from './state.js';
+import { oneTab } from '../../../shared/one-tab.js';
 import { dropOldKey } from '../../../shared/storage.js';
 import { store } from './storage.js';
 import { clearLog, msg, syncCpu, syncPause } from './ui.js';
@@ -198,45 +200,36 @@ function syncMaps() {
 let owner = false;
 
 /**
- * Takes the running game for this tab with a Web Lock, held until the tab closes. While another tab
- * has it, the intro card says so and New game and Continue wait; they come back once that tab is
- * closed. Without Web Locks this tab simply keeps the game.
+ * Keeps the running game in this tab only (shared/one-tab.js): while another tab has it a modal
+ * covers the page and this tab writes nothing. Taken back, a running game reads what the other tab
+ * left (or goes back to the intro card when that game ended).
  */
 export function claimGame() {
-    const take = () => {
-        owner = true;
-        document.getElementById('tabNote').hidden = true;
-        document.getElementById('bStart').disabled = false;
-        document.getElementById('bContinue').disabled = false;
-        refreshContinue();
-    };
-    if (!navigator.locks) {
-        take();
-
-        return;
-    }
-    navigator.locks.request('underlord.game', { ifAvailable: true }, (lock) => {
-        if (lock) {
-            take();
-
-            return new Promise(() => {});
-        }
-        document.getElementById('tabNote').hidden = false;
-        document.getElementById('bStart').disabled = true;
-        document.getElementById('bContinue').disabled = true;
-
-        // Wait for the other tab to close; reload what it left, then go on here.
-        return navigator.locks.request('underlord.game', () => {
-            take();
-
-            return new Promise(() => {});
-        });
+    oneTab('underlord.game', {
+        game: 'Underlord',
+        accent: '#b3261e',
+        ink: '#ffffff',
+        onOwner(again) {
+            owner = true;
+            refreshContinue();
+            if (again && app.running) {
+                if (store.has('game.version')) {
+                    loadGame('game');
+                } else {
+                    app.running = false;
+                    document.getElementById('ov').hidden = false;
+                }
+            }
+        },
+        onLost() {
+            owner = false;
+            if (app.running && !app.paused) {
+                app.paused = true;
+                syncPause();
+            }
+        },
     });
 }
-
-// The earlier format kept the save as JSON under one key (`underlord-save`, the same fields): converted
-// once into the saved copy, of any version, so loading still tells an older one apart.
-dropOldKey('underlord-save', (text) => writeSlot('save', JSON.parse(text)));
 
 /**
  * Keeps the `game` slot equal to the running game: first takes in what was changed there by hand

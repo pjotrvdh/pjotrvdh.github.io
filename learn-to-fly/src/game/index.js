@@ -12,6 +12,7 @@ import scripts from './scripts.js';
 import { enterRootFrame } from './start.js';
 import { load, save, state } from './state.js';
 import { has, watch } from './storage.js';
+import { oneTab } from '../../../shared/one-tab.js';
 import { hideScreens, stateChanged } from './ui.js';
 
 /*
@@ -132,9 +133,26 @@ const check = watch((keys) => {
         player.eachClip(dressPenguin);
     }
 });
+// Only one tab keeps the game (shared/one-tab.js): another one shows a modal and writes nothing.
+// Taken back, this tab reads what the other one left; when it is taken away, the game pauses.
+let owner = false;
+oneTab('learn-to-fly.game', {
+    game: 'Learn to Fly',
+    onOwner(again) {
+        owner = true;
+        if (again && load()) {
+            stateChanged();
+            player.eachClip(dressPenguin);
+        }
+    },
+    onLost() {
+        owner = false;
+        controls.setPaused(true);
+    },
+});
 setInterval(() => {
     check();
-    if (has('day')) {
+    if (owner && has('day')) {
         save();
     }
 }, 500);

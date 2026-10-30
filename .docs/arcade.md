@@ -14,7 +14,7 @@ description: How the Arcade repository is laid out and how a game is added to th
 - The repository is `pjotrvdh/pjotrvdh.github.io`; GitHub Pages serves it at the root, `https://pjotrvdh.github.io/`.
 - The root is the Arcade index. Every game is a folder named after its slug (`underlord/`, `twistball/`, `learn-to-fly/`), served at `/<slug>/`.
 - Every game folder is an npm workspace listed in the root `package.json` (`workspaces`), with its own `package.json`, `vite.config.js`, `index.html`, `cover.svg`, `README.md` and `.docs/`.
-- `shared/` holds code the games share at run time: `shared/storage.js` (see Saving below).
+- `shared/` holds code the games share at run time: `shared/storage.js` and `shared/one-tab.js` (see Saving below).
 
 ## Saving
 
@@ -22,6 +22,7 @@ description: How the Arcade repository is laid out and how a game is added to th
 - `read`, `write` (null removes; returns whether it was kept), `readNumber` (rounded) / `readFloat`, `readBool`, `readJson` and `keys(start)` all swallow storage errors (private mode, full storage) and fall back to the default.
 - localStorage is the truth: every game keeps what it would save there as it is now, not only at save points. Twistball writes each value the moment it changes; Learn to Fly and Underlord write what changed twice a second (`write()` skips a value that is already stored). A reload goes on with what is there.
 - `watch(onChange)` reports the keys changed outside the game (checked twice a second, and on other tabs' `storage` events); the game's own writes are not reported. Every game shows such a change at once. It returns its check: a game that writes on a timer calls it first, so an edit by hand is taken in rather than written over.
+- One tab at a time: `oneTab(lock, { game, accent, ink, onOwner, onLost })` from `shared/one-tab.js` holds a Web Lock while the tab is open. Another tab gets a modal over the whole page ("<game> is open in another tab", keys and clicks blocked) and writes nothing; it takes over when the first tab closes, or at once with Play here (the first tab then shows the modal and its `onLost()` pauses it). `onOwner(again)` with `again` reads localStorage back. Learn to Fly and Underlord use it; Twistball doesn't, so two tabs can still play each other online.
 - `dropOldKey(key, convert)` converts and removes a key of an earlier format: old saves keep working, so keep a conversion when the format changes again.
 
 ## The index page
