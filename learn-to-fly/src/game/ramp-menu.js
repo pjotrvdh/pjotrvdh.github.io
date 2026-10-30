@@ -54,7 +54,7 @@ function build() {
     const list = h('ul', { class: 'achievements' });
     const fly = h('button', { type: 'button', class: 'chalk-button fly', onclick: onFly }, 'Fly!');
     // One column in the bottom left corner, so the picture (and the penguin at its top) stays clear.
-    // Select Stage is at the bottom, so its buttons stay put while the panel above changes height.
+    // Select Stage and Fly! are at the bottom, so they stay put while the panel above changes height.
     const screen = h('section', { class: 'ramp-menu', 'aria-label': 'Pick a ramp' },
         h('div', { class: 'ramp-column' },
             h('div', { class: 'ramp-info chalk-panel' },
@@ -63,9 +63,11 @@ function build() {
                 goal,
                 gear,
                 h('h3', {}, 'Achievements ', count),
-                list,
-                fly),
-            h('nav', { class: 'ramp-bar chalk-panel' }, h('span', { class: 'bar-title' }, 'Select Stage'), h('div', { class: 'ramp-buttons', role: 'radiogroup', 'aria-label': 'Ramp' }, buttons))));
+                list),
+            h('nav', { class: 'ramp-bar chalk-panel' },
+                h('span', { class: 'bar-title' }, 'Select Stage'),
+                h('div', { class: 'ramp-buttons', role: 'radiogroup', 'aria-label': 'Ramp' }, buttons),
+                fly)));
     registerScreen('ramps', screen);
     window.addEventListener(STATE_EVENT, () => {
         if (!screen.hidden) {
