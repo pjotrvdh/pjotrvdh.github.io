@@ -4,8 +4,8 @@ import { achievementCount, KINDS, state } from './state.js';
 import { drawing, h, hideClips, money, registerScreen, showScreen, STATE_EVENT } from './ui.js';
 
 /*
- * The ramp menu (root frame 9, the "stage" label): the five ramps and the picked ramp's four
- * achievements in a chalk column in the bottom left corner, over the ramp's picture on the canvas (stagemc, sprite 457, one frame per ramp, with drifting clouds). A ramp opens after a number of achievements over all ramps
+ * The ramp menu (root frame 9, the "stage" label): the five ramps, your glider and rocket and the
+ * picked ramp's four achievements in a chalk column in the bottom left corner, over the ramp's picture on the canvas (stagemc, sprite 457, one frame per ramp, with drifting clouds). A ramp opens after a number of achievements over all ramps
  * (config/ramps.js). "Fly!" starts the day on the picked ramp.
  */
 
@@ -16,6 +16,21 @@ const TEXT = {
     duration: (n) => `Glide for ${n} seconds`,
 };
 const HEIGHTS = ['5', '10', '20', '35', '50'];
+/**
+ * Where the penguin stands on each ramp's picture (picture coordinates, beak and feet included): the
+ * import tool leaves the drawn penguin out, and the real one (sprite 95) is put in this box, so it
+ * shows the glider, rocket and pirate hat you have.
+ */
+const PENGUIN_BOXES = [
+    [341, 166, 377, 212],
+    [300, 99, 336, 146],
+    [268, 40, 293, 74],
+    [259, 25, 278, 48],
+    [257, 1, 270, 18],
+];
+/** Sprite 95's own box for the same parts (body from its left edge to the beak tip, top to feet). */
+const PENGUIN_BODY = [-36.3, -43.9, 26.8, 34.2];
+const PENGUIN = 95;
 
 const ui = {};
 let picked = 1;
@@ -35,18 +50,23 @@ function build() {
     const note = h('p', { class: 'note', 'aria-live': 'polite' });
     const goal = h('p', { class: 'final-goal' });
     const count = h('span', { class: 'count' });
+    const gear = h('p', { class: 'gear' });
     const list = h('ul', { class: 'achievements' });
     const fly = h('button', { type: 'button', class: 'chalk-button fly', onclick: onFly }, 'Fly!');
     // One column in the bottom left corner, so the picture (and the penguin at its top) stays clear.
+    // Select Stage and Fly! are at the bottom, so they stay put while the panel above changes height.
     const screen = h('section', { class: 'ramp-menu', 'aria-label': 'Pick a ramp' },
         h('div', { class: 'ramp-column' },
-            h('nav', { class: 'ramp-bar chalk-panel' }, h('span', { class: 'bar-title' }, 'Select Stage'), h('div', { class: 'ramp-buttons', role: 'radiogroup', 'aria-label': 'Ramp' }, buttons)),
             h('div', { class: 'ramp-info chalk-panel' },
                 title,
                 note,
                 goal,
+                gear,
                 h('h3', {}, 'Achievements ', count),
-                list,
+                list),
+            h('nav', { class: 'ramp-bar chalk-panel' },
+                h('span', { class: 'bar-title' }, 'Select Stage'),
+                h('div', { class: 'ramp-buttons', role: 'radiogroup', 'aria-label': 'Ramp' }, buttons),
                 fly)));
     registerScreen('ramps', screen);
     window.addEventListener(STATE_EVENT, () => {
@@ -54,7 +74,7 @@ function build() {
             render();
         }
     });
-    Object.assign(ui, { screen, buttons, title, note, goal, count, list, fly });
+    Object.assign(ui, { screen, buttons, title, note, goal, gear, count, list, fly });
     window.addEventListener('keydown', onKey);
 }
 
@@ -95,7 +115,43 @@ function pick(n) {
     }
     picked = n;
     g.root.get('stagemc')?.gotoAndStop(n);
+    placePenguin();
     render();
+}
+
+/** The real penguin on the picked ramp's picture, scaled into its box (feet on the snow). */
+function placePenguin() {
+    const pic = g.root.get('stagemc');
+    const penguin = pic?.get('rampPenguin');
+    if (!penguin) {
+        return;
+    }
+    const [x0, y0, , y1] = PENGUIN_BOXES[picked - 1];
+    const s = (y1 - y0) / (PENGUIN_BODY[3] - PENGUIN_BODY[1]);
+    penguin.m = [s, 0, 0, s, x0 - PENGUIN_BODY[0] * s, y1 - PENGUIN_BODY[3] * s];
+}
+
+/** A new penguin each time the menu opens, so it wears what you bought (and the pirate hat). */
+function addPenguin() {
+    const pic = g.root.get('stagemc');
+    if (!pic) {
+        return;
+    }
+    pic.get('rampPenguin')?.removeMovieClip();
+    const penguin = g.player.create(PENGUIN);
+    penguin.name = 'rampPenguin';
+    pic.addChild(penguin, 1000);
+    g.player.initChild(penguin, null, null);
+}
+
+/** Your glider and rocket as chalk drawings with their names. */
+function renderGear() {
+    const item = (upgrade, drawingName) => {
+        const level = state.levels[upgrade];
+        return level > 1 ? h('span', { class: 'gear-item' }, drawing(`${drawingName}${level - 1}`), config.upgrades[upgrade].names[level - 2]) : null;
+    };
+    const items = [item('gliders', 'glider'), item('rockets', 'rocket')].filter(Boolean);
+    ui.gear.replaceChildren(...(items.length ? items : [h('span', { class: 'gear-none' }, 'No glider or rocket yet')]));
 }
 
 function render() {
@@ -113,6 +169,7 @@ function render() {
     ui.note.textContent = open ? '' : `Complete ${ramp.unlock - total} more achievements to unlock`;
     ui.goal.textContent = picked === config.ramps.length ? (state.gameFinished ? 'Game completed!' : `Reach ${config.game.finishDistance} feet to break through the iceberg`) : '';
     ui.fly.disabled = !open;
+    renderGear();
     const done = state.achievements[picked - 1];
     ui.count.textContent = `${KINDS.filter((k) => done[k]).length} / 4`;
     ui.list.replaceChildren(...KINDS.map((kind) => h('li', { class: done[kind] ? 'done' : '' },
@@ -144,6 +201,7 @@ function rampMenu(root) {
     if (!unlocked(picked)) {
         picked = 1;
     }
+    addPenguin();
     pick(picked);
     showScreen('ramps');
     // The keyboard starts on the picked ramp.

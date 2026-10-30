@@ -10,7 +10,7 @@ description: How Learn to Fly exports the SWF and plays it: library.json, timeli
 
 ## The export (`tools/import-swf.mjs`)
 
-- Reads `downloads/learn-to-fly.swf` (SWF 9, AS2, 640 × 480, 33 fps), leaves out some characters (`LEFT_OUT`: loader, intro, the MaxGames sponsor, the version number and the menu's credit; their placements are dropped too) and then every character nothing uses any more, and writes `src/assets/library.json` and `sounds/`. No bitmaps are exported: the rocket flames (shapes 73 and 76) are redrawn as vector shapes (`REDRAWN`), and bitmap fills elsewhere (only in clips hidden behind HTML) are dropped (`dropBitmapFills()`). Rerun it instead of editing the output.
+- Reads `downloads/learn-to-fly.swf` (SWF 9, AS2, 640 × 480, 33 fps), leaves out some characters (`LEFT_OUT`: loader, intro, the MaxGames sponsor, the version number, the menu's credit and the penguin drawn on the ramp pictures, see also `PICTURE_PENGUINS`; their placements are dropped too) and then every character nothing uses any more, and writes `src/assets/library.json` and `sounds/`. No bitmaps are exported: the rocket flames (shapes 73 and 76) are redrawn as vector shapes (`REDRAWN`), and bitmap fills elsewhere (only in clips hidden behind HTML) are dropped (`dropBitmapFills()`). Rerun it instead of editing the output.
 - `chars[id]`, by `t`:
   - `shape`: `b` bounds, `fills`, `lines`, `paths` = `['f' | 'l', styleIndex, svgPathData]` in drawing order (per style group: fills, then lines). Fill edges are chained into closed loops per fill style (fill1 as is, fill0 reversed).
   - `morph`: like a shape, but each path is `{cmd, a, b}` (commands, start and end coordinates, all quadratic), interpolated at the placement's `ratio`.

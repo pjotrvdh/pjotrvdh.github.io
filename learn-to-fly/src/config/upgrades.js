@@ -35,11 +35,15 @@ export default {
             { sink: 1 / 36, fallSpeed: 0, glideSpeed: 7, criticalSpeed: 200, altitudeScale: 200 },
         ],
         prices: [50, 1000, 5000],
+        /** Names of levels 2-4 (the shop's cards, the ramp menu). */
+        names: ['Beat-up glider', 'Hang glider', 'Sail plane'],
     },
     /** Rockets: level 1 is none; the thrust added per frame while Space is held. Original `sro`, `cro`. */
     rockets: {
         values: [0, 0.45, 0.9, 1.5],
         prices: [250, 2000, 10000],
+        /** Names of levels 2-4. */
+        names: ['Penguin rocket', 'Double rocket', 'Mega rocket'],
     },
     /** Rocket fuel: frames of thrust. Only for sale once you have a rocket. Original `srp`, `crp`. */
     fuel: {

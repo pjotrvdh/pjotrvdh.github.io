@@ -2,6 +2,7 @@ import { createElement, Sparkles } from 'lucide';
 import config from '../config/index.js';
 import { g } from './context.js';
 import { f } from './flight.js';
+import { dressPenguin } from './pirate-hat.js';
 import { KINDS, save, state } from './state.js';
 import { stateChanged } from './ui.js';
 
@@ -88,6 +89,8 @@ export function setupCheats() {
             status.textContent = run();
             state.cheated = true;
             save();
+            // The penguins already on screen get their pirate hat at once.
+            g.player.eachClip(dressPenguin);
             stateChanged();
             buttons.forEach((x, i) => {
                 x.textContent = label(CHEATS[i][0]);

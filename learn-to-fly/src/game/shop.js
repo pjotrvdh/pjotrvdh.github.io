@@ -23,18 +23,18 @@ const CARDS = [
         upgrade: 'gliders',
         label: 'Glider',
         items: [
-            { name: 'Beat-up glider', drawing: 'glider1', hint: 'Old beat-up glider, can it really fly?' },
-            { name: 'Hang glider', drawing: 'glider2', hint: 'Your everyday, typical hang glider' },
-            { name: 'Sail plane', drawing: 'glider3', hint: 'High tech sail plane enables incredible glide ratio' },
+            { name: config.upgrades.gliders.names[0], drawing: 'glider1', hint: 'Old beat-up glider, can it really fly?' },
+            { name: config.upgrades.gliders.names[1], drawing: 'glider2', hint: 'Your everyday, typical hang glider' },
+            { name: config.upgrades.gliders.names[2], drawing: 'glider3', hint: 'High tech sail plane enables incredible glide ratio' },
         ],
     },
     {
         upgrade: 'rockets',
         label: 'Rocket',
         items: [
-            { name: 'Penguin rocket', drawing: 'rocket1', hint: 'Rocket propelled penguin. Period.' },
-            { name: 'Double rocket', drawing: 'rocket2', hint: 'Twice the power of your regular penguin rocket' },
-            { name: 'Mega rocket', drawing: 'rocket3', hint: "Now that's just plain dangerous…" },
+            { name: config.upgrades.rockets.names[0], drawing: 'rocket1', hint: 'Rocket propelled penguin. Period.' },
+            { name: config.upgrades.rockets.names[1], drawing: 'rocket2', hint: 'Twice the power of your regular penguin rocket' },
+            { name: config.upgrades.rockets.names[2], drawing: 'rocket3', hint: "Now that's just plain dangerous…" },
         ],
     },
 ];
